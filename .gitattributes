@@ -1,0 +1,5 @@
+# Forensic freeze of the live scripts. core.autocrlf=true on this rig
+# would otherwise rewrite origin/*.ps1 to CRLF on checkout and break
+# the SHA-256 pin. _watchdog.ps1 is UTF-8 with BOM + LF; the others
+# are UTF-8 LF, no BOM.
+origin/*.ps1 -text

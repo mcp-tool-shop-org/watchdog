@@ -1,0 +1,25 @@
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Live watchdog runtime artifacts — never commit these.
+# The live process still writes them under E:/AI/training/, not this repo,
+# but keep the names ignored in case a local dry-run drops them here.
+_watchdog_HEARTBEAT
+_watchdog_log.csv
+_watchdog_KILL.log
+_watchdog_STOP
+_watchdog_TRIPPED
+_watchdog_DEAD
+_watchdog_NO_TARGET
+
+# Future npm / site-theme surfaces
+node_modules/
+site/.astro/
+site/dist/
+.polyglot-cache.json
+
+# Pester / pytest scratch
+.pytest-tmp/
+TestResults/
+*.trx
