@@ -1,91 +1,130 @@
+<p align="center">
+  <a href="README.ja.md">日本語</a> | <a href="README.zh.md">中文</a> | <a href="README.es.md">Español</a> | <a href="README.fr.md">Français</a> | <a href="README.hi.md">हिन्दी</a> | <a href="README.it.md">Italiano</a> | <a href="README.pt-BR.md">Português (BR)</a>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mcp-tool-shop-org/brand/main/logos/watchdog/readme.png" alt="watchdog" width="400">
+</p>
+
+<p align="center">
+  <a href="https://github.com/mcp-tool-shop-org/watchdog/actions/workflows/ci.yml"><img src="https://github.com/mcp-tool-shop-org/watchdog/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
+  <a href="https://mcp-tool-shop-org.github.io/watchdog/"><img src="https://img.shields.io/badge/Landing_Page-live-blue" alt="Landing Page"></a>
+</p>
+
 # watchdog
 
-VRAM watchdog for the Robot rig (RTX 5090). It samples GPU temp / power /
-VRAM and system RAM every 2 seconds, and after 3 consecutive breaches it
-kills the guarded interpreters — sd-scripts, trellis2-env, ComfyUI
-embedded Python, ai-toolkit — plus a WSL `pkill -f` pattern.
-
-**This repo is an extraction, not a greenfield build.** The live process
-still runs from `E:/AI/training/`. Nothing in this tree drives the GPU
-until the Director approves a cutover.
-
-Status on 2026-08-20: Repo-First gate. Origin scripts frozen under
-`origin/`. Product layout, publish surface, and CI wait on five Director
-decisions in [`docs/open-decisions.md`](docs/open-decisions.md).
-
-## Live check (the only correct one)
+Windows VRAM / RAM / temp watchdog for NVIDIA GPUs. It samples every 2
+seconds. After 3 consecutive breaches it kills **only** the interpreters
+you listed — and it says so when a breach kills nothing.
 
 ```powershell
-pwsh -NoProfile -File E:\AI\training\_watchdog_status.ps1
+watchdog status    # exit 0 running · 1 no heartbeat · 2 stale (died hard)
+watchdog start -AllowKill
+watchdog stop
 ```
 
-Exit `0` running · `1` no heartbeat · `2` stale (died hard). Do not
-hand-roll a heartbeat-age check. The 2026-08-20 incident was two
-operators, hours apart, each deriving a worse one while this script sat
-on disk.
+Do not hand-roll a heartbeat-age check. Do not process-match on
+`_watchdog`. Those two mistakes are how a dead watchdog and a healthy
+one look identical.
 
-## What is in this repo today
+**v1 is Windows-only** (PowerShell 7, nvidia-smi, WDDM process-memory
+counters, optional WSL `pkill`). Linux is a later version.
 
-| Path | What it is |
+## Install
+
+PowerShell 7.1+. Clone, copy the example config, edit it, start:
+
+```powershell
+git clone https://github.com/mcp-tool-shop-org/watchdog.git
+cd watchdog
+mkdir $HOME\.watchdog
+copy src\Watchdog\config\watchdog.example.psd1 $HOME\.watchdog\config.psd1
+notepad $HOME\.watchdog\config.psd1
+pwsh -File .\watchdog.ps1 start -AllowKill
+pwsh -File .\watchdog.ps1 status
+```
+
+Or import the module:
+
+```powershell
+Import-Module .\src\Watchdog\Watchdog.psd1
+Start-Watchdog -AllowKill
+Get-WatchdogStatus
+Register-WatchdogPoll   # scheduled task: detect death, never restart
+```
+
+`Install-Watchdog` copies the module into your CurrentUser module path.
+
+## Config
+
+There is **no default Root and no default kill list.** The module refuses
+to start without a config. Search order: `-ConfigPath`,
+`$env:WATCHDOG_CONFIG`, `./watchdog.config.psd1`, `~/.watchdog/config.psd1`.
+
+Required fields: `Root`, `Targets`, `VramKillMiB`, `RamKillPct`,
+`TempKillC`. Relative paths are rejected. Writes stay under `Root`.
+
+`VramKillMiB = 31200` is the documented bound for a 32 GB card (~1.4 GB
+below a 32607 MiB WDDM ceiling). Do **not** raise it to stop ComfyUI
+trips — cap ComfyUI (`--reserve-vram`) instead.
+
+## Commands
+
+| Command | What it does |
 |---|---|
-| `origin/` | Byte-identical freeze of the four live scripts, SHA-256 pinned |
-| `docs/incidents.md` | Dated scar tissue those scripts still carry |
-| `docs/open-decisions.md` | Five calls the Director owns |
-| `LICENSE` | MIT, from the GitHub repo create |
+| `watchdog status` | Liveness. The only correct check. |
+| `watchdog start -AllowKill` | Sentinel-stop, wait, clear, detached launch, verify heartbeat |
+| `watchdog stop` | STOP sentinel, wait. Never process-match. |
+| `watchdog poll` | One-shot: if heartbeat is stale, write `_watchdog_DEAD` from the outside |
+| `watchdog help` | Flags and exit codes |
+| `watchdog version` | `1.0.0` |
 
-Runtime artifacts (`_watchdog_HEARTBEAT`, `_watchdog_log.csv`,
-`_watchdog_KILL.log`, the STOP/TRIPPED/DEAD/NO_TARGET sentinels) stay
-next to the live process. They are not product source.
+`status` / `poll` exit codes: **0** running · **1** no heartbeat · **2**
+stale. `start` also uses **3** (VRAM already over ceiling), **4** (old
+loop did not stop), **5** (no heartbeat after launch).
 
-`saltroad_watchdog.ps1` is unrelated (RunPod poller). Not copied.
+`-Hook` on status emits Claude Code SessionStart JSON and always exits 0
+so a dead watchdog cannot break session start.
 
-## Proposed layout (not built — waits on §5)
+## What it kills
 
+Only `python` processes whose `Path` is in `Targets`, plus an optional
+WSL `pkill -f` pattern (empty = disabled). Other Python is spared. A
+breach that matches nothing writes `_watchdog_NO_TARGET` — that is a
+protection **gap**, not success.
+
+Consent: `-AllowKill` (or `AllowKill = $true` in config). The poller
+never kills and never auto-restarts; auto-restart can abort a live job.
+
+## Threat model
+
+- **Touched:** files under `Root` (heartbeat, CSV, kill/console/crash logs, sentinels); process list; GPU counters; optional local WSL pkill.
+- **Not touched:** your source tree, checkpoints, credentials, the network.
+- **Permissions:** the user who starts it can kill the configured interpreters. There is no extra service account.
+- **No telemetry** leaves the machine. No secrets in logs.
+- **Irreversible action:** ABORT. See [docs/compensators.md](docs/compensators.md).
+
+## Tests
+
+```powershell
+pwsh -File .\verify.ps1
 ```
-watchdog/
-  origin/                 frozen 2026-08-20 scripts (this commit)
-  src/                    extraction of origin/, then the W-0x fixes
-    Watchdog.ps1          sampling loop — copy first, then patch
-    Start.ps1
-    Status.ps1
-    Test-Abort.ps1        hardware dogfood, not CI
-  config/
-    robot.psd1            rig paths, kill list, 31200 ceiling
-  tests/
-    ParseGpuSample.Tests.ps1
-    Hysteresis.Tests.ps1
-    HeartbeatAge.Tests.ps1
-    Sentinel.Tests.ps1
-    fixtures/nvidia-smi-malformed.txt   the 2026-06-12 crash
-  docs/
-    incidents.md
-    compensators.md       ABORT safety argument — required, no skip
-    open-decisions.md
-  .github/workflows/
-    ci.yml                windows-latest, Pester, no GPU; paths-gated
-```
 
-`src/` is not created until the Director answers name, distribution
-shape, and Windows-only vs Linux. Copying `origin/` into `src/` is the
-first product commit after that — not a rewrite.
+32 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
+output that killed the loop on 2026-06-12. The hardware abort test stays
+local and is not greened in CI.
 
-## Known defects (measured, not yet fixed)
+## Origin
 
-| ID | Defect |
-|---|---|
-| W-01 | CSV truncated on every start (`Set-Content $csv`) |
-| W-02 | CSV rows carry no date (`HH:mm:ss` only) |
-| W-03 | Hard death leaves no diagnostic (hidden `Start-Process` discards stderr) |
-| W-04 | Three timestamp formats, none UTC |
-| W-05 | Rig paths hardcoded |
-| W-06 | No unit tests; the integration test cannot run in CI |
-
-## Thresholds (load-bearing)
-
-VRAM **31200 MiB of 32607**. Do not raise this to stop ComfyUI trips —
-cap ComfyUI (`--reserve-vram`) instead. RAM 90%, temp 87 C, 3 consecutive
-breaches, 2 s interval.
+This is an extraction of a watchdog that already ran on a 5090. The
+pre-extraction scripts are frozen under [`origin/`](origin/) with
+SHA-256 pins. Dated incidents (parse crash, five-week hole, unguarded
+ai-toolkit, 153 empty ABORTs, one-sample death) are in
+[docs/incidents.md](docs/incidents.md).
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). Supported: 1.x.
+
+Built by [MCP Tool Shop](https://mcp-tool-shop.github.io/).

@@ -1,0 +1,3 @@
+NVIDIA-SMI warning: persistence mode is disabled
+Unable to determine the device handle for GPU0
+Failed to initialize NVML: Unknown Error
