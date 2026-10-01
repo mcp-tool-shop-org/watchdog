@@ -18,7 +18,12 @@ permissions:
   id-token: write
 
 jobs:
+  # The repository is private on the Free plan, where GitHub Pages cannot be
+  # enabled, so these jobs are skipped while it stays private. They run again the
+  # day the repository is public: then enable Pages (Settings > Pages, Source:
+  # GitHub Actions).
   build:
+    if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +45,7 @@ jobs:
           path: site/dist
 
   deploy:
+    if: ${{ !github.event.repository.private }}
     needs: build
     runs-on: ubuntu-latest
     environment:
