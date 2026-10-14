@@ -1,14 +1,14 @@
 # watchdog: how it works
 
-Mapped at 2026-10-01 from commit 598f755 by Atlas 1.24.0.
+Mapped at 2026-10-14 from commit 3ed1620 by Atlas 1.24.0.
 
 ## What this is
 
 8 parts, mostly PowerShell (34 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it. It deploys a site to GitHub Pages.
 
-## What changed since the last map
+## What changed since 2026-10-01 (598f755)
 
-This is the first map.
+Nothing structural changed since 2026-10-01; 3 files changed content.
 
 ## What comes in
 
@@ -67,6 +67,6 @@ ci runs no code this map can follow, so there is no path of files to read in ord
 
 ## What this map cannot see
 
-- Statistics confidence is low: fewer than 30 qualifying commits in the window, and fewer than 20 source files reach 10 revisions.
+- Statistics confidence is low: fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions.
 
 Regenerate with `npx --yes @dogfood-lab/atlas map`.

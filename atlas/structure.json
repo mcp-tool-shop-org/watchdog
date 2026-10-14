@@ -32,7 +32,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "9e346d0c09255d00dd79c3c473135d651216640e9ed48de852ee49a3d20d167f",
+          "hash": "52f7db80e5c23076b9a372934486a7dfaebf6c54c0ce7fdc768560f8d321a6ac",
           "path": ".github/workflows/ci.yml"
         },
         {
@@ -141,7 +141,7 @@
           "path": ".gitignore"
         },
         {
-          "hash": "532e09c89d37d39197ccd118a04397eb9665451d369d2a30438077e236de0238",
+          "hash": "e855d29f741c84d8d004dd8badd16f5d321b560dd3e3d37e19f4c41ace367084",
           "path": "CHANGELOG.md"
         },
         {
@@ -228,7 +228,7 @@
           "path": "site/astro.config.mjs"
         },
         {
-          "hash": "af5d4f54dca60686724d306eb58759fb25b6f5ba4d66559ab84a968112a184e5",
+          "hash": "0607a19c4f60b635244a906c7ad2424359b50e20c4a83bc140f202abce4a941e",
           "path": "site/package-lock.json"
         },
         {
@@ -549,7 +549,9 @@
       "landings": [],
       "mentions": [],
       "name": "ci",
-      "permissions": [],
+      "permissions": [
+        "contents:read"
+      ],
       "pushes": false,
       "reach": [
         {
@@ -764,7 +766,7 @@
   "edges": [],
   "engine": "1.24.0",
   "generatedFrom": {
-    "commit": "598f7557cbf50b0123323794309378dd8555adc7",
+    "commit": "3ed16206be8c213ec05d08d8deef97d87d493811",
     "tracked": 82
   },
   "landings": [
