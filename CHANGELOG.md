@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Security
+
+- The CI workflow declares `permissions: contents: read` at the top level, so no job gets more than read access unless it sets its own.
+
 ## [1.0.0] - 2026-08-20
 
 Extraction of a working VRAM watchdog from four PowerShell scripts into a

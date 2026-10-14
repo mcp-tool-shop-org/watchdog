@@ -8,14 +8,32 @@
   ],
   "breaks": [],
   "changes": {
-    "first": true
+    "fileCounts": {
+      "added": 0,
+      "changed": 3,
+      "moved": 0,
+      "parts": 3,
+      "removed": 0
+    },
+    "items": [
+      {
+        "kind": "counts",
+        "sentence": "Nothing structural changed since 2026-10-01; 3 files changed content.",
+        "subjects": []
+      }
+    ],
+    "since": {
+      "commit": "598f7557cbf50b0123323794309378dd8555adc7",
+      "generatedAt": "2026-10-01T03:08:28.490Z"
+    },
+    "unchanged": true
   },
   "changesTogether": [],
   "changesTogetherNote": [
     "Window: 180 days; a pair counts from 3 shared commits, since the window holds fewer than 30 qualifying commits."
   ],
   "changesTogetherWithTests": 0,
-  "commit": "598f7557cbf50b0123323794309378dd8555adc7",
+  "commit": "3ed16206be8c213ec05d08d8deef97d87d493811",
   "defaultBranch": "main",
   "derived": "8 parts, mostly PowerShell (34 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it. It deploys a site to GitHub Pages.",
   "doors": [
@@ -86,9 +104,9 @@
   "edges": [],
   "engine": "1.24.0",
   "generated": [],
-  "generatedAt": "2026-10-01T03:08:28.490Z",
+  "generatedAt": "2026-10-14T23:40:54.164Z",
   "limits": [
-    "Statistics confidence is low: fewer than 30 qualifying commits in the window, and fewer than 20 source files reach 10 revisions."
+    "Statistics confidence is low: fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions."
   ],
   "mainDoor": ".github/workflows/ci.yml",
   "partLabels": {
