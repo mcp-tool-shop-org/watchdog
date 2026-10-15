@@ -1,14 +1,14 @@
 # watchdog: how it works
 
-Mapped at 2026-10-14 from commit 3ed1620 by Atlas 1.24.0.
+Mapped at 2026-10-15 from commit c777acc by Atlas 1.24.0.
 
 ## What this is
 
 8 parts, mostly PowerShell (34 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it. It deploys a site to GitHub Pages.
 
-## What changed since 2026-10-01 (598f755)
+## What changed since 2026-10-14 (3ed1620)
 
-Nothing structural changed since 2026-10-01; 3 files changed content.
+Nothing structural changed since 2026-10-14; 1 file changed content.
 
 ## What comes in
 
