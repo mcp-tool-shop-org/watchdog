@@ -1,14 +1,14 @@
 # watchdog: how it works
 
-Mapped at 2026-10-15 from commit c777acc by Atlas 1.24.0.
+Mapped at 2026-11-11 from commit 770462b by Atlas 1.26.0.
 
 ## What this is
 
 8 parts, mostly PowerShell (34 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it. It deploys a site to GitHub Pages.
 
-## What changed since 2026-10-14 (3ed1620)
+## What changed since 2026-10-15 (c777acc)
 
-Nothing structural changed since 2026-10-14; 1 file changed content.
+Nothing structural changed since 2026-10-15; 3 files changed content.
 
 ## What comes in
 
@@ -40,8 +40,6 @@ No two source files changed together often enough to name.
 Window: 180 days; a pair counts from 3 shared commits, since the window holds fewer than 30 qualifying commits.
 
 ## What no test touches
-
-Every code part this map reads is imported by at least one test.
 
 origin and src hold only PowerShell files, which this map does not read, so whether a test touches them cannot be seen.
 
