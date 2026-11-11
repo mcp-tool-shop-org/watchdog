@@ -32,7 +32,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "52f7db80e5c23076b9a372934486a7dfaebf6c54c0ce7fdc768560f8d321a6ac",
+          "hash": "6ea7a97c54ec8faa1b554490addd50915b37d510df6ec703567661b7f1681ce3",
           "path": ".github/workflows/ci.yml"
         },
         {
@@ -228,11 +228,11 @@
           "path": "site/astro.config.mjs"
         },
         {
-          "hash": "1be0148ea2a3b47ec21f091b74d4135dbd06aa34d69b5643bb4fe65d8dad4b64",
+          "hash": "01b4c7259256650c2f468783bdaf2d5edbf6ac868174322bc113e2b7667c47bb",
           "path": "site/package-lock.json"
         },
         {
-          "hash": "17ed487ab5049bb52f8c5e35f77f21be7da639f1fb6a3fa70e9b02ffabfe7be6",
+          "hash": "f70476bbf956f26e144852469081483b247f4867786b127be7c97ffdc39cfb39",
           "path": "site/package.json"
         },
         {
@@ -764,9 +764,9 @@
     }
   ],
   "edges": [],
-  "engine": "1.24.0",
+  "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "c777accf507f0ad5bdd63a46bb2806158f1e4581",
+    "commit": "770462b1c1182200832f2f8bc0de9a2542ece062",
     "tracked": 82
   },
   "landings": [
