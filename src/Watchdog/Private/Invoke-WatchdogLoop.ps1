@@ -58,7 +58,21 @@ function Invoke-WatchdogLoop {
   $exitReason = $null
   try {
     while (-not (Test-Path $stop)) {
-      Get-WatchdogTimestamp | Set-Content $hb
+      # A locked heartbeat must not kill the loop. status/Get-Content racing this
+      # write is how we got five silent deaths in one sitting (2026-08-25).
+      $hbOk = $false
+      foreach ($i in 1..3) {
+        try {
+          Get-WatchdogTimestamp | Set-Content $hb -ErrorAction Stop
+          $hbOk = $true
+          break
+        } catch {
+          Start-Sleep -Milliseconds 40
+        }
+      }
+      if (-not $hbOk) {
+        "$(Get-WatchdogTimestamp)  heartbeat write skipped (file locked) — loop continues" | Add-Content $kill
+      }
       try {
         $g = Parse-GpuSample (& nvidia-smi --query-gpu=temperature.gpu,power.draw,memory.used --format=csv,noheader,nounits 2>&1)
         $temp = $g.Temp; $pwr = $g.Power; $vram = $g.Vram
