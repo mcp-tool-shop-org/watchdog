@@ -149,7 +149,7 @@
           "path": "CHANGELOG.md"
         },
         {
-          "hash": "af6c396dd794b80a1d3d3f529ced3ece1f6fdf2225a67c4a6e453ac2cabee3a5",
+          "hash": "02e13715e7283153c224740c1f620038636efcdf6e1f494eead4bf4c92c386d7",
           "path": "HANDBOOK.md"
         },
         {
@@ -193,7 +193,7 @@
           "path": "SCORECARD.md"
         },
         {
-          "hash": "54bf90bb69ee138e1690227789415e80c4c9e6829cb9b0726c35f7bbc9dd1eb4",
+          "hash": "2af05f063d26b1458ace2476dd600315c1a6c6d604062862320ca5d28d9dcb2a",
           "path": "SECURITY.md"
         },
         {
@@ -873,7 +873,7 @@
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "a5c024deb4593af5c2644e183eb39583e502db2a",
+    "commit": "4627e2c193b6256121d9e1002772c0cfc383e738",
     "tracked": 89
   },
   "landings": [
