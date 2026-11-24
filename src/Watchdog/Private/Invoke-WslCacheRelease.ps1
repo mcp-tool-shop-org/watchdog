@@ -45,11 +45,13 @@ function Invoke-WslRootCommand {
 }
 
 function Invoke-ProcessWithTimeout {
-  # Starts a process with no window, waits up to TimeoutSec, kills it on timeout. Returns stdout.
+  # Starts a process with no window, waits up to TimeoutSec, kills it on timeout. Returns stdout and throws on a
+  # non-zero exit; with -PassThru it returns the exit code and stdout instead of throwing. A timeout always throws.
   param(
     [Parameter(Mandatory)][string]$FileName,
     [string]$Arguments = '',
-    [int]$TimeoutSec = 90
+    [int]$TimeoutSec = 90,
+    [switch]$PassThru
   )
   $psi = New-Object System.Diagnostics.ProcessStartInfo
   $psi.FileName = $FileName
@@ -65,10 +67,26 @@ function Invoke-ProcessWithTimeout {
     try { $p.Kill($true) } catch { }
     throw "$FileName timed out after $TimeoutSec s"
   }
+  if ($PassThru) {
+    return [pscustomobject]@{ ExitCode = $p.ExitCode; Out = ($out.Result -replace "`0", '') }
+  }
   if ($p.ExitCode -ne 0) {
     throw ("{0} exited {1}: {2}" -f $FileName, $p.ExitCode, (($err.Result -replace "`0", '').Trim()))
   }
   return ($out.Result -replace "`0", '')
+}
+
+function Test-WslDistroRunning {
+  # True when Distro is in `wsl -l --running -q`, a listing that starts nothing. Bounded like every other wsl.exe
+  # call here: a hang throws after TimeoutSec. A non-zero exit counts as not running, so nothing is dropped.
+  param(
+    [Parameter(Mandatory)][string]$Distro,
+    [int]$TimeoutSec = 90
+  )
+  $r = Invoke-ProcessWithTimeout -FileName 'wsl.exe' -Arguments '-l --running -q' -TimeoutSec $TimeoutSec -PassThru
+  if ($r.ExitCode -ne 0) { return $false }
+  $names = @($r.Out -split "`r?`n" | ForEach-Object { $_.Trim([char]0xFEFF, ' ', "`t") } | Where-Object { $_ })
+  return ($names -contains $Distro)
 }
 
 function ConvertFrom-WslMeminfoCache([string]$Text) {
@@ -103,6 +121,7 @@ function Invoke-WslCacheRelease {
     [scriptblock]$ReadHost = { Get-WslHostMemory },
     [scriptblock]$RunWsl = { param($Distro, $Command, $TimeoutSec) Invoke-WslRootCommand -Distro $Distro -Command $Command -TimeoutSec $TimeoutSec },
     [scriptblock]$TopProcesses = { Get-WslTopProcesses },
+    [scriptblock]$DistroRunning = { param($Distro, $TimeoutSec) Test-WslDistroRunning -Distro $Distro -TimeoutSec $TimeoutSec },
     [datetime]$Now = (Get-Date)
   )
   try {
@@ -111,7 +130,7 @@ function Invoke-WslCacheRelease {
 
     if ($Cfg.WslCacheRelease) {
       $hour = $Now.ToString('yyyyMMddHH')
-      $lastHb = if (Test-Path -LiteralPath $Paths.WslCacheHeartbeat) { (Get-Content -LiteralPath $Paths.WslCacheHeartbeat -Raw).Trim() } else { '' }
+      $lastHb = if (Test-Path -LiteralPath $Paths.WslCacheHeartbeat) { ([string](Get-Content -LiteralPath $Paths.WslCacheHeartbeat -Raw -ErrorAction SilentlyContinue)).Trim() } else { '' }
       if ($lastHb -ne $hour) {
         Write-WslCacheLog $Paths.WslCacheLog "heartbeat $state"
         Set-Content -LiteralPath $Paths.WslCacheHeartbeat -Value $hour
@@ -124,6 +143,17 @@ function Invoke-WslCacheRelease {
     if (Test-Path -LiteralPath $Paths.WslCacheLast) {
       $last = [datetime]::Parse((Get-Content -LiteralPath $Paths.WslCacheLast -Raw).Trim(), [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::RoundtripKind)
       if (($Now - $last).TotalSeconds -lt $Cfg.WslCacheCooldownSec) { return [pscustomobject]@{ Action = 'cooldown' } }
+    }
+
+    # Another distro (a container engine's, for example) can keep vmmemWSL up while WslDistro is stopped, and
+    # `wsl -d <distro>` would START it. So act only when WslDistro is already running; listing the running
+    # distros starts nothing. A run of skips logs one line, and the hourly heartbeat ends the run, so a long
+    # run shows at most one skip line an hour.
+    if (-not (& $DistroRunning $Cfg.WslDistro $Cfg.WslCacheTimeoutSec)) {
+      $skip = "skip: distro '$($Cfg.WslDistro)' is not running, and a cache drop never starts it"
+      $lastLine = if (Test-Path -LiteralPath $Paths.WslCacheLog) { [string](Get-Content -LiteralPath $Paths.WslCacheLog -Tail 1 -ErrorAction SilentlyContinue) } else { '' }
+      if (-not $lastLine.Contains($skip)) { Write-WslCacheLog $Paths.WslCacheLog "$skip; $state" }
+      return [pscustomobject]@{ Action = 'distro-not-running' }
     }
 
     $cacheGB = ConvertFrom-WslMeminfoCache (& $RunWsl $Cfg.WslDistro "grep -E '^(Buffers|Cached):' /proc/meminfo" $Cfg.WslCacheTimeoutSec)

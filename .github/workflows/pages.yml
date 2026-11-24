@@ -1,0 +1,96 @@
+name: Deploy site to GitHub Pages
+
+# Restored for v1.1.0. It was removed while Pages was off (the repository was private on the Free plan,
+# where Pages cannot be enabled); the repository is public and Pages (Source: GitHub Actions) is on.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - '.github/workflows/pages.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+concurrency:
+  # One production key, and never cancel an in-flight deploy: a partial CDN cutover has no health check.
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build site and handbook (Pages artifact)
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install site dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Dependency audit
+        working-directory: site
+        run: npm audit --audit-level=moderate
+
+      - name: Build site
+        working-directory: site
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site/dist
+
+  deploy:
+    name: Deploy to GitHub Pages + verify 200
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+
+      # Pages reports success when the artifact is wired up; probe the landing page and the handbook.
+      - name: Verify landing page and handbook return 200
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          if [ -z "$PAGE_URL" ]; then
+            echo "::error::deploy-pages emitted no page_url. Next: check Settings > Pages (Source: GitHub Actions) and re-run."
+            exit 1
+          fi
+          probe() {
+            local target="$1" label="$2" status="" attempt
+            for attempt in 1 2 3 4 5; do
+              status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 15 "$target" || true)
+              [ -z "$status" ] || [ "$status" = "000" ] && status="curl-failed"
+              echo "$label attempt $attempt/5: HTTP $status"
+              if [ "$status" = "200" ]; then echo "::notice::$label verified ($target)"; return 0; fi
+              if [ "$attempt" -lt 5 ]; then sleep $((attempt * 5)); fi
+            done
+            echo "::error::$label failed after 5 attempts, last HTTP $status for $target. Next: wait for the CDN and re-run."
+            return 1
+          }
+          probe "$PAGE_URL" "landing" || exit 1
+          probe "${PAGE_URL%/}/handbook/" "handbook" || exit 1

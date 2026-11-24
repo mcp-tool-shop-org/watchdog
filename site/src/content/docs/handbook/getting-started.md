@@ -48,5 +48,11 @@ goes stale. It never restarts the loop.
 ## Verify (no GPU)
 
 ```powershell
-pwsh -File .\verify.ps1
+pwsh -File .\verify.ps1             # 114 unit tests
+pwsh -File .\verify.ps1 -Coverage   # also measures line coverage; fails below 90%
 ```
+
+Every kill, process launch, scheduled-task call and module copy in the
+tests is mocked, so running them never touches the machine's processes or
+tasks. CI runs the coverage form and uploads the report to Codecov, which
+requires at least 90% coverage for the whole module and for every change.

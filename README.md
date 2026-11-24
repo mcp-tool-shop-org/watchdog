@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="README.ja.md">日本語</a> | <a href="README.zh.md">中文</a> | <a href="README.es.md">Español</a> | <a href="README.fr.md">Français</a> | <a href="README.hi.md">हिन्दी</a> | <a href="README.it.md">Italiano</a> | <a href="README.pt-BR.md">Português (BR)</a>
+  <a href="README.md">English</a> | <a href="README.ja.md">日本語</a> | <a href="README.zh.md">中文</a> | <a href="README.es.md">Español</a> | <a href="README.fr.md">Français</a> | <a href="README.hi.md">हिन्दी</a> | <a href="README.it.md">Italiano</a> | <a href="README.pt-BR.md">Português (BR)</a>
 </p>
 
 <p align="center">
@@ -8,7 +8,9 @@
 
 <p align="center">
   <a href="https://github.com/mcp-tool-shop-org/watchdog/actions/workflows/ci.yml"><img src="https://github.com/mcp-tool-shop-org/watchdog/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://codecov.io/gh/mcp-tool-shop-org/watchdog"><img src="https://codecov.io/gh/mcp-tool-shop-org/watchdog/graph/badge.svg" alt="Coverage"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
+  <a href="https://mcp-tool-shop-org.github.io/watchdog/"><img src="https://img.shields.io/badge/Landing_Page-live-blue" alt="Landing Page"></a>
 </p>
 
 # watchdog
@@ -28,7 +30,8 @@ Do not hand-roll a heartbeat-age check. Do not process-match on
 one look identical.
 
 **v1 is Windows-only** (PowerShell 7, nvidia-smi, WDDM process-memory
-counters, optional WSL `pkill`). Linux is a later version.
+counters, optional WSL `pkill` and WSL file-cache release). Linux is a
+later version.
 
 ## Install
 
@@ -78,10 +81,12 @@ as root, with a timeout and a cooldown). WSL's own `autoMemoryReclaim` only
 fires when the VM is idle, and a running container engine keeps it busy, so
 large image pulls can leave tens of GB of cache held against Windows.
 
-It never kills a process. It logs to `Root\_watchdog_wslcache.log`: an
-hourly heartbeat, each drop with memory before and after, and an `ALERT`
-naming the top processes if Windows is still above `WslCacheAlertPct`
-afterwards. Thresholds are in the example config.
+It never kills a process, and it never starts a stopped distro: when another
+distro keeps the VM up while `WslDistro` is stopped, it skips the release and
+logs the skip. Its log, `Root\_watchdog_wslcache.log`, records an hourly
+heartbeat; each cache release, with memory before and after it; one line for
+each run of skips; and an `ALERT` naming the top processes if Windows is still
+above `WslCacheAlertPct` after a release. Thresholds are in the example config.
 
 ## Commands
 
@@ -92,7 +97,7 @@ afterwards. Thresholds are in the example config.
 | `watchdog stop` | STOP sentinel, wait. Never process-match. |
 | `watchdog poll` | One-shot: if heartbeat is stale, write `_watchdog_DEAD` from the outside |
 | `watchdog help` | Flags and exit codes |
-| `watchdog version` | `1.0.0` |
+| `watchdog version` | `1.1.0` |
 
 `status` / `poll` exit codes: **0** running · **1** no heartbeat · **2**
 stale. `start` also uses **3** (VRAM already over ceiling), **4** (old
@@ -125,13 +130,14 @@ never kills and never auto-restarts; auto-restart can abort a live job.
 pwsh -File .\verify.ps1
 ```
 
-106 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
+114 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
 output that killed the loop on 2026-06-12. The hardware abort test stays
 local and is not greened in CI.
 
 `pwsh -File .\verify.ps1 -Coverage` adds line coverage of `src/Watchdog`
 and fails below 90%. CI runs it that way and uploads the report to Codecov,
-which holds the whole module and every change to 90%.
+which requires at least 90% coverage for the whole module and for every
+change.
 
 ## Origin
 

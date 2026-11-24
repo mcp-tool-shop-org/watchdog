@@ -1,0 +1,239 @@
+{
+  "version": 1,
+  "pins": {
+    "591efb37d43ca868:fr": {
+      "lang": "fr",
+      "source": "`pwsh -File .\\verify.ps1 -Coverage` adds line coverage of `src/Watchdog`\nand fails below 90%. CI runs it that way and uploads the report to Codecov,\nwhich requires at least 90% coverage for the whole module and for every\nchange.",
+      "translation": "`pwsh -File .\\verify.ps1 -Coverage` ajoute la couverture de lignes de `src/Watchdog` et échoue en dessous de 90 %. La CI l’exécute ainsi et envoie le rapport à Codecov, qui exige au moins 90 % de couverture sur l’ensemble du module et sur chaque modification.",
+      "pinnedAt": "2026-11-24T04:22:27.392Z"
+    },
+    "591efb37d43ca868:it": {
+      "lang": "it",
+      "source": "`pwsh -File .\\verify.ps1 -Coverage` adds line coverage of `src/Watchdog`\nand fails below 90%. CI runs it that way and uploads the report to Codecov,\nwhich requires at least 90% coverage for the whole module and for every\nchange.",
+      "translation": "`pwsh -File .\\verify.ps1 -Coverage` aggiunge la copertura delle righe di `src/Watchdog` e fallisce sotto il 90%. La CI lo esegue in questo modo e carica il report su Codecov, che richiede almeno il 90% di copertura sull’intero modulo e su ogni modifica.",
+      "pinnedAt": "2026-11-24T04:22:27.623Z"
+    },
+    "68acd8baac77644a:it": {
+      "lang": "it",
+      "source": "108 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "108 test unitari, senza GPU. Le fixture del parser includono l’output nvidia-smi malformato che ha interrotto il ciclo il 2026-06-12. Il test di abort hardware resta locale e non viene eseguito in CI.",
+      "pinnedAt": "2026-11-24T04:22:27.623Z"
+    },
+    "8697f6ed8e7efdb5:es": {
+      "lang": "es",
+      "source": "- **Touched:** files under `Root` (heartbeat, CSV, kill/console/crash logs, sentinels); process list; GPU counters; optional local WSL pkill; optional WSL page-cache drop (opt-in, never a kill).\n- **Not touched:** your source tree, checkpoints, credentials, the network.\n- **Permissions:** the user who starts it can kill the configured interpreters. There is no extra service account.\n- **No telemetry** leaves the machine. No secrets in logs.\n- **Irreversible action:** ABORT. See [docs/compensators.md](docs/compensators.md).",
+      "translation": "- **Afectados:** archivos bajo `Root` (latido, CSV, registros de finalización/consola/fallos, centinelas); lista de procesos; contadores de GPU; pkill local de WSL opcional; liberación opcional de caché de páginas de WSL (activación explícita / opt-in, nunca mata procesos).\n- **No afectados:** su árbol de código fuente, puntos de control, credenciales, la red.\n- **Permisos:** el usuario que lo inicia puede finalizar los intérpretes configurados. No hay ninguna cuenta de servicio adicional.\n- **No hay telemetría** que salga de la máquina. No hay secretos en los registros.\n- **Acción irreversible:** ABORTAR. Consulte [docs/compensators.md](docs/compensators.md).",
+      "pinnedAt": "2026-11-24T04:22:27.277Z"
+    },
+    "8697f6ed8e7efdb5:fr": {
+      "lang": "fr",
+      "source": "- **Touched:** files under `Root` (heartbeat, CSV, kill/console/crash logs, sentinels); process list; GPU counters; optional local WSL pkill; optional WSL page-cache drop (opt-in, never a kill).\n- **Not touched:** your source tree, checkpoints, credentials, the network.\n- **Permissions:** the user who starts it can kill the configured interpreters. There is no extra service account.\n- **No telemetry** leaves the machine. No secrets in logs.\n- **Irreversible action:** ABORT. See [docs/compensators.md](docs/compensators.md).",
+      "translation": "- **Touché :** fichiers sous `Root` (signal d’activité, CSV, journaux d’arrêt/console/plantage, sentinelles) ; liste des processus ; compteurs GPU ; pkill WSL local facultatif ; vidage facultatif du cache de pages WSL (opt-in sur activation explicite, ne tue jamais de processus).\n- **Non touché :** votre arborescence de code source, points de contrôle, informations d’identification, le réseau.\n- **Autorisations :** l’utilisateur qui le démarre peut tuer les interpréteurs configurés. Il n’y a pas de compte de service supplémentaire.\n- **Aucune télémétrie** ne quitte la machine. Pas de secrets dans les journaux.\n- **Action irréversible :** ABORT. Voir [docs/compensators.md](docs/compensators.md).",
+      "pinnedAt": "2026-11-24T04:22:27.392Z"
+    },
+    "8697f6ed8e7efdb5:hi": {
+      "lang": "hi",
+      "source": "- **Touched:** files under `Root` (heartbeat, CSV, kill/console/crash logs, sentinels); process list; GPU counters; optional local WSL pkill; optional WSL page-cache drop (opt-in, never a kill).\n- **Not touched:** your source tree, checkpoints, credentials, the network.\n- **Permissions:** the user who starts it can kill the configured interpreters. There is no extra service account.\n- **No telemetry** leaves the machine. No secrets in logs.\n- **Irreversible action:** ABORT. See [docs/compensators.md](docs/compensators.md).",
+      "translation": "- **प्रभावित:** `Root` के अंतर्गत फ़ाइलें (हार्टबीट, CSV, किल/कंसोल/क्रैश लॉग, सेंटिनल); प्रक्रिया सूची; GPU काउंटर; वैकल्पिक स्थानीय WSL pkill; वैकल्पिक WSL पेज-कैश ड्रॉप (ऑप्ट-इन, कभी किसी प्रक्रिया को समाप्त नहीं करता)।\n- **प्रभावित नहीं:** आपका स्रोत ट्री, चेकपॉइंट, क्रेडेंशियल, नेटवर्क।\n- **अनुमतियाँ:** जो उपयोगकर्ता इसे शुरू करता है, वह कॉन्फ़िगर किए गए इंटरप्रेटरों को बंद कर सकता है। कोई अतिरिक्त सेवा खाता नहीं है।\n- **कोई टेलीमेट्री नहीं** मशीन छोड़ती है। लॉग में कोई गुप्त जानकारी नहीं।\n- **अपरिवर्तनीय कार्रवाई:** ABORT। [docs/compensators.md](docs/compensators.md) देखें।",
+      "pinnedAt": "2026-11-24T04:22:27.509Z"
+    },
+    "8697f6ed8e7efdb5:it": {
+      "lang": "it",
+      "source": "- **Touched:** files under `Root` (heartbeat, CSV, kill/console/crash logs, sentinels); process list; GPU counters; optional local WSL pkill; optional WSL page-cache drop (opt-in, never a kill).\n- **Not touched:** your source tree, checkpoints, credentials, the network.\n- **Permissions:** the user who starts it can kill the configured interpreters. There is no extra service account.\n- **No telemetry** leaves the machine. No secrets in logs.\n- **Irreversible action:** ABORT. See [docs/compensators.md](docs/compensators.md).",
+      "translation": "- **Accesso:** file sotto `Root` (heartbeat, CSV, log di terminazione/console/crash, sentinelle); elenco dei processi; contatori GPU; pkill WSL locale opzionale; rilascio opzionale della page cache WSL (opt-in, non termina mai alcun processo).\n- **Non accessibile:** l'albero di origine, i checkpoint, le credenziali, la rete.\n- **Autorizzazioni:** l'utente che lo avvia può terminare gli interpreti configurati. Non è presente alcun account di servizio aggiuntivo.\n- **Nessun telemetria** lascia la macchina. Nessun segreto nei log.\n- **Azione irreversibile:** ABORT. Vedi [docs/compensators.md](docs/compensators.md).",
+      "pinnedAt": "2026-11-24T04:22:27.623Z"
+    },
+    "8697f6ed8e7efdb5:ja": {
+      "lang": "ja",
+      "source": "- **Touched:** files under `Root` (heartbeat, CSV, kill/console/crash logs, sentinels); process list; GPU counters; optional local WSL pkill; optional WSL page-cache drop (opt-in, never a kill).\n- **Not touched:** your source tree, checkpoints, credentials, the network.\n- **Permissions:** the user who starts it can kill the configured interpreters. There is no extra service account.\n- **No telemetry** leaves the machine. No secrets in logs.\n- **Irreversible action:** ABORT. See [docs/compensators.md](docs/compensators.md).",
+      "translation": "- **アクセス対象：**`Root`配下のファイル（ハートビート、CSV、強制終了/コンソール/クラッシュログ、センチネル）、プロセスリスト、GPUカウンター、オプションのローカルWSL pkill、オプションのWSLページキャッシュ破棄（オプトイン、プロセスは決して強制終了しません）。\n- **アクセス対象外：**ソースツリー、チェックポイント、認証情報、ネットワーク。\n- **権限：**モジュールを起動するユーザーは、設定されたインタープリターを強制終了できます。追加のサービスアカウントはありません。\n- **テレメトリは送信されません。**ログに機密情報は含まれません。\n- **不可逆的な操作：**ABORT。詳細については、[docs/compensators.md](docs/compensators.md)を参照してください。",
+      "pinnedAt": "2026-11-24T04:22:27.023Z"
+    },
+    "8697f6ed8e7efdb5:pt": {
+      "lang": "pt",
+      "source": "- **Touched:** files under `Root` (heartbeat, CSV, kill/console/crash logs, sentinels); process list; GPU counters; optional local WSL pkill; optional WSL page-cache drop (opt-in, never a kill).\n- **Not touched:** your source tree, checkpoints, credentials, the network.\n- **Permissions:** the user who starts it can kill the configured interpreters. There is no extra service account.\n- **No telemetry** leaves the machine. No secrets in logs.\n- **Irreversible action:** ABORT. See [docs/compensators.md](docs/compensators.md).",
+      "translation": "- **Acessado:** arquivos sob `Root` (heartbeat, CSV, logs de encerramento/console/falha, sentinelas); lista de processos; contadores da GPU; pkill local WSL opcional; liberação opcional do cache de páginas WSL (opt-in, nunca encerra processos).\n- **Não acessado:** sua árvore de código-fonte, pontos de verificação, credenciais, a rede.\n- **Permissões:** o usuário que o inicia pode encerrar os processos configurados. Não há conta de serviço extra.\n- **Nenhuma telemetria** sai da máquina. Sem segredos nos logs.\n- **Ação irreversível:** ABORT. Consulte [docs/compensators.md](docs/compensators.md).",
+      "pinnedAt": "2026-11-24T04:22:27.735Z"
+    },
+    "8697f6ed8e7efdb5:zh": {
+      "lang": "zh",
+      "source": "- **Touched:** files under `Root` (heartbeat, CSV, kill/console/crash logs, sentinels); process list; GPU counters; optional local WSL pkill; optional WSL page-cache drop (opt-in, never a kill).\n- **Not touched:** your source tree, checkpoints, credentials, the network.\n- **Permissions:** the user who starts it can kill the configured interpreters. There is no extra service account.\n- **No telemetry** leaves the machine. No secrets in logs.\n- **Irreversible action:** ABORT. See [docs/compensators.md](docs/compensators.md).",
+      "translation": "- **已访问：** `Root` 下的文件（心跳、CSV、终止/控制台/崩溃日志、哨兵）；进程列表；GPU 计数器；可选的本地 WSL pkill；可选的 WSL 页面缓存丢弃（默认关闭，需显式启用；绝不会终止进程）。\n- **未访问：** 你的源代码树、检查点、凭据、网络。\n- **权限：** 启动它的人可以终止配置的解释器。没有额外的服务帐户。\n- **没有遥测数据** 会离开机器。日志中没有秘密信息。\n- **不可逆操作：** ABORT。请参阅 [docs/compensators.md](docs/compensators.md)。",
+      "pinnedAt": "2026-11-24T04:22:27.144Z"
+    },
+    "a0b71bd982dfa538:es": {
+      "lang": "es",
+      "source": "114 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "114 pruebas unitarias, sin GPU. Los elementos de prueba del analizador incluyen la salida incorrecta de nvidia-smi que interrumpió el ciclo el 12 de junio de 2026. La prueba de interrupción de hardware permanece local y no se incluye en la integración continua.",
+      "pinnedAt": "2026-11-24T04:44:44.417Z"
+    },
+    "a0b71bd982dfa538:fr": {
+      "lang": "fr",
+      "source": "114 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "114 tests unitaires, pas de GPU. Les données de test du parseur incluent la sortie incorrecte de nvidia-smi qui a interrompu la boucle le 12 juin 2026. Le test d’arrêt matériel reste local et n’est pas intégré dans le processus d’intégration continue.",
+      "pinnedAt": "2026-11-24T04:44:44.533Z"
+    },
+    "a0b71bd982dfa538:hi": {
+      "lang": "hi",
+      "source": "114 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "114 यूनिट परीक्षण, कोई जीपीयू नहीं। पार्सर फिक्स्चर में विकृत nvidia-smi आउटपुट शामिल है, जिसने 2026-06-12 को लूप को समाप्त कर दिया। हार्डवेयर एबॉर्ट परीक्षण स्थानीय रहता है और इसे सीआई में हरी नहीं किया जाता है।",
+      "pinnedAt": "2026-11-24T04:44:44.653Z"
+    },
+    "a0b71bd982dfa538:it": {
+      "lang": "it",
+      "source": "114 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "114 test unitari, senza GPU. Le fixture del parser includono l’output nvidia-smi malformato che ha interrotto il ciclo il 2026-06-12. Il test di abort hardware resta locale e non viene eseguito in CI.",
+      "pinnedAt": "2026-11-24T04:44:44.767Z"
+    },
+    "a0b71bd982dfa538:ja": {
+      "lang": "ja",
+      "source": "114 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "114個のユニットテスト、GPUは使用しません。パーサーのテストデータには、2026年6月12日にループを停止させた、不正なnvidia-smiの出力が含まれています。ハードウェア異常テストはローカルで実行され、CI環境ではグリーン化されません。",
+      "pinnedAt": "2026-11-24T04:44:44.177Z"
+    },
+    "a0b71bd982dfa538:pt": {
+      "lang": "pt",
+      "source": "114 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "114 testes unitários, sem GPU. Os testes do analisador incluem a saída mal formatada do comando nvidia-smi, que interrompeu o ciclo em 12 de junho de 2026. O teste de interrupção de hardware permanece local e não é incluído nos testes de integração contínua.",
+      "pinnedAt": "2026-11-24T04:44:44.889Z"
+    },
+    "a0b71bd982dfa538:zh": {
+      "lang": "zh",
+      "source": "114 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "114 个单元测试，未使用 GPU。解析器测试用例包括导致 2026-06-12 日循环中断的格式错误的 nvidia-smi 输出。硬件中止测试保持本地状态，不会在 CI 中进行绿色测试。",
+      "pinnedAt": "2026-11-24T04:44:44.292Z"
+    },
+    "bd14a49231fa39e0:ja": {
+      "lang": "ja",
+      "source": "**v1 is Windows-only** (PowerShell 7, nvidia-smi, WDDM process-memory\ncounters, optional WSL `pkill` and WSL file-cache release). Linux is a\nlater version.",
+      "translation": "**v1はWindows専用です**（PowerShell 7、nvidia-smi、WDDMプロセスメモリカウンター、オプションのWSL `pkill`およびWSLファイルキャッシュの解放）。Linux版は後日リリースされます。",
+      "pinnedAt": "2026-11-24T04:22:27.022Z"
+    },
+    "bd14a49231fa39e0:zh": {
+      "lang": "zh",
+      "source": "**v1 is Windows-only** (PowerShell 7, nvidia-smi, WDDM process-memory\ncounters, optional WSL `pkill` and WSL file-cache release). Linux is a\nlater version.",
+      "translation": "**v1 仅适用于 Windows**（PowerShell 7、nvidia-smi、WDDM 进程内存计数器、可选的 WSL `pkill` 和 WSL 文件缓存释放）。Linux 版本将在后续发布。",
+      "pinnedAt": "2026-11-24T04:22:27.142Z"
+    },
+    "c3644f6d4ebeacc8:es": {
+      "lang": "es",
+      "source": "WSL file-cache release (opt-in)",
+      "translation": "Liberación de la caché de archivos de WSL (opt-in, activación explícita)",
+      "pinnedAt": "2026-11-24T04:22:27.276Z"
+    },
+    "c3644f6d4ebeacc8:fr": {
+      "lang": "fr",
+      "source": "WSL file-cache release (opt-in)",
+      "translation": "Libération du cache de fichiers WSL (opt-in, sur activation explicite)",
+      "pinnedAt": "2026-11-24T04:22:27.390Z"
+    },
+    "c3644f6d4ebeacc8:hi": {
+      "lang": "hi",
+      "source": "WSL file-cache release (opt-in)",
+      "translation": "WSL फ़ाइल-कैश रिलीज़ (ऑप्ट-इन / डिफ़ॉल्ट रूप से बंद)",
+      "pinnedAt": "2026-11-24T04:22:27.507Z"
+    },
+    "c3644f6d4ebeacc8:it": {
+      "lang": "it",
+      "source": "WSL file-cache release (opt-in)",
+      "translation": "Rilascio della cache dei file WSL (opt-in, su attivazione esplicita)",
+      "pinnedAt": "2026-11-24T04:22:27.621Z"
+    },
+    "c3644f6d4ebeacc8:ja": {
+      "lang": "ja",
+      "source": "WSL file-cache release (opt-in)",
+      "translation": "WSLファイルキャッシュの解放（オプトイン）",
+      "pinnedAt": "2026-11-24T04:22:27.023Z"
+    },
+    "c3644f6d4ebeacc8:pt": {
+      "lang": "pt",
+      "source": "WSL file-cache release (opt-in)",
+      "translation": "Liberação do cache de arquivos WSL (opt-in, ativação explícita)",
+      "pinnedAt": "2026-11-24T04:22:27.733Z"
+    },
+    "c3644f6d4ebeacc8:zh": {
+      "lang": "zh",
+      "source": "WSL file-cache release (opt-in)",
+      "translation": "WSL 文件缓存释放（默认关闭，需显式启用）",
+      "pinnedAt": "2026-11-24T04:22:27.143Z"
+    },
+    "d3f043d75710e34d:es": {
+      "lang": "es",
+      "source": "With `WslCacheRelease = $true`, each poll checks the WSL VM's memory from\nthe Windows side (it never wakes a stopped VM). When `vmmemWSL` is large,\nor Windows memory is under pressure and `vmmemWSL` is mid-sized, the poller\ndrops the Linux page cache in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches`\nas root, with a timeout and a cooldown). WSL's own `autoMemoryReclaim` only\nfires when the VM is idle, and a running container engine keeps it busy, so\nlarge image pulls can leave tens of GB of cache held against Windows.",
+      "translation": "Con `WslCacheRelease = $true`, cada sondeo comprueba la memoria de la máquina virtual WSL desde el lado de Windows (nunca activa una máquina virtual detenida). Cuando `vmmemWSL` es grande, o la memoria de Windows está bajo presión y `vmmemWSL` es de tamaño medio, el sondeo libera la caché de páginas de Linux en `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` como root, con tiempo de espera y enfriamiento). El propio `autoMemoryReclaim` de WSL solo se activa cuando la máquina virtual está inactiva, y un motor de contenedores en ejecución la mantiene ocupada, por lo que las descargas de imágenes grandes pueden dejar decenas de GB de caché retenidos a costa de Windows.",
+      "pinnedAt": "2026-11-24T04:22:27.276Z"
+    },
+    "d3f043d75710e34d:fr": {
+      "lang": "fr",
+      "source": "With `WslCacheRelease = $true`, each poll checks the WSL VM's memory from\nthe Windows side (it never wakes a stopped VM). When `vmmemWSL` is large,\nor Windows memory is under pressure and `vmmemWSL` is mid-sized, the poller\ndrops the Linux page cache in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches`\nas root, with a timeout and a cooldown). WSL's own `autoMemoryReclaim` only\nfires when the VM is idle, and a running container engine keeps it busy, so\nlarge image pulls can leave tens of GB of cache held against Windows.",
+      "translation": "Avec `WslCacheRelease = $true`, chaque contrôle vérifie la mémoire de la machine virtuelle WSL depuis Windows (il ne réveille jamais une machine virtuelle arrêtée). Lorsque `vmmemWSL` est volumineux, ou que la mémoire Windows est sous pression et que `vmmemWSL` est de taille moyenne, le contrôleur vide le cache de pages Linux dans `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` en tant que root, avec délai d’expiration et temps de repos). L’`autoMemoryReclaim` propre à WSL ne se déclenche que lorsque la machine virtuelle est inactive, et un moteur de conteneurs en cours d’exécution la maintient occupée, si bien que le téléchargement d’images volumineuses peut laisser des dizaines de Go de cache retenus au détriment de Windows.",
+      "pinnedAt": "2026-11-24T04:22:27.391Z"
+    },
+    "d3f043d75710e34d:it": {
+      "lang": "it",
+      "source": "With `WslCacheRelease = $true`, each poll checks the WSL VM's memory from\nthe Windows side (it never wakes a stopped VM). When `vmmemWSL` is large,\nor Windows memory is under pressure and `vmmemWSL` is mid-sized, the poller\ndrops the Linux page cache in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches`\nas root, with a timeout and a cooldown). WSL's own `autoMemoryReclaim` only\nfires when the VM is idle, and a running container engine keeps it busy, so\nlarge image pulls can leave tens of GB of cache held against Windows.",
+      "translation": "Con `WslCacheRelease = $true`, ogni controllo verifica la memoria della VM WSL dal lato Windows (non risveglia mai una VM arrestata). Quando `vmmemWSL` è grande, o la memoria di Windows è sotto pressione e `vmmemWSL` è di dimensioni medie, il poller rilascia la page cache di Linux in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` come root, con timeout e cooldown). L’`autoMemoryReclaim` di WSL si attiva solo quando la VM è inattiva e un motore di container in esecuzione la mantiene occupata, quindi il pull di immagini di grandi dimensioni può lasciare decine di GB di cache trattenuti a scapito di Windows.",
+      "pinnedAt": "2026-11-24T04:22:27.622Z"
+    },
+    "d3f043d75710e34d:ja": {
+      "lang": "ja",
+      "source": "With `WslCacheRelease = $true`, each poll checks the WSL VM's memory from\nthe Windows side (it never wakes a stopped VM). When `vmmemWSL` is large,\nor Windows memory is under pressure and `vmmemWSL` is mid-sized, the poller\ndrops the Linux page cache in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches`\nas root, with a timeout and a cooldown). WSL's own `autoMemoryReclaim` only\nfires when the VM is idle, and a running container engine keeps it busy, so\nlarge image pulls can leave tens of GB of cache held against Windows.",
+      "translation": "`WslCacheRelease = $true`を使用すると、各ポーリング時にWSL VMのメモリをWindows側からチェックします（停止中のVMを決して起動しません）。`vmmemWSL`が大きい場合、またはWindowsのメモリが逼迫しており`vmmemWSL`が中程度のサイズの場合、ポーラーは`WslDistro`内のLinuxページキャッシュを破棄します（root権限で`echo 1 > /proc/sys/vm/drop_caches`を実行、タイムアウトとクールダウンあり）。WSL自身の`autoMemoryReclaim`はVMがアイドル状態の場合にのみ作動し、実行中のコンテナエンジンがVMを稼働状態に保つため、大きなイメージのプルによって数十GBのキャッシュがWindows側のメモリを圧迫したまま残ることがあります。",
+      "pinnedAt": "2026-11-24T04:22:27.023Z"
+    },
+    "d3f043d75710e34d:pt": {
+      "lang": "pt",
+      "source": "With `WslCacheRelease = $true`, each poll checks the WSL VM's memory from\nthe Windows side (it never wakes a stopped VM). When `vmmemWSL` is large,\nor Windows memory is under pressure and `vmmemWSL` is mid-sized, the poller\ndrops the Linux page cache in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches`\nas root, with a timeout and a cooldown). WSL's own `autoMemoryReclaim` only\nfires when the VM is idle, and a running container engine keeps it busy, so\nlarge image pulls can leave tens of GB of cache held against Windows.",
+      "translation": "Com `WslCacheRelease = $true`, cada verificação lê a memória da VM WSL pelo lado do Windows (nunca acorda uma VM parada). Quando `vmmemWSL` está grande, ou a memória do Windows está sob pressão e `vmmemWSL` tem tamanho médio, o verificador descarta o cache de páginas do Linux em `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` como root, com tempo limite e cooldown). O `autoMemoryReclaim` do próprio WSL só dispara quando a VM está ociosa, e um mecanismo de contêiner em execução a mantém ocupada, de modo que downloads de imagens grandes podem deixar dezenas de GB de cache retidos em detrimento do Windows.",
+      "pinnedAt": "2026-11-24T04:22:27.734Z"
+    },
+    "d3f043d75710e34d:zh": {
+      "lang": "zh",
+      "source": "With `WslCacheRelease = $true`, each poll checks the WSL VM's memory from\nthe Windows side (it never wakes a stopped VM). When `vmmemWSL` is large,\nor Windows memory is under pressure and `vmmemWSL` is mid-sized, the poller\ndrops the Linux page cache in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches`\nas root, with a timeout and a cooldown). WSL's own `autoMemoryReclaim` only\nfires when the VM is idle, and a running container engine keeps it busy, so\nlarge image pulls can leave tens of GB of cache held against Windows.",
+      "translation": "启用 `WslCacheRelease = $true` 后，每次轮询都会从 Windows 侧检查 WSL 虚拟机的内存（绝不会唤醒已停止的虚拟机）。当 `vmmemWSL` 较大，或 Windows 内存承压且 `vmmemWSL` 为中等大小时，轮询器会在 `WslDistro` 中丢弃 Linux 页面缓存（以 root 身份运行 `echo 1 > /proc/sys/vm/drop_caches`，带超时和冷却时间）。WSL 自身的 `autoMemoryReclaim` 仅在虚拟机空闲时触发，而运行中的容器引擎会使其保持繁忙，因此拉取大型镜像可能会占用数十 GB 缓存而不归还给 Windows。",
+      "pinnedAt": "2026-11-24T04:22:27.143Z"
+    },
+    "ea7cc90b6dcc8dbb:es": {
+      "lang": "es",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "Nunca finaliza un proceso y nunca inicia una distribución que se ha detenido: cuando otra distribución mantiene la máquina virtual en funcionamiento mientras `WslDistro` está detenida, omite la liberación y registra la omisión. Su registro, `Root\\_watchdog_wslcache.log`, anota una señal de actividad cada hora; cada liberación de la caché, con la memoria antes y después; una línea por cada racha de omisiones; y un `ALERT` que indica los procesos principales si Windows sigue por encima de `WslCacheAlertPct` después de una liberación. Los umbrales se encuentran en la configuración de ejemplo.",
+      "pinnedAt": "2026-11-24T04:17:39.751Z"
+    },
+    "ea7cc90b6dcc8dbb:fr": {
+      "lang": "fr",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "Il ne tue jamais un processus et ne démarre jamais une distribution arrêtée : lorsqu’une autre distribution maintient la machine virtuelle en marche alors que `WslDistro` est arrêtée, il ne libère pas le cache et consigne ce saut. Son journal, `Root\\_watchdog_wslcache.log`, enregistre un signal d’activité toutes les heures ; chaque libération du cache, avec la mémoire avant et après ; une ligne par série de sauts ; et un `ALERT` indiquant les processus les plus gourmands en ressources si Windows est toujours au-dessus de `WslCacheAlertPct` après une libération. Les seuils sont définis dans le fichier de configuration d’exemple.",
+      "pinnedAt": "2026-11-24T04:17:39.877Z"
+    },
+    "ea7cc90b6dcc8dbb:hi": {
+      "lang": "hi",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "यह कभी भी किसी प्रक्रिया को समाप्त नहीं करता है, और न ही किसी बंद वितरण को शुरू करता है: जब कोई अन्य वितरण वीएम को चालू रखता है, जबकि `WslDistro` बंद है, तो यह कैश रिलीज़ को छोड़ देता है और इसे लॉग करता है। इसका लॉग, `Root\\_watchdog_wslcache.log`, प्रति घंटे एक हार्टबीट रिकॉर्ड करता है; प्रत्येक कैश रिलीज़, जिसमें उससे पहले और बाद में मेमोरी होती है; लगातार स्किप की हर शृंखला के लिए एक पंक्ति; और एक `ALERT` जो शीर्ष प्रक्रियाओं का नाम देता है यदि रिलीज़ के बाद भी विंडोज `WslCacheAlertPct` से ऊपर है। सीमाएँ उदाहरण कॉन्फ़िगरेशन में दी गई हैं।",
+      "pinnedAt": "2026-11-24T04:22:27.508Z"
+    },
+    "ea7cc90b6dcc8dbb:it": {
+      "lang": "it",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "Non termina mai un processo e non avvia mai una distribuzione che è già stata interrotta: quando un’altra distribuzione mantiene attiva la macchina virtuale mentre `WslDistro` è inattiva, salta l’operazione di rilascio e registra l’omissione. Il suo registro, `Root\\_watchdog_wslcache.log`, registra un segnale di attività ogni ora; ogni operazione di rilascio della cache, con i dati relativi alla memoria prima e dopo; una riga per ogni serie di omissioni; e un `ALERT` che indica i processi principali se Windows è ancora al di sopra di `WslCacheAlertPct` dopo un’operazione di rilascio. Le soglie sono indicate nella configurazione di esempio.",
+      "pinnedAt": "2026-11-24T04:22:27.622Z"
+    },
+    "ea7cc90b6dcc8dbb:ja": {
+      "lang": "ja",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "このツールはプロセスを決して強制終了せず、停止したディストリビューションを決して起動しません。別のディストリビューションが、`WslDistro`が停止している間に仮想マシンを稼働させている場合、このツールはキャッシュの解放をスキップし、その旨をログに記録します。ログファイル`Root\\_watchdog_wslcache.log`には、1時間ごとのハートビート、各キャッシュ解放の前後のメモリ使用量、一連のスキップにつき1行、そして解放の後もWindowsが依然として`WslCacheAlertPct`を超えている場合に上位のプロセス名を示す`ALERT`が記録されます。閾値は、サンプル設定ファイルに記載されています。",
+      "pinnedAt": "2026-11-24T04:22:27.023Z"
+    },
+    "ea7cc90b6dcc8dbb:pt": {
+      "lang": "pt",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "Nunca encerra um processo e nunca inicia uma distribuição que já foi interrompida: quando outra distribuição mantém a máquina virtual em execução enquanto `WslDistro` está interrompida, o watchdog não libera o cache e registra essa omissão. O arquivo de registro, `Root\\_watchdog_wslcache.log`, registra um sinal de atividade a cada hora; cada operação de liberação de cache, com a quantidade de memória antes e depois; uma linha para cada sequência de omissões; e um `ALERT` que identifica os processos que consomem mais recursos, caso o Windows ainda esteja acima de `WslCacheAlertPct` após uma liberação. Os limites estão definidos no arquivo de configuração de exemplo.",
+      "pinnedAt": "2026-11-24T04:17:40.228Z"
+    },
+    "ea7cc90b6dcc8dbb:zh": {
+      "lang": "zh",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "它绝不会终止任何进程，也绝不会启动已停止的发行版：当另一个发行版保持虚拟机运行，而`WslDistro`停止时，它会跳过缓存释放并记录这次跳过。它的日志文件`Root\\_watchdog_wslcache.log`会记录每小时的心跳信息；每次缓存释放及其前后的内存；每一段连续跳过记录一行；如果释放后 Windows 仍然高于`WslCacheAlertPct`，还会记录一个`ALERT`，其中包含占用资源最多的进程的名称。阈值设置请参考示例配置文件。",
+      "pinnedAt": "2026-11-24T04:22:27.143Z"
+    }
+  }
+}

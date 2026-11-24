@@ -34,6 +34,10 @@
         {
           "hash": "868b3a4efc5edcabe1f369a07bad1464e2526c517c459fb68a35d1669dcdbf43",
           "path": ".github/workflows/ci.yml"
+        },
+        {
+          "hash": "093f4ab76b2148bdf4ae9b5ce1f36617cfc4b218bdb8d8c6c967f8b43fa60a67",
+          "path": ".github/workflows/pages.yml"
         }
       ],
       "globs": [
@@ -55,7 +59,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "8e4522d901beb357ffb45afc614d369c7e950815d7d65b93658ce7c7679ab05f",
+          "hash": "d9ff6d4cc9a8454dd35f1c5c65f5eefcabb5e5fabf5d0fecef0db6fe79adb879",
           "path": "docs/compensators.md"
         },
         {
@@ -67,7 +71,7 @@
           "path": "docs/open-decisions.md"
         },
         {
-          "hash": "c75c1b3f5a4ac2be3bf9227a731182d6b9447efc5af631d0441d406ffb6b86c4",
+          "hash": "36f64e2557cadefc09be3d975a3dbeba48786376aee262c6a60f14a7a9056e8f",
           "path": "docs/workflow-standards.md"
         }
       ],
@@ -137,7 +141,11 @@
           "path": ".gitignore"
         },
         {
-          "hash": "0e28d602633ec59251b0bad44cfddc6e295fec9d68354bd41e3b4d2a7b81db4d",
+          "hash": "ff417e6ffcf405cf3e131199144469f8a84feb5d05ac68213fe948d1b4046861",
+          "path": ".polyglot-pins.json"
+        },
+        {
+          "hash": "6a7840400f501a32c779256f12a7839ecc36f957bca21310114cbde40e7d5306",
           "path": "CHANGELOG.md"
         },
         {
@@ -149,35 +157,35 @@
           "path": "LICENSE"
         },
         {
-          "hash": "6fc446e406ab1b697ab4b2de9be932268bde5b31c852d011ce8e00b3baab73ac",
+          "hash": "c4ea515b22f3154866566670b1817e56abcc7114ae1ed23f19d984ba8aacbde1",
           "path": "README.es.md"
         },
         {
-          "hash": "4366691619dbe5f9392565850c0283e0d7f8f5c4909e767dff441b70bc5473d0",
+          "hash": "6698a7bf1403e03ddfb752de005493caf776cb20784ec825cb311b58e4085094",
           "path": "README.fr.md"
         },
         {
-          "hash": "deda35aad4bd0de864a546a16a914ef90e6d37d88de75fda8a61a380fc275833",
+          "hash": "6f221f441c27a15311ba23bbbac78b035035550d079f2f1ebce29f07d0f866ab",
           "path": "README.hi.md"
         },
         {
-          "hash": "b85b8e53999bb46733dee7d78648b16e2f2fc1e3d21cdb64e6867efd56cb6dfd",
+          "hash": "d1207a454c60953a2211f43ae4f3bfbd7cdcb8a447db057ac50046c7698bb950",
           "path": "README.it.md"
         },
         {
-          "hash": "f35144d652bffcae007da3c61a8cdf6ba4d276c28d44e1cff2c41a3bfe179ad3",
+          "hash": "06cdc07c800a9049753aba8adbba267fdbbf8baaa70551d0d948ce18bbd4355a",
           "path": "README.ja.md"
         },
         {
-          "hash": "268c99cbe77fd42711472f0f6c047873a17c7e7ea0e7d0949396e037036f6100",
+          "hash": "e480a8ea866378c6d6af772c0d05a597ff2e61b7e0d46c7eaec00ec69ff05362",
           "path": "README.md"
         },
         {
-          "hash": "1f1ba61e8c768e4363766ece96a490c6340b0283543162556d93b589dccbab79",
+          "hash": "751412a181f1290153d7aed3d92a61be36cbfc719597aaf27cb191657965be81",
           "path": "README.pt-BR.md"
         },
         {
-          "hash": "3fb485a05ca92d5811076d10f2b30e3188999ee344b2e30f12b3b81593de8914",
+          "hash": "a8454e42baf7c4d32ecb254ddedf0ab85ea3e8171db25a88b215dd7565f4ae42",
           "path": "README.zh.md"
         },
         {
@@ -189,8 +197,12 @@
           "path": "SECURITY.md"
         },
         {
-          "hash": "1d84454682bf9837b5394c4b80042d96ce247253914709cab4fee53f402ce97a",
+          "hash": "d06cc53b9eb60fa4c7fb7af4633ece00110601575123cac7757c3654d297da20",
           "path": "SHIP_GATE.md"
+        },
+        {
+          "hash": "dd12df889f24092cb7a0aef085bd9256a3dc6f97c3234c0b48f311884f8c96c4",
+          "path": "codecov.yml"
         },
         {
           "hash": "34b9486d52b79fefd533b464b6f5fc0e9a6b3437f2e788372e27fd17d8037f5d",
@@ -241,11 +253,11 @@
           "path": "site/src/content.config.ts"
         },
         {
-          "hash": "6efc8815af4c558951d21cf88320ae94c14c26ba170c5e6a970dce074a80d78a",
+          "hash": "1d11c175fb939324df13e772ba8544023a591f88ebae2ed125e2150aa67bf52c",
           "path": "site/src/content/docs/handbook/configuration.md"
         },
         {
-          "hash": "27e5803ad251506c6ad343de6dd290c847251e8b35a98f463a95fe25a730dd13",
+          "hash": "9e7da8e02ddec5fce1ec2aceba4ef59489c3e16fd29fbed392add40727d3b0a0",
           "path": "site/src/content/docs/handbook/getting-started.md"
         },
         {
@@ -253,15 +265,15 @@
           "path": "site/src/content/docs/handbook/index.md"
         },
         {
-          "hash": "c5a94ce23783fff242dbd93f7690d9fa7b674b717a5eefac8dbded8e260cdf03",
+          "hash": "13315ea3099078373351fc04fea33f11c8991a28cdf9859eb2d39414888f3bf5",
           "path": "site/src/content/docs/handbook/operations.md"
         },
         {
-          "hash": "165979100fb7a95deae9d8b4776b43de5c139549166065f26583a59ab2d11f45",
+          "hash": "a71c4f0ec9fa626bd37785cddfc3f803fdd672de07c56e7a2f1a95ee6b0600e9",
           "path": "site/src/content/docs/handbook/reference.md"
         },
         {
-          "hash": "55a503a8d9fbffd564964fb1eb0f2cca51dc7ea55cac69d11e9106532517fb55",
+          "hash": "767c91f71bc3a9263811abee63e5a8b9918e1237a351b8e5eecb77e3cf811ace",
           "path": "site/src/content/docs/handbook/security.md"
         },
         {
@@ -282,7 +294,7 @@
         },
         {
           "constantOnly": true,
-          "hash": "5e537bacee1191a14af799d20a5cb77ae4d264ca2ead56e58a20e7ac722bab7d",
+          "hash": "1ecd1f2ed96163eb6f49ec8190400b17acf1f4dfaa8f6c73d7276c52e31ef453",
           "path": "site/src/site-config.ts"
         },
         {
@@ -341,6 +353,10 @@
           "path": "src/Watchdog/Private/Invoke-WatchdogLoop.ps1"
         },
         {
+          "hash": "e7bc51bb95d3a996049b6bcfa08a181c25957f35a4449cea0d36d48ce5c59051",
+          "path": "src/Watchdog/Private/Invoke-WslCacheRelease.ps1"
+        },
+        {
           "hash": "f491e814c73a5fa783129799c383995257af3a3ce0daea6e9d298731ec2b35f2",
           "path": "src/Watchdog/Private/New-WatchdogError.ps1"
         },
@@ -373,7 +389,7 @@
           "path": "src/Watchdog/Public/Install-Watchdog.ps1"
         },
         {
-          "hash": "2df022d26f43f53f4c0b0543518a54aca5501e01c24281d11ffb6235e4e3be7e",
+          "hash": "d4888f24aa5be83195742d65c2367a469510603a71bbfb220f33f50d6cfaf0bd",
           "path": "src/Watchdog/Public/Invoke-WatchdogPoll.ps1"
         },
         {
@@ -389,7 +405,7 @@
           "path": "src/Watchdog/Public/Stop-Watchdog.ps1"
         },
         {
-          "hash": "b42e9d8c62cfb06bdf6602368d390e967e89651dcd8b253110362efc8fa05900",
+          "hash": "dfd931b08bec68c4dd7d39353fa59c9a25b45f81004c7d4c8fdb0c33ba4117d0",
           "path": "src/Watchdog/Watchdog.psd1"
         },
         {
@@ -428,7 +444,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "bcd1df3f0d6aa10af43c5149fa03ccdbbcafbf7e9a6ee28d7f31d92a28544a34",
+          "hash": "dfa9ec21b248be41e26104c5e41535cebe1aaf0de67da5cce063e3a0c98435b8",
           "path": "tests/Cli.Tests.ps1"
         },
         {
@@ -444,6 +460,10 @@
           "path": "tests/HeartbeatAge.Tests.ps1"
         },
         {
+          "hash": "1d5ff19b76877e2c519a09e7aee0bfb55efd052148bd751692e9fec6e497309c",
+          "path": "tests/Helpers.Tests.ps1"
+        },
+        {
           "hash": "add02c612de1bd5fb3498898885ea5454a1012ae50d5cbf79ca88e87651480f3",
           "path": "tests/Helpers.ps1"
         },
@@ -452,12 +472,24 @@
           "path": "tests/Hysteresis.Tests.ps1"
         },
         {
+          "hash": "b659ea5c6683f4f3b458cec61321c36a5e6a2271870f7b05ec51179f307e21c5",
+          "path": "tests/Lifecycle.Tests.ps1"
+        },
+        {
+          "hash": "3c4dab8d5e9bd9fc48ba854a8f6ff362733657c9da7a36aea71d7468f852ec08",
+          "path": "tests/Loop.Tests.ps1"
+        },
+        {
           "hash": "d29c5d5007a34a8731654e3ea0b117f3bdaccf3cc6d34a0f843640d14fd3234d",
           "path": "tests/ParseGpuSample.Tests.ps1"
         },
         {
           "hash": "06f6f386794a9033c590541a57091c75b7252edfe3ed61f9aa9d400456a926b4",
           "path": "tests/Poller.Tests.ps1"
+        },
+        {
+          "hash": "d08e5c9bdfa76568a7c3fcdbcc08ac301d1347e2b41fa12c9cfac8e17a28024b",
+          "path": "tests/WslCacheRelease.Tests.ps1"
         },
         {
           "hash": "aa0270124cadf508af841a2aedc44678401513ae4207cf7ac941e57343d318bb",
@@ -635,13 +667,214 @@
         "codecov/codecov-action"
       ],
       "usesWorkflowToken": false
+    },
+    {
+      "checksCount": 0,
+      "commands": [
+        {
+          "dir": "site",
+          "job": "build",
+          "programs": [
+            "npm"
+          ],
+          "step": "Install site dependencies"
+        },
+        {
+          "dir": "site",
+          "job": "build",
+          "programs": [
+            "npm"
+          ],
+          "step": "Dependency audit"
+        },
+        {
+          "dir": "site",
+          "job": "build",
+          "programs": [
+            "npm"
+          ],
+          "step": "Build site"
+        },
+        {
+          "dir": "",
+          "job": "deploy",
+          "programs": [
+            "curl",
+            "echo",
+            "probe",
+            "sleep"
+          ],
+          "step": "Verify landing page and handbook return 200"
+        }
+      ],
+      "elsewhere": [],
+      "file": ".github/workflows/pages.yml",
+      "gated": [
+        {
+          "jobs": [
+            "build",
+            "deploy"
+          ],
+          "pushes": false,
+          "sends": [
+            "deploysPages"
+          ],
+          "stages": [],
+          "when": {
+            "branches": [
+              "main"
+            ],
+            "byHand": true,
+            "event": "push"
+          }
+        }
+      ],
+      "jobs": [
+        {
+          "basis": "declared",
+          "name": "build",
+          "runsOn": [
+            {
+              "labels": [
+                "ubuntu-latest"
+              ],
+              "platform": {
+                "cpu": "x64",
+                "libc": "glibc",
+                "os": "linux"
+              }
+            }
+          ],
+          "setup": [
+            {
+              "ranges": [
+                {
+                  "from": "24",
+                  "range": ">=24.0.0 <25.0.0-0"
+                }
+              ],
+              "step": "1",
+              "uses": "actions/setup-node",
+              "version": "24"
+            }
+          ]
+        },
+        {
+          "basis": "declared",
+          "environment": {
+            "name": "github-pages"
+          },
+          "name": "deploy",
+          "runsOn": [
+            {
+              "labels": [
+                "ubuntu-latest"
+              ],
+              "platform": {
+                "cpu": "x64",
+                "libc": "glibc",
+                "os": "linux"
+              }
+            }
+          ]
+        }
+      ],
+      "landings": [],
+      "mentions": [],
+      "name": "Deploy site to GitHub Pages",
+      "permissions": [
+        "contents:read",
+        "id-token:write",
+        "pages:write"
+      ],
+      "pushes": false,
+      "reach": [
+        {
+          "boundary": "site",
+          "depth": 0,
+          "files": 5
+        }
+      ],
+      "readers": [],
+      "runs": [
+        {
+          "job": "build",
+          "matched": true,
+          "path": "site/astro.config.mjs",
+          "runKind": "executes",
+          "via": "astro build",
+          "when": {
+            "branches": [
+              "main"
+            ],
+            "byHand": true,
+            "event": "push"
+          }
+        },
+        {
+          "directory": true,
+          "job": "build",
+          "matched": true,
+          "path": "site/src/",
+          "runKind": "executes",
+          "via": "astro build",
+          "when": {
+            "branches": [
+              "main"
+            ],
+            "byHand": true,
+            "event": "push"
+          }
+        }
+      ],
+      "runsCount": 2,
+      "secrets": [],
+      "sends": {
+        "deploysPages": false,
+        "dispatchesTo": [],
+        "opensIssues": false,
+        "opensIssuesOnFailure": false,
+        "opensPullRequests": false,
+        "publishes": false,
+        "publishesTo": [],
+        "releases": false
+      },
+      "stages": [],
+      "triggers": [
+        {
+          "branches": [
+            "main"
+          ],
+          "event": "push",
+          "paths": [
+            ".github/workflows/pages.yml",
+            "site/**"
+          ]
+        },
+        {
+          "event": "release",
+          "types": [
+            "published"
+          ]
+        },
+        {
+          "event": "workflow_dispatch"
+        }
+      ],
+      "uses": [
+        "actions/checkout",
+        "actions/deploy-pages",
+        "actions/setup-node",
+        "actions/upload-pages-artifact"
+      ],
+      "usesWorkflowToken": false
     }
   ],
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "3978a551bb5503fb7f7ccc692263df1c769265f7",
-    "tracked": 81
+    "commit": "a5c024deb4593af5c2644e183eb39583e502db2a",
+    "tracked": 89
   },
   "landings": [
     {
@@ -670,6 +903,6 @@
   "overlaps": [],
   "submodules": [],
   "symlinks": [],
-  "testFiles": 12,
+  "testFiles": 16,
   "unassigned": []
 }

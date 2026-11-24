@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-24
+
+### Changed
+
+- The landing page and handbook are back on GitHub Pages (Pages could not be enabled while the repository was private). The deploy workflow pins every action to a commit SHA, audits the site's dependencies, and checks that the landing page and the handbook both return 200 after each deploy. The handbook documents the WSL cache release, its log, and the coverage bar.
+
 ### Added
 
-- **WSL file-cache release (opt-in, `WslCacheRelease`).** The poller drops the Linux page cache when the WSL VM crowds Windows memory, reading memory from the Windows side so it never wakes a stopped VM. It has thresholds, a cooldown and a timeout, never kills a process, and logs to `_watchdog_wslcache.log` (hourly heartbeat, each drop, and an alert if Windows stays high).
+- **WSL file-cache release (opt-in, `WslCacheRelease`).** The poller drops the Linux page cache when the WSL VM crowds Windows memory, reading memory from the Windows side so it never wakes a stopped VM, and acting only when `WslDistro` is already running, so a distro stopped while another one (a container engine's) keeps the VM up is never started. It has thresholds and a cooldown, puts a timeout on every `wsl.exe` call, and runs after the poll's liveness check, so it can never delay the report of a dead loop. It never kills a process, and logs to `_watchdog_wslcache.log` (hourly heartbeat, each drop, each run of skips, and an alert if Windows stays high).
 - **Coverage bar of 90%.** `verify.ps1 -Coverage` measures line coverage of `src/Watchdog` and fails below 90%. CI runs it and uploads the JaCoCo report to Codecov through OIDC, with `codecov.yml` project and patch targets at 90%. Coverage went from 38% to 96%, with tests for the loop, status, start, stop, install, poll registration and helpers.
 
 ### Fixed

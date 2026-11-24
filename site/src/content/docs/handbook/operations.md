@@ -32,6 +32,23 @@ The job is dead. Last flushed checkpoint is the recover point. Relaunch
 the consumer under the envelope. The watchdog does not restart training.
 See [docs/compensators.md](https://github.com/mcp-tool-shop-org/watchdog/blob/main/docs/compensators.md).
 
+## WSL cache log
+
+With `WslCacheRelease` on, `_watchdog_wslcache.log` under `Root` records:
+
+- `heartbeat` once per clock hour, with Windows used, free and `vmmemWSL`
+  (proof the release check is alive);
+- `DROPPED`, with the cache size dropped and memory before and after;
+- `no drop`, when the VM was large but its cache was small, meaning real
+  process memory is holding it;
+- `skip`, when the VM was large but `WslDistro` was not running (another
+  distro is holding the VM up). A run of skips logs one line, and at most
+  one an hour;
+- `ALERT`, with the top five processes, when Windows is still at or above
+  `WslCacheAlertPct` after a drop. That memory is held by processes, not
+  cache, and the watchdog will not free it. Find the process;
+- `ERROR`, when a `wsl.exe` call failed or timed out. The poll carries on.
+
 ## Cutover from a live script
 
 If a machine already runs a copy of the old `_watchdog.ps1`, stopping it

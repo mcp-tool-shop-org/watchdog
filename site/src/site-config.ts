@@ -50,6 +50,10 @@ export const config: SiteConfig = {
           title: 'The next hard death leaves a body',
           desc: 'CSV is appended, not truncated. Timestamps are UTC. The child transcripts to _watchdog_console.log. Unhandled exceptions land in _watchdog_crash.log.',
         },
+        {
+          title: 'WSL cache gives memory back',
+          desc: 'Opt-in: the poller drops the WSL page cache when the VM crowds Windows memory. It reads from the Windows side, never starts a stopped VM or distro, and never kills a process.',
+        },
       ],
     },
     {
@@ -67,7 +71,7 @@ export const config: SiteConfig = {
         },
         {
           title: 'Verify (no GPU)',
-          code: 'pwsh -File .\\verify.ps1\n# 32 unit tests. The abort test stays local.',
+          code: 'pwsh -File .\\verify.ps1 -Coverage\n# 114 unit tests, 90% coverage floor. The abort test stays local.',
         },
       ],
     },
