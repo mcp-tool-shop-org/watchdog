@@ -31,4 +31,19 @@
 
   # External poller interval (scheduled task). Detects death; never restarts.
   PollIntervalSec = 30
+
+  # WSL file-cache release (opt-in). On each poll, if the WSL VM (vmmemWSL) is large, the poller drops the
+  # Linux page cache (`echo 1 > /proc/sys/vm/drop_caches`, as root in WslDistro). It never kills a process
+  # and never wakes a stopped VM. Acts when vmmemWSL >= WslCacheHighGB, or Windows memory used >=
+  # WslCacheWinHighPct with vmmemWSL >= WslCacheMinGB, and only if the Linux cache is >= WslCacheMinCacheGB.
+  # Log: Root\_watchdog_wslcache.log (hourly heartbeat, each drop, ALERT if Windows stays >= WslCacheAlertPct).
+  WslCacheRelease     = $false
+  WslCacheHighGB      = 16
+  WslCacheMinGB       = 8
+  WslCacheWinHighPct  = 80
+  WslCacheMinCacheGB  = 6
+  WslCacheAlertPct    = 90
+  WslCacheCooldownSec = 300
+  WslCacheTimeoutSec  = 90
+  WslCacheSettleSec   = 10
 }

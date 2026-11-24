@@ -53,6 +53,32 @@ function Resolve-WatchdogConfig {
     }
   }
 
+  # WSL file-cache release (opt-in). Defaults are the 2026-11-23 rig values; every field must be a
+  # positive number when present so a typo cannot silently turn a threshold into 0.
+  $wslCacheDefaults = [ordered]@{
+    WslCacheHighGB      = 16
+    WslCacheMinGB       = 8
+    WslCacheWinHighPct  = 80
+    WslCacheMinCacheGB  = 6
+    WslCacheAlertPct    = 90
+    WslCacheCooldownSec = 300
+    WslCacheTimeoutSec  = 90
+    WslCacheSettleSec   = 10
+  }
+  $wslCache = @{}
+  foreach ($key in $wslCacheDefaults.Keys) {
+    $value = if ($raw.ContainsKey($key)) { $raw[$key] } else { $wslCacheDefaults[$key] }
+    $number = 0.0
+    $minimum = if ($key -eq 'WslCacheSettleSec') { 0 } else { [double]::Epsilon }
+    if (-not [double]::TryParse([string]$value, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$number) -or $number -lt $minimum) {
+      return New-WatchdogError -Code 'CONFIG_INVALID' -Message "Config field '$key' must be a positive number (got '$value')." -Hint 'See the WSL cache section of src/Watchdog/config/watchdog.example.psd1.' -Retryable $true -ExitCode 1
+    }
+    $wslCache[$key] = $number
+  }
+  if ($wslCache.WslCacheWinHighPct -gt 100 -or $wslCache.WslCacheAlertPct -gt 100) {
+    return New-WatchdogError -Code 'CONFIG_INVALID' -Message 'WslCacheWinHighPct and WslCacheAlertPct are percentages and must be at most 100.' -Hint 'See the WSL cache section of src/Watchdog/config/watchdog.example.psd1.' -Retryable $true -ExitCode 1
+  }
+
   [pscustomobject]@{
     Kind            = 'Config'
     ConfigPath      = [System.IO.Path]::GetFullPath($candidate)
@@ -68,5 +94,14 @@ function Resolve-WatchdogConfig {
     WslKillPattern  = [string]$(if ($raw.ContainsKey('WslKillPattern')) { $raw.WslKillPattern } else { '' })
     AllowKill       = [bool]$(if ($raw.ContainsKey('AllowKill')) { $raw.AllowKill } else { $false })
     PollIntervalSec = [int]$(if ($raw.ContainsKey('PollIntervalSec')) { $raw.PollIntervalSec } else { 30 })
+    WslCacheRelease     = [bool]$(if ($raw.ContainsKey('WslCacheRelease')) { $raw.WslCacheRelease } else { $false })
+    WslCacheHighGB      = $wslCache.WslCacheHighGB
+    WslCacheMinGB       = $wslCache.WslCacheMinGB
+    WslCacheWinHighPct  = $wslCache.WslCacheWinHighPct
+    WslCacheMinCacheGB  = $wslCache.WslCacheMinCacheGB
+    WslCacheAlertPct    = $wslCache.WslCacheAlertPct
+    WslCacheCooldownSec = [int]$wslCache.WslCacheCooldownSec
+    WslCacheTimeoutSec  = [int]$wslCache.WslCacheTimeoutSec
+    WslCacheSettleSec   = [int]$wslCache.WslCacheSettleSec
   }
 }

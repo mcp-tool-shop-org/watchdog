@@ -1,0 +1,17 @@
+# Coverage bar: 90%, enforced on the whole module and on every change.
+# CI also fails below 90% on its own (verify.ps1 -Coverage -MinCoverage 90), so the bar holds even if
+# Codecov is unreachable. Coverage covers src/Watchdog/Private and src/Watchdog/Public; origin/ is a
+# SHA-256 forensic freeze of the pre-extraction scripts and is not product code.
+coverage:
+  status:
+    project:
+      default:
+        target: 90%
+        threshold: 1%
+    patch:
+      default:
+        target: 90%
+
+comment:
+  layout: "condensed_header, condensed_files, condensed_footer"
+  require_changes: false

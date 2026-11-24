@@ -20,13 +20,21 @@ function Register-WatchdogPoll {
     return
   }
   $mod = Join-Path $script:WatchdogModuleRoot 'Watchdog.psd1'
-  $interval = [Math]::Max(15, [int]$cfg.PollIntervalSec)
+  $interval = [Math]::Max(60, [int]$cfg.PollIntervalSec)
   $arg = "-NoProfile -ExecutionPolicy Bypass -Command `"Import-Module -Force '$mod'; Invoke-WatchdogPoll -ConfigPath '$($cfg.ConfigPath)'`""
   $action = New-ScheduledTaskAction -Execute 'pwsh' -Argument $arg
-  $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Seconds $interval) -RepetitionDuration ([TimeSpan]::MaxValue)
+  # Windows rejects TimeSpan.MaxValue as ISO duration P99999999DT23H59M59S (this build).
+  # 10 years is "until we uninstall"; do not print success unless Get-ScheduledTask sees the task.
+  $rep = New-TimeSpan -Seconds $interval
+  $dur = New-TimeSpan -Days 3650
+  $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval $rep -RepetitionDuration $dur
   $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew
   $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
   Register-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
+  $task = Get-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -ErrorAction SilentlyContinue
+  if (-not $task) {
+    throw "Register-ScheduledTask returned without creating MCPToolShop.Watchdog.Poll"
+  }
   Write-Output "registered scheduled task MCPToolShop.Watchdog.Poll every ${interval}s (detect only, never restart)."
 }
 

@@ -1,15 +1,14 @@
 # watchdog: how it works
 
-Mapped at 2026-11-13 from commit d4953d7 by Atlas 1.26.0.
+Mapped at 2026-11-24 from commit 3978a55 by Atlas 1.26.0.
 
 ## What this is
 
 8 parts, mostly PowerShell (34 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 1 door; the busiest is ci, which reaches 1 part.
 
-## What changed since 2026-11-11 (770462b)
+## What changed since 2026-11-13 (d4953d7)
 
-- Deploy site to GitHub Pages (.github/workflows/pages.yml) is no longer a door.
-- 1 file removed and 9 changed content, across 3 parts.
+Nothing structural changed since 2026-11-13; 11 files changed content.
 
 ## What comes in
 
@@ -18,6 +17,7 @@ Mapped at 2026-11-13 from commit d4953d7 by Atlas 1.26.0.
 ## What happens through ci
 
 1. The workflow runs verify.ps1 in the repository root.
+2. It uploads coverage to Codecov.
 
 ## Who reads the results
 

@@ -10,6 +10,9 @@ function Get-WatchdogPaths([string]$Root) {
     NoTarget  = Join-Path $Root '_watchdog_NO_TARGET'
     Console   = Join-Path $Root '_watchdog_console.log'
     Crash     = Join-Path $Root '_watchdog_crash.log'
+    WslCacheLog       = Join-Path $Root '_watchdog_wslcache.log'
+    WslCacheLast      = Join-Path $Root '_watchdog_wslcache.last'
+    WslCacheHeartbeat = Join-Path $Root '_watchdog_wslcache.hb'
   }
 }
 
