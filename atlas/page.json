@@ -10,44 +10,30 @@
   "changes": {
     "fileCounts": {
       "added": 0,
-      "changed": 33,
+      "changed": 2,
       "moved": 0,
-      "parts": 6,
-      "removed": 1
+      "parts": 1,
+      "removed": 0
     },
     "items": [
       {
-        "kind": "door",
-        "sentence": "ci's pull request trigger now also names `codecov.yml`.",
-        "subjects": [
-          ".github/workflows/ci.yml"
-        ]
-      },
-      {
-        "kind": "door",
-        "sentence": "ci's push trigger now also names `codecov.yml`.",
-        "subjects": [
-          ".github/workflows/ci.yml"
-        ]
-      },
-      {
         "kind": "counts",
-        "sentence": "1 file removed and 33 changed content, across 6 parts.",
+        "sentence": "Nothing structural changed since 2026-11-24; 2 files changed content.",
         "subjects": []
       }
     ],
     "since": {
-      "commit": "5ca556ac1e223f060b599a4f87beb3e8c8011376",
-      "generatedAt": "2026-11-24T06:44:40.297Z"
+      "commit": "ed32ced68e7272cfb524450d56c4e222f93ea28c",
+      "generatedAt": "2026-11-24T09:45:38.197Z"
     },
-    "unchanged": false
+    "unchanged": true
   },
   "changesTogether": [],
   "changesTogetherNote": [
     "Window: 180 days; a pair counts from 3 shared commits, since the window holds fewer than 30 qualifying commits."
   ],
   "changesTogetherWithTests": 0,
-  "commit": "ed32ced68e7272cfb524450d56c4e222f93ea28c",
+  "commit": "769acc3fef3b45c4ad1b33d42079a14dd8829443",
   "defaultBranch": "main",
   "derived": "8 parts, mostly PowerShell (39 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it. It deploys a site to GitHub Pages.",
   "doors": [
@@ -130,7 +116,7 @@
   "edges": [],
   "engine": "1.26.0",
   "generated": [],
-  "generatedAt": "2026-11-24T09:45:38.197Z",
+  "generatedAt": "2026-11-24T09:48:23.199Z",
   "limits": [
     "Statistics confidence is low: fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions."
   ],

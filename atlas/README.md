@@ -1,16 +1,14 @@
 # watchdog: how it works
 
-Mapped at 2026-11-24 from commit ed32ced by Atlas 1.26.0.
+Mapped at 2026-11-24 from commit 769acc3 by Atlas 1.26.0.
 
 ## What this is
 
 8 parts, mostly PowerShell (39 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it. It deploys a site to GitHub Pages.
 
-## What changed since 2026-11-24 (5ca556a)
+## What changed since 2026-11-24 (ed32ced)
 
-- ci's pull request trigger now also names `codecov.yml`.
-- ci's push trigger now also names `codecov.yml`.
-- 1 file removed and 33 changed content, across 6 parts.
+Nothing structural changed since 2026-11-24; 2 files changed content.
 
 ## What comes in
 
