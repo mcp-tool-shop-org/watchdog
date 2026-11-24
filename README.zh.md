@@ -25,7 +25,7 @@ watchdog stop
 
 不要手动编写心跳检测。不要对 `_watchdog` 进行进程匹配。这两个错误会导致一个已停止运行的看门狗和一个正常运行的看门狗看起来完全相同。
 
-**v1 仅适用于 Windows**（PowerShell 7、nvidia-smi、WDDM 进程内存计数器、可选的 WSL `pkill` 和 WSL 文件缓存发布）。Linux 版本将在后续发布。
+**v1 仅适用于 Windows**（PowerShell 7、nvidia-smi、WDDM 进程内存计数器、可选的 WSL `pkill` 和 WSL 文件缓存释放）。Linux 版本将在后续发布。
 
 ## 安装
 
@@ -60,11 +60,11 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 
 `VramKillMiB = 31200` 是 32GB 显卡的文档化限制（低于 32607 MiB WDDM 限制约 1.4GB）。不要提高此限制以阻止 ComfyUI 触发——而是限制 ComfyUI（`--reserve-vram`）。
 
-### WSL 文件缓存发布（可选）
+### WSL 文件缓存释放（默认关闭，需显式启用）
 
-使用 `WslCacheRelease = $true`，每个轮询都会从 Windows 侧检查 WSL 虚拟机的内存（它不会唤醒已停止的虚拟机）。当 `vmmemWSL` 很大时，或者 Windows 内存压力较大且 `vmmemWSL` 为中等大小时，轮询器会在 `WslDistro` 中清除 Linux 页面缓存（以 `echo 1 > /proc/sys/vm/drop_caches` 作为 root 用户，设置超时时间和冷却时间）。WSL 自身的 `autoMemoryReclaim` 仅在虚拟机处于空闲状态时触发，而正在运行的容器引擎会使其保持繁忙状态，因此，大型镜像的拉取可能会导致数十 GB 的缓存保留在 Windows 中。
+启用 `WslCacheRelease = $true` 后，每次轮询都会从 Windows 侧检查 WSL 虚拟机的内存（绝不会唤醒已停止的虚拟机）。当 `vmmemWSL` 较大，或 Windows 内存承压且 `vmmemWSL` 为中等大小时，轮询器会在 `WslDistro` 中丢弃 Linux 页面缓存（以 root 身份运行 `echo 1 > /proc/sys/vm/drop_caches`，带超时和冷却时间）。WSL 自身的 `autoMemoryReclaim` 仅在虚拟机空闲时触发，而运行中的容器引擎会使其保持繁忙，因此拉取大型镜像可能会占用数十 GB 缓存而不归还给 Windows。
 
-它不会终止任何进程，也不会启动已停止的发行版：当另一个发行版保持虚拟机运行，而`WslDistro`停止时，它会跳过缓存释放并记录这次跳过。它的日志文件`Root\_watchdog_wslcache.log`会记录每小时的心跳信息；每次缓存释放及其前后的内存；每一段连续跳过记录一行；如果释放后 Windows 仍然高于`WslCacheAlertPct`，还会记录一个`ALERT`，其中包含占用资源最多的进程的名称。阈值设置请参考示例配置文件。
+它绝不会终止任何进程，也绝不会启动已停止的发行版：当另一个发行版保持虚拟机运行，而`WslDistro`停止时，它会跳过缓存释放并记录这次跳过。它的日志文件`Root\_watchdog_wslcache.log`会记录每小时的心跳信息；每次缓存释放及其前后的内存；每一段连续跳过记录一行；如果释放后 Windows 仍然高于`WslCacheAlertPct`，还会记录一个`ALERT`，其中包含占用资源最多的进程的名称。阈值设置请参考示例配置文件。
 
 ## 命令
 
@@ -89,7 +89,7 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 
 ## 威胁模型
 
-- **已访问：** `Root` 下的文件（心跳、CSV、终止/控制台/崩溃日志、哨兵）；进程列表；GPU 计数器；可选的本地 WSL pkill；可选的 WSL 页面缓存删除（可选，绝不会终止进程）。
+- **已访问：** `Root` 下的文件（心跳、CSV、终止/控制台/崩溃日志、哨兵）；进程列表；GPU 计数器；可选的本地 WSL pkill；可选的 WSL 页面缓存丢弃（默认关闭，需显式启用；绝不会终止进程）。
 - **未访问：** 你的源代码树、检查点、凭据、网络。
 - **权限：** 启动它的人可以终止配置的解释器。没有额外的服务帐户。
 - **没有遥测数据** 会离开机器。日志中没有秘密信息。

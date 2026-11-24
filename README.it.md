@@ -60,11 +60,11 @@ Campi obbligatori: `Root`, `Targets`, `VramKillMiB`, `RamKillPct`, `TempKillC`. 
 
 `VramKillMiB = 31200` è il limite documentato per una scheda da 32 GB (~1,4 GB inferiore al limite WDDM di 32607 MiB). Non aumentarlo per evitare che si verifichino troppe interruzioni (ComfyUI); limita invece ComfyUI (`--reserve-vram`).
 
-### Rilascio della cache dei file WSL (opzionale)
+### Rilascio della cache dei file WSL (opt-in, su attivazione esplicita)
 
-Con `WslCacheRelease = $true`, ogni controllo verifica la memoria della VM WSL dal lato Windows (non attiva mai una VM arrestata). Quando `vmmemWSL` è elevato o la memoria di Windows è sotto pressione e `vmmemWSL` è di dimensioni medie, il controllo elimina la cache delle pagine Linux in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` come root, con un timeout e un periodo di attesa). Il `autoMemoryReclaim` di WSL stesso viene attivato solo quando la VM è inattiva e un motore di container in esecuzione la mantiene occupata, quindi il caricamento di immagini di grandi dimensioni può lasciare decine di GB di cache memorizzati su Windows.
+Con `WslCacheRelease = $true`, ogni controllo verifica la memoria della VM WSL dal lato Windows (non risveglia mai una VM arrestata). Quando `vmmemWSL` è grande, o la memoria di Windows è sotto pressione e `vmmemWSL` è di dimensioni medie, il poller rilascia la page cache di Linux in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` come root, con timeout e cooldown). L’`autoMemoryReclaim` di WSL si attiva solo quando la VM è inattiva e un motore di container in esecuzione la mantiene occupata, quindi il pull di immagini di grandi dimensioni può lasciare decine di GB di cache trattenuti a scapito di Windows.
 
-Non interrompe mai un processo e non avvia mai una distribuzione che è già stata interrotta: quando un’altra distribuzione mantiene attiva la macchina virtuale mentre `WslDistro` è inattiva, salta l’operazione di rilascio e registra l’omissione. Il suo registro, `Root\_watchdog_wslcache.log`, registra un segnale di attività ogni ora; ogni operazione di rilascio della cache, con i dati relativi alla memoria prima e dopo; una riga per ogni serie di omissioni; e un `ALERT` che indica i processi principali se Windows è ancora al di sopra di `WslCacheAlertPct` dopo un’operazione di rilascio. Le soglie sono indicate nella configurazione di esempio.
+Non termina mai un processo e non avvia mai una distribuzione che è già stata interrotta: quando un’altra distribuzione mantiene attiva la macchina virtuale mentre `WslDistro` è inattiva, salta l’operazione di rilascio e registra l’omissione. Il suo registro, `Root\_watchdog_wslcache.log`, registra un segnale di attività ogni ora; ogni operazione di rilascio della cache, con i dati relativi alla memoria prima e dopo; una riga per ogni serie di omissioni; e un `ALERT` che indica i processi principali se Windows è ancora al di sopra di `WslCacheAlertPct` dopo un’operazione di rilascio. Le soglie sono indicate nella configurazione di esempio.
 
 ## Comandi
 
@@ -89,7 +89,7 @@ Consenso: `-AllowKill` (o `AllowKill = $true` nel file di configurazione). Il co
 
 ## Modello di minaccia
 
-- **Accesso:** file in `Root` (controllo dell'attività, CSV, log di terminazione/console/crash, sentinelle); elenco dei processi; contatori della GPU; pkill WSL locale opzionale; eliminazione opzionale della cache delle pagine WSL (opzionale, non causa mai l'interruzione di un processo).
+- **Accesso:** file sotto `Root` (heartbeat, CSV, log di terminazione/console/crash, sentinelle); elenco dei processi; contatori GPU; pkill WSL locale opzionale; rilascio opzionale della page cache WSL (opt-in, non termina mai alcun processo).
 - **Non accessibile:** l'albero di origine, i checkpoint, le credenziali, la rete.
 - **Autorizzazioni:** l'utente che lo avvia può terminare gli interpreti configurati. Non è presente alcun account di servizio aggiuntivo.
 - **Nessun telemetria** lascia la macchina. Nessun segreto nei log.
@@ -101,9 +101,9 @@ Consenso: `-AllowKill` (o `AllowKill = $true` nel file di configurazione). Il co
 pwsh -File .\verify.ps1
 ```
 
-108 test unitari, senza GPU. Gli elementi di test del parser includono l’output non valido di nvidia-smi che ha interrotto il ciclo il 12-06-2026. Il test di interruzione hardware rimane locale e non viene eseguito nell’ambiente CI.
+108 test unitari, senza GPU. Le fixture del parser includono l’output nvidia-smi malformato che ha interrotto il ciclo il 2026-06-12. Il test di abort hardware resta locale e non viene eseguito in CI.
 
-`pwsh -File .\verify.ps1 -Coverage` aggiunge la misurazione della copertura del codice per `src/Watchdog` e segnala errori se la copertura è inferiore al 90%. Il sistema di integrazione continua (CI) esegue il test in questo modo e carica il report su Codecov, che richiede una copertura di almeno il 90% per l’intero modulo e per ogni modifica.
+`pwsh -File .\verify.ps1 -Coverage` aggiunge la copertura delle righe di `src/Watchdog` e fallisce sotto il 90%. La CI lo esegue in questo modo e carica il report su Codecov, che richiede almeno il 90% di copertura sull’intero modulo e su ogni modifica.
 
 ## Origine
 

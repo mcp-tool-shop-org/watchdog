@@ -5,7 +5,9 @@ sidebar:
   order: 6
 ---
 
-- **Touched:** files under `Root`; process list; GPU counters; optional local WSL `pkill`.
+- **Touched:** files under `Root`; process list; GPU counters; optional local WSL `pkill`;
+  optional WSL page-cache drop (`WslCacheRelease`, off by default). The drop never kills a
+  process and never starts a stopped VM or distro.
 - **Not touched:** source trees, checkpoints, credentials, the network.
 - **No telemetry** leaves the machine.
 - **No secrets** in config or logs (paths and integers).

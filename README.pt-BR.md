@@ -60,9 +60,9 @@ Campos obrigatórios: `Root`, `Targets`, `VramKillMiB`, `RamKillPct`, `TempKillC
 
 `VramKillMiB = 31200` é o limite documentado para uma placa de 32 GB (~1,4 GB abaixo do limite de 32607 MiB WDDM). Não aumente esse valor para evitar que ComfyUI cause problemas — limite ComfyUI (`--reserve-vram`) em vez disso.
 
-### Liberação do cache de arquivos WSL (opcional)
+### Liberação do cache de arquivos WSL (opt-in, ativação explícita)
 
-Com `WslCacheRelease = $true`, cada leitura verifica a memória da VM WSL a partir do lado do Windows (nunca ativa uma VM parada). Quando `vmmemWSL` é grande ou a memória do Windows está sob pressão e `vmmemWSL` é de tamanho médio, o verificador libera o cache de páginas do Linux em `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` como root, com um tempo limite e um período de espera). O próprio `autoMemoryReclaim` do WSL só é acionado quando a VM está inativa, e um mecanismo de contêiner em execução a mantém ativa, portanto, o download de imagens grandes pode deixar dezenas de GB de cache armazenados no Windows.
+Com `WslCacheRelease = $true`, cada verificação lê a memória da VM WSL pelo lado do Windows (nunca acorda uma VM parada). Quando `vmmemWSL` está grande, ou a memória do Windows está sob pressão e `vmmemWSL` tem tamanho médio, o verificador descarta o cache de páginas do Linux em `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` como root, com tempo limite e cooldown). O `autoMemoryReclaim` do próprio WSL só dispara quando a VM está ociosa, e um mecanismo de contêiner em execução a mantém ocupada, de modo que downloads de imagens grandes podem deixar dezenas de GB de cache retidos em detrimento do Windows.
 
 Nunca encerra um processo e nunca inicia uma distribuição que já foi interrompida: quando outra distribuição mantém a máquina virtual em execução enquanto `WslDistro` está interrompida, o watchdog não libera o cache e registra essa omissão. O arquivo de registro, `Root\_watchdog_wslcache.log`, registra um sinal de atividade a cada hora; cada operação de liberação de cache, com a quantidade de memória antes e depois; uma linha para cada sequência de omissões; e um `ALERT` que identifica os processos que consomem mais recursos, caso o Windows ainda esteja acima de `WslCacheAlertPct` após uma liberação. Os limites estão definidos no arquivo de configuração de exemplo.
 
@@ -89,7 +89,7 @@ Consentimento: `-AllowKill` (ou `AllowKill = $true` na configuração). O verifi
 
 ## Modelo de ameaças
 
-- **Acessado:** arquivos em `Root` ("heartbeat", CSV, logs de encerramento/console/travamento, sentinelas); lista de processos; contadores da GPU; pkill local WSL opcional; liberação opcional do cache de páginas WSL (opcional, nunca um encerramento).
+- **Acessado:** arquivos sob `Root` (heartbeat, CSV, logs de encerramento/console/falha, sentinelas); lista de processos; contadores da GPU; pkill local WSL opcional; liberação opcional do cache de páginas WSL (opt-in, nunca encerra processos).
 - **Não acessado:** sua árvore de código-fonte, pontos de verificação, credenciais, a rede.
 - **Permissões:** o usuário que o inicia pode encerrar os processos configurados. Não há conta de serviço extra.
 - **Nenhuma telemetria** sai da máquina. Sem segredos nos logs.

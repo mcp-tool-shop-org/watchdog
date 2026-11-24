@@ -60,9 +60,9 @@ Champs obligatoires : `Root`, `Targets`, `VramKillMiB`, `RamKillPct`, `TempKill
 
 `VramKillMiB = 31200` est la limite documentée pour une carte de 32 Go (~1,4 Go en dessous du plafond WDDM de 32 607 MiB). Ne l’augmentez **pas** pour éviter les déclenchements de ComfyUI ; limitez plutôt ComfyUI (`--reserve-vram`).
 
-### Libération de la mémoire cache des fichiers WSL (facultatif)
+### Libération du cache de fichiers WSL (opt-in, sur activation explicite)
 
-Avec `WslCacheRelease = $true`, chaque contrôle vérifie la mémoire de la machine virtuelle WSL à partir du côté Windows (il ne réveille jamais une machine virtuelle arrêtée). Lorsque `vmmemWSL` est important, ou que la mémoire Windows est sous forte pression et que `vmmemWSL` est de taille moyenne, le contrôleur supprime la mémoire cache des pages Linux dans `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` en tant que root, avec un délai d’attente et un temps de refroidissement). Le propre `autoMemoryReclaim` de WSL ne se déclenche que lorsque la machine virtuelle est inactive, et un moteur de conteneurs en cours d’exécution l’empêche de s’arrêter, de sorte que le chargement d’images volumineuses peut laisser des dizaines de Go de mémoire cache conservée par Windows.
+Avec `WslCacheRelease = $true`, chaque contrôle vérifie la mémoire de la machine virtuelle WSL depuis Windows (il ne réveille jamais une machine virtuelle arrêtée). Lorsque `vmmemWSL` est volumineux, ou que la mémoire Windows est sous pression et que `vmmemWSL` est de taille moyenne, le contrôleur vide le cache de pages Linux dans `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` en tant que root, avec délai d’expiration et temps de repos). L’`autoMemoryReclaim` propre à WSL ne se déclenche que lorsque la machine virtuelle est inactive, et un moteur de conteneurs en cours d’exécution la maintient occupée, si bien que le téléchargement d’images volumineuses peut laisser des dizaines de Go de cache retenus au détriment de Windows.
 
 Il ne tue jamais un processus et ne démarre jamais une distribution arrêtée : lorsqu’une autre distribution maintient la machine virtuelle en marche alors que `WslDistro` est arrêtée, il ne libère pas le cache et consigne ce saut. Son journal, `Root\_watchdog_wslcache.log`, enregistre un signal d’activité toutes les heures ; chaque libération du cache, avec la mémoire avant et après ; une ligne par série de sauts ; et un `ALERT` indiquant les processus les plus gourmands en ressources si Windows est toujours au-dessus de `WslCacheAlertPct` après une libération. Les seuils sont définis dans le fichier de configuration d’exemple.
 
@@ -89,7 +89,7 @@ Consentement : `-AllowKill` (ou `AllowKill = $true` dans la configuration). Le 
 
 ## Modèle de menace
 
-- **Touché :** fichiers situés dans `Root` (signal d’activité, CSV, journaux d’arrêt/console/plantage, sentinelles) ; liste des processus ; compteurs GPU ; pkill WSL local facultatif ; suppression facultative de la mémoire cache des pages WSL (facultatif, ne tue jamais).
+- **Touché :** fichiers sous `Root` (signal d’activité, CSV, journaux d’arrêt/console/plantage, sentinelles) ; liste des processus ; compteurs GPU ; pkill WSL local facultatif ; vidage facultatif du cache de pages WSL (opt-in sur activation explicite, ne tue jamais de processus).
 - **Non touché :** votre arborescence de code source, points de contrôle, informations d’identification, le réseau.
 - **Autorisations :** l’utilisateur qui le démarre peut tuer les interpréteurs configurés. Il n’y a pas de compte de service supplémentaire.
 - **Aucune télémétrie** ne quitte la machine. Pas de secrets dans les journaux.
@@ -103,7 +103,7 @@ pwsh -File .\verify.ps1
 
 108 tests unitaires, pas de GPU. Les données de test du parseur incluent la sortie incorrecte de nvidia-smi qui a interrompu la boucle le 12 juin 2026. Le test d’arrêt matériel reste local et n’est pas intégré dans le processus d’intégration continue.
 
-`pwsh -File .\verify.ps1 -Coverage` ajoute une analyse de la couverture des lignes du code `src/Watchdog` et signale les échecs lorsque la couverture est inférieure à 90 %. L’intégration continue exécute le code de cette manière et télécharge le rapport sur Codecov, qui exige une couverture d’au moins 90 % pour l’ensemble du module et pour chaque modification.
+`pwsh -File .\verify.ps1 -Coverage` ajoute la couverture de lignes de `src/Watchdog` et échoue en dessous de 90 %. La CI l’exécute ainsi et envoie le rapport à Codecov, qui exige au moins 90 % de couverture sur l’ensemble du module et sur chaque modification.
 
 ## Origine
 

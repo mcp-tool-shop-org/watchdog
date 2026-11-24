@@ -60,9 +60,9 @@ Campos obligatorios: `Root`, `Targets`, `VramKillMiB`, `RamKillPct`, `TempKillC`
 
 `VramKillMiB = 31200` es el límite documentado para una tarjeta de 32 GB (~1,4 GB por debajo del límite de 32607 MiB de WDDM). No lo aumente para evitar que se produzcan ComfyUI; en su lugar, limite ComfyUI (`--reserve-vram`).
 
-### Liberación de la caché de archivos de WSL (opcional)
+### Liberación de la caché de archivos de WSL (opt-in, activación explícita)
 
-Con `WslCacheRelease = $true`, cada sondeo comprueba la memoria de la máquina virtual WSL desde el lado de Windows (nunca activa una máquina virtual detenida). Cuando `vmmemWSL` es grande, o la memoria de Windows está bajo presión y `vmmemWSL` es de tamaño medio, el sondeo elimina la caché de páginas de Linux en `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` como root, con un tiempo de espera y un período de enfriamiento). El propio `autoMemoryReclaim` de WSL solo se activa cuando la máquina virtual está inactiva, y un motor de contenedor en ejecución la mantiene ocupada, por lo que las descargas de imágenes grandes pueden dejar decenas de GB de caché almacenados en Windows.
+Con `WslCacheRelease = $true`, cada sondeo comprueba la memoria de la máquina virtual WSL desde el lado de Windows (nunca activa una máquina virtual detenida). Cuando `vmmemWSL` es grande, o la memoria de Windows está bajo presión y `vmmemWSL` es de tamaño medio, el sondeo libera la caché de páginas de Linux en `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` como root, con tiempo de espera y enfriamiento). El propio `autoMemoryReclaim` de WSL solo se activa cuando la máquina virtual está inactiva, y un motor de contenedores en ejecución la mantiene ocupada, por lo que las descargas de imágenes grandes pueden dejar decenas de GB de caché retenidos a costa de Windows.
 
 Nunca finaliza un proceso y nunca inicia una distribución que se ha detenido: cuando otra distribución mantiene la máquina virtual en funcionamiento mientras `WslDistro` está detenida, omite la liberación y registra la omisión. Su registro, `Root\_watchdog_wslcache.log`, anota una señal de actividad cada hora; cada liberación de la caché, con la memoria antes y después; una línea por cada racha de omisiones; y un `ALERT` que indica los procesos principales si Windows sigue por encima de `WslCacheAlertPct` después de una liberación. Los umbrales se encuentran en la configuración de ejemplo.
 
@@ -89,7 +89,7 @@ Consentimiento: `-AllowKill` (o `AllowKill = $true` en la configuración). El so
 
 ## Modelo de amenazas
 
-- **Afectados:** archivos en `Root` (latido, CSV, registros de finalización/consola/fallos, vigilantes); lista de procesos; contadores de GPU; pkill local de WSL opcional; eliminación opcional de la caché de páginas de WSL (opcional, nunca una finalización).
+- **Afectados:** archivos bajo `Root` (latido, CSV, registros de finalización/consola/fallos, centinelas); lista de procesos; contadores de GPU; pkill local de WSL opcional; liberación opcional de caché de páginas de WSL (activación explícita / opt-in, nunca mata procesos).
 - **No afectados:** su árbol de código fuente, puntos de control, credenciales, la red.
 - **Permisos:** el usuario que lo inicia puede finalizar los intérpretes configurados. No hay ninguna cuenta de servicio adicional.
 - **No hay telemetría** que salga de la máquina. No hay secretos en los registros.
