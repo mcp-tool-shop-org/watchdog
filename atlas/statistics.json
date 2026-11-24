@@ -97,7 +97,7 @@
       "confidence": "low",
       "highWater": null,
       "name": "site",
-      "qualifyingSourceCommits": 2,
+      "qualifyingSourceCommits": 3,
       "rebaseline": null
     },
     {
@@ -162,13 +162,13 @@
         "path": ".gitignore"
       },
       {
-        "commits": 2,
-        "lines": 281,
+        "commits": 3,
+        "lines": 323,
         "path": ".polyglot-pins.json"
       },
       {
-        "commits": 5,
-        "lines": 68,
+        "commits": 6,
+        "lines": 70,
         "path": "CHANGELOG.md"
       },
       {
@@ -182,43 +182,43 @@
         "path": "LICENSE"
       },
       {
-        "commits": 4,
-        "lines": 168,
+        "commits": 5,
+        "lines": 170,
         "path": "README.es.md"
       },
       {
-        "commits": 4,
-        "lines": 168,
+        "commits": 5,
+        "lines": 170,
         "path": "README.fr.md"
       },
       {
-        "commits": 4,
-        "lines": 168,
+        "commits": 5,
+        "lines": 170,
         "path": "README.hi.md"
       },
       {
-        "commits": 4,
-        "lines": 172,
+        "commits": 5,
+        "lines": 174,
         "path": "README.it.md"
       },
       {
-        "commits": 4,
-        "lines": 170,
+        "commits": 5,
+        "lines": 172,
         "path": "README.ja.md"
       },
       {
-        "commits": 6,
-        "lines": 316,
+        "commits": 7,
+        "lines": 318,
         "path": "README.md"
       },
       {
-        "commits": 4,
-        "lines": 158,
+        "commits": 5,
+        "lines": 160,
         "path": "README.pt-BR.md"
       },
       {
-        "commits": 4,
-        "lines": 172,
+        "commits": 5,
+        "lines": 174,
         "path": "README.zh.md"
       },
       {
@@ -237,8 +237,8 @@
         "path": "SHIP_GATE.md"
       },
       {
-        "commits": 10,
-        "lines": 220,
+        "commits": 11,
+        "lines": 227,
         "path": "atlas/README.md"
       },
       {
@@ -247,18 +247,18 @@
         "path": "atlas/boundaries.yaml"
       },
       {
-        "commits": 10,
-        "lines": 508,
+        "commits": 11,
+        "lines": 533,
         "path": "atlas/page.json"
       },
       {
-        "commits": 10,
-        "lines": 2278,
+        "commits": 11,
+        "lines": 2402,
         "path": "atlas/statistics.json"
       },
       {
-        "commits": 10,
-        "lines": 2181,
+        "commits": 11,
+        "lines": 2223,
         "path": "atlas/structure.json"
       },
       {
@@ -337,13 +337,13 @@
         "path": "site/src/content.config.ts"
       },
       {
-        "commits": 3,
-        "lines": 91,
+        "commits": 4,
+        "lines": 97,
         "path": "site/src/content/docs/handbook/configuration.md"
       },
       {
-        "commits": 3,
-        "lines": 62,
+        "commits": 4,
+        "lines": 64,
         "path": "site/src/content/docs/handbook/getting-started.md"
       },
       {
@@ -357,8 +357,8 @@
         "path": "site/src/content/docs/handbook/operations.md"
       },
       {
-        "commits": 3,
-        "lines": 58,
+        "commits": 4,
+        "lines": 61,
         "path": "site/src/content/docs/handbook/reference.md"
       },
       {
@@ -377,8 +377,8 @@
         "path": "site/src/pages/index.astro"
       },
       {
-        "commits": 3,
-        "lines": 97,
+        "commits": 4,
+        "lines": 99,
         "path": "site/src/site-config.ts"
       },
       {
@@ -407,8 +407,8 @@
         "path": "src/Watchdog/Private/Get-WatchdogHeartbeatState.ps1"
       },
       {
-        "commits": 2,
-        "lines": 24,
+        "commits": 3,
+        "lines": 25,
         "path": "src/Watchdog/Private/Get-WatchdogPaths.ps1"
       },
       {
@@ -447,8 +447,8 @@
         "path": "src/Watchdog/Private/Resolve-WatchdogConfig.ps1"
       },
       {
-        "commits": 1,
-        "lines": 31,
+        "commits": 2,
+        "lines": 73,
         "path": "src/Watchdog/Private/Resolve-WatchdogPollLaunch.ps1"
       },
       {
@@ -477,13 +477,13 @@
         "path": "src/Watchdog/Public/Install-Watchdog.ps1"
       },
       {
-        "commits": 3,
-        "lines": 112,
+        "commits": 4,
+        "lines": 121,
         "path": "src/Watchdog/Public/Invoke-WatchdogPoll.ps1"
       },
       {
-        "commits": 3,
-        "lines": 81,
+        "commits": 4,
+        "lines": 97,
         "path": "src/Watchdog/Public/Register-WatchdogPoll.ps1"
       },
       {
@@ -557,8 +557,8 @@
         "path": "tests/Hysteresis.Tests.ps1"
       },
       {
-        "commits": 2,
-        "lines": 462,
+        "commits": 3,
+        "lines": 566,
         "path": "tests/Lifecycle.Tests.ps1"
       },
       {
@@ -577,8 +577,8 @@
         "path": "tests/Poller.Tests.ps1"
       },
       {
-        "commits": 2,
-        "lines": 311,
+        "commits": 3,
+        "lines": 335,
         "path": "tests/WslCacheRelease.Tests.ps1"
       },
       {
@@ -617,51 +617,51 @@
     "level": "low",
     "reason": "fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions"
   },
-  "generatedAt": "2026-11-24T05:57:53.617Z",
+  "generatedAt": "2026-11-24T06:08:34.575Z",
   "generatedFrom": {
-    "commit": "df2ef9a78a4c642e066bef46ba2a62e627187290"
+    "commit": "8b9adffbe7a02b12d0b9e55d36570e4e26d0f663"
   },
   "pairs": [
     {
       "a": "atlas/README.md",
       "b": "atlas/page.json",
-      "either": 8,
-      "shared": 8,
+      "either": 9,
+      "shared": 9,
       "strength": 1
     },
     {
       "a": "atlas/README.md",
       "b": "atlas/statistics.json",
-      "either": 8,
-      "shared": 8,
+      "either": 9,
+      "shared": 9,
       "strength": 1
     },
     {
       "a": "atlas/README.md",
       "b": "atlas/structure.json",
-      "either": 8,
-      "shared": 8,
+      "either": 9,
+      "shared": 9,
       "strength": 1
     },
     {
       "a": "atlas/page.json",
       "b": "atlas/statistics.json",
-      "either": 8,
-      "shared": 8,
+      "either": 9,
+      "shared": 9,
       "strength": 1
     },
     {
       "a": "atlas/page.json",
       "b": "atlas/structure.json",
-      "either": 8,
-      "shared": 8,
+      "either": 9,
+      "shared": 9,
       "strength": 1
     },
     {
       "a": "atlas/statistics.json",
       "b": "atlas/structure.json",
-      "either": 8,
-      "shared": 8,
+      "either": 9,
+      "shared": 9,
       "strength": 1
     }
   ],
@@ -675,16 +675,16 @@
     "floor": "fallen",
     "floorHeld": false,
     "floorTrigger": "both",
-    "headDate": "2026-11-24T00:33:07-05:00",
+    "headDate": "2026-11-24T00:58:14-05:00",
     "inScopeFiles": 95,
     "pinnedStart": null,
     "priorFloor": "fallen",
-    "qualifyingCommits": 18,
+    "qualifyingCommits": 20,
     "qualifyingMinimum": 30,
     "revisions": 5,
     "shared": 10,
     "sharedFloorUsed": 3,
-    "since": "2026-05-28T05:33:07.000Z",
+    "since": "2026-05-28T05:58:14.000Z",
     "sourceExtensions": [
       ".js",
       ".mjs",

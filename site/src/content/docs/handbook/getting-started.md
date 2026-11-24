@@ -48,7 +48,7 @@ goes stale. It never restarts the loop.
 ## Verify (no GPU)
 
 ```powershell
-pwsh -File .\verify.ps1             # 129 unit tests
+pwsh -File .\verify.ps1             # 132 unit tests
 pwsh -File .\verify.ps1 -Coverage   # also measures line coverage; fails below 90%
 ```
 

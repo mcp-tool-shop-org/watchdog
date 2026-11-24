@@ -130,7 +130,7 @@ never kills and never auto-restarts; auto-restart can abort a live job.
 pwsh -File .\verify.ps1
 ```
 
-129 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
+132 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
 output that killed the loop on 2026-06-12. The hardware abort test stays
 local and is not greened in CI.
 

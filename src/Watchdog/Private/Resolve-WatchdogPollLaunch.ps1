@@ -19,10 +19,14 @@ function Resolve-WatchdogPwshPath {
 
 function Read-WatchdogPollStamp([string]$Path) {
   # The stamp Invoke-WatchdogPoll writes at the end of every run, or $null when it is missing or unreadable.
+  # The instant is utc_ms (Unix milliseconds). The 'utc' text is for people only: ConvertFrom-Json turns an ISO
+  # string into a DateTime, and re-reading that as text shifts it by the local UTC offset and drops the milliseconds
+  # (2026-11-24, on a rig in Eastern time a stale stamp read as fresh).
   try {
     if (-not (Test-Path -LiteralPath $Path)) { return $null }
     $doc = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
-    $utc = [DateTimeOffset]::Parse([string]$doc.utc, [System.Globalization.CultureInfo]::InvariantCulture)
+    if ($null -eq $doc.utc_ms) { return $null }
+    $utc = [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$doc.utc_ms)
     return [pscustomobject]@{ Utc = $utc; State = [string]$doc.state; Exit = $doc.exit }
   } catch {
     return $null
@@ -42,6 +46,15 @@ function Invoke-WatchdogPollTaskProbe {
     [int]$StepMs = 500
   )
   $started = [DateTimeOffset]::UtcNow
+  # Clear the previous stamp, so a stamp present after the run was written after this point; the time check below
+  # is the second guard. A run the trigger starts meanwhile also counts: it is the same action.
+  if (Test-Path -LiteralPath $StampPath) {
+    try {
+      Remove-Item -LiteralPath $StampPath -Force -ErrorAction Stop
+    } catch {
+      throw "Could not clear the previous poll stamp ($StampPath), so the first run could not be proven: $($_.Exception.Message)"
+    }
+  }
   Start-ScheduledTask -TaskName $TaskName
   $deadline = (Get-Date).AddSeconds($TimeoutSec)
   while ((Get-Date) -lt $deadline) {

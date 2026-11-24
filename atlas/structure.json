@@ -141,11 +141,11 @@
           "path": ".gitignore"
         },
         {
-          "hash": "3fb4d53d60bb963a0eb2fd01d3b118aeee69034f42fb068c639b8cb0761f4367",
+          "hash": "f64e0764204e21f25197aa0fd1ce625bd4a0e283448c9216d7e7f8a223724ee3",
           "path": ".polyglot-pins.json"
         },
         {
-          "hash": "88e876f345ada92e0233bb35b732b1d2f8dcd9e99db127312b3943800d037d22",
+          "hash": "c7789c847f21a5eb68099e82651099d6ad765637b8e865132ead9112a652740d",
           "path": "CHANGELOG.md"
         },
         {
@@ -157,35 +157,35 @@
           "path": "LICENSE"
         },
         {
-          "hash": "76111488cfa0bfb41f48814f229de7493ccd54427a181c7efd4ab11062afd87b",
+          "hash": "a53dcd608891e091c5ea6f6e6c084e9de0a22b9a199ae480e1097ed83a028932",
           "path": "README.es.md"
         },
         {
-          "hash": "24f21342bf801d646596d9273f72e253eb8a57cee8b21053881a7286c09f1b55",
+          "hash": "ea7bfb55b2424b73099770ceaaa677b8d534faf00ff9d6e6a42b31539260e544",
           "path": "README.fr.md"
         },
         {
-          "hash": "2f8d5eb350046531707c22f2bcc02f03bd3265e1b7a43dff7308a4990d67e95f",
+          "hash": "526643a63f1c023ab6f8447d7a16b234bb0fa4900abb17fd61fbc283707f7773",
           "path": "README.hi.md"
         },
         {
-          "hash": "e37daea127b59108929a9fcfcd7c5101991b56b8c7785be769c5e94ab72a1a61",
+          "hash": "a1fa99dfed1c2498f228613e73decbf7f1ca87bfab60dea8920f740437abec4c",
           "path": "README.it.md"
         },
         {
-          "hash": "c01c93423b2906a6674b4d0b13a14c21cd16360839a31e5f530b0659f05010d5",
+          "hash": "3d73e5595ab5a15604527f83107070f0e90603515dae240cc17fa29cc3369b17",
           "path": "README.ja.md"
         },
         {
-          "hash": "1b4523fea5e220165f292470c4c58173fd2556b8dee98ed0e8ddb53a34780e72",
+          "hash": "97645f9ffc71170370d19f4ba4cbcc1f784cea9d2c48789bc06b7c705c08bf75",
           "path": "README.md"
         },
         {
-          "hash": "5903e9e2e9af17ac6582229a6109dca662ea9220471a07f1d60caaf8679244b5",
+          "hash": "d771b2557232e627030f38c64ce142be66f4ff45718b0e88677c66f366efc50a",
           "path": "README.pt-BR.md"
         },
         {
-          "hash": "c32c86de960b31dfc1a6eef12fe1eebb266d041c0d73422f2aac3bdd1ea8b9d1",
+          "hash": "949406cc736a76a0bbeaff1e7c486b786fa06e747fcefaff5c0133babb2a6ade",
           "path": "README.zh.md"
         },
         {
@@ -257,7 +257,7 @@
           "path": "site/src/content/docs/handbook/configuration.md"
         },
         {
-          "hash": "2d4fb16eec0f16d16e8a6632b291bf3109b44ded62a9e500ffd17ba939a4931a",
+          "hash": "e74f2db3543a3ec7465a83b9cbffa8850c7fcb9986ab7f062036eecf235f6f1e",
           "path": "site/src/content/docs/handbook/getting-started.md"
         },
         {
@@ -294,7 +294,7 @@
         },
         {
           "constantOnly": true,
-          "hash": "317bee0a5f64f439751ba946d64090d0a1b5c7220a8b775e93f8b18217f5a120",
+          "hash": "eba1d540a9ab1d748ffcfcea3703dbf4bf9f98b473cba15a4174c5561ed97aad",
           "path": "site/src/site-config.ts"
         },
         {
@@ -369,7 +369,7 @@
           "path": "src/Watchdog/Private/Resolve-WatchdogConfig.ps1"
         },
         {
-          "hash": "098d004c2819aefa49a93b8315f98d3cb465be8d432641ad523d96a917e13da0",
+          "hash": "c72a3201c12bf764b87188617c8b28bdc20594c9bfb369fdfaf1ab2fb5264ef5",
           "path": "src/Watchdog/Private/Resolve-WatchdogPollLaunch.ps1"
         },
         {
@@ -393,7 +393,7 @@
           "path": "src/Watchdog/Public/Install-Watchdog.ps1"
         },
         {
-          "hash": "d5011264bd239f818f58dc4967b2883ae7863e2f7fdc4246782e5e0dd8efea6f",
+          "hash": "f0894af158f228a0b0954d07a3ce02a047d166e1e4582f6e2054a888cdf19259",
           "path": "src/Watchdog/Public/Invoke-WatchdogPoll.ps1"
         },
         {
@@ -476,7 +476,7 @@
           "path": "tests/Hysteresis.Tests.ps1"
         },
         {
-          "hash": "3334b763c80059e749c3b5aaaaf61babb627dd851edbf155a4a631337269b821",
+          "hash": "b00b14968c327c01bc7a44bbf6a1b6060836d3304ee7487fc1da9681cffc2dfc",
           "path": "tests/Lifecycle.Tests.ps1"
         },
         {
@@ -492,7 +492,7 @@
           "path": "tests/Poller.Tests.ps1"
         },
         {
-          "hash": "d36b8f818f9e600450e8481e90117ce5ccf79033f7d732e9c9276edd255772b8",
+          "hash": "10f321c61f2dd439f8e26b4b8b332377165c4cd8086b66d4ee0f4ec4abbddeb0",
           "path": "tests/WslCacheRelease.Tests.ps1"
         },
         {
@@ -865,7 +865,7 @@
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "df2ef9a78a4c642e066bef46ba2a62e627187290",
+    "commit": "8b9adffbe7a02b12d0b9e55d36570e4e26d0f663",
     "tracked": 90
   },
   "landings": [

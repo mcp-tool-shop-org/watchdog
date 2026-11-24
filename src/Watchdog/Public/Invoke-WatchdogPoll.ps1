@@ -53,8 +53,9 @@ function Invoke-WatchdogPoll {
   # Proof that a poll ran, for Register-WatchdogPoll's first-run check (a task's exit code cannot show it: the
   # action is conhost, which exits 0 even when pwsh never starts). Never allowed to break the poll.
   try {
-    [ordered]@{ utc = (Get-WatchdogTimestamp); state = [string]$hb.State; exit = $code } | ConvertTo-Json -Compress |
-      Set-Content -LiteralPath $paths.PollStamp -ErrorAction Stop
+    $now = [DateTimeOffset]::UtcNow
+    [ordered]@{ utc = $now.ToString('yyyy-MM-ddTHH:mm:ss.fffZ', [Globalization.CultureInfo]::InvariantCulture); utc_ms = $now.ToUnixTimeMilliseconds(); state = [string]$hb.State; exit = $code } |
+      ConvertTo-Json -Compress | Set-Content -LiteralPath $paths.PollStamp -ErrorAction Stop
   } catch { }
   $global:LASTEXITCODE = $code
   return $hb

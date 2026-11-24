@@ -293,12 +293,14 @@ Describe 'Invoke-WatchdogPoll with WSL cache release' {
     $root = Get-WatchdogTestDir 'poll-stamp'
     $cfgPath = New-WatchdogTestConfig -Root $root
     $paths = Get-WatchdogPaths -Root $root
-    $before = [DateTimeOffset]::UtcNow.AddSeconds(-1)
+    $before = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
     [void](Invoke-WatchdogPoll -ConfigPath $cfgPath)
+    $after = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
     $doc = Get-Content -LiteralPath $paths.PollStamp -Raw | ConvertFrom-Json
     $doc.state | Should -Be 'NOT_RUNNING'
     $doc.exit | Should -Be 1
-    [DateTimeOffset]::Parse([string]$doc.utc, [System.Globalization.CultureInfo]::InvariantCulture) | Should -BeGreaterOrEqual $before
+    [int64]$doc.utc_ms | Should -BeGreaterOrEqual $before
+    [int64]$doc.utc_ms | Should -BeLessOrEqual $after
   }
 
   It 'still reports liveness when the stamp cannot be written' {
