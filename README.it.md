@@ -75,7 +75,7 @@ Non termina mai un processo e non avvia mai una distribuzione che è già stata 
 | `watchdog stop` | ARRESTO del sentinella, attesa. Non effettuare mai il confronto dei processi. |
 | `watchdog poll` | Esecuzione singola: se il controllo dell'attività è obsoleto, scrivi `_watchdog_DEAD` dall'esterno |
 | `watchdog help` | Flag e codici di uscita |
-| `watchdog version` | `1.1.0` |
+| `watchdog version` | `1.1.1` |
 
 Codici di uscita `status` / `poll`: **0** in esecuzione · **1** nessun controllo dell'attività · **2** obsoleto. `start` utilizza anche **3** (VRAM già al di sopra del limite), **4** (il ciclo precedente non si è arrestato), **5** (nessun controllo dell'attività dopo l'avvio).
 
@@ -101,7 +101,7 @@ Consenso: `-AllowKill` (o `AllowKill = $true` nel file di configurazione). Il co
 pwsh -File .\verify.ps1
 ```
 
-114 test unitari, senza GPU. Le fixture del parser includono l’output nvidia-smi malformato che ha interrotto il ciclo il 2026-06-12. Il test di abort hardware resta locale e non viene eseguito in CI.
+123 test unitari, senza GPU. Le fixture del parser includono l’output nvidia-smi malformato che ha interrotto il ciclo il 2026-06-12. Il test di abort hardware resta locale e non viene eseguito in CI.
 
 `pwsh -File .\verify.ps1 -Coverage` aggiunge la copertura delle righe di `src/Watchdog` e fallisce sotto il 90%. La CI lo esegue in questo modo e carica il report su Codecov, che richiede almeno il 90% di copertura sull’intero modulo e su ogni modifica.
 
