@@ -43,20 +43,22 @@ function Invoke-WatchdogPoll {
     }
   }
 
+  $code = switch ($hb.State) { 'RUNNING' { 0 } 'NOT_RUNNING' { 1 } default { 2 } }
+  # Proof that a poll ran, for Register-WatchdogPoll's first-run check (a task's exit code cannot show it: the
+  # action is conhost, which exits 0 even when pwsh never starts). Written right after the liveness work and before
+  # the opt-in release, so the proof never waits on WSL. Never allowed to break the poll.
+  try {
+    $now = [DateTimeOffset]::UtcNow
+    [ordered]@{ utc = $now.ToString('yyyy-MM-ddTHH:mm:ss.fffZ', [Globalization.CultureInfo]::InvariantCulture); utc_ms = $now.ToUnixTimeMilliseconds(); state = [string]$hb.State; exit = $code } |
+      ConvertTo-Json -Compress | Set-Content -LiteralPath $paths.PollStamp -ErrorAction Stop
+  } catch { }
+
   # Opt-in, and only after the liveness check, so it can never delay or block the poller's main job. It never
   # throws, reads memory from the Windows side (it never wakes a stopped WSL VM), and bounds every wsl.exe call.
   if ($cfg.WslCacheRelease) {
     [void](Invoke-WslCacheRelease -Cfg $cfg -Paths $paths)
   }
 
-  $code = switch ($hb.State) { 'RUNNING' { 0 } 'NOT_RUNNING' { 1 } default { 2 } }
-  # Proof that a poll ran, for Register-WatchdogPoll's first-run check (a task's exit code cannot show it: the
-  # action is conhost, which exits 0 even when pwsh never starts). Never allowed to break the poll.
-  try {
-    $now = [DateTimeOffset]::UtcNow
-    [ordered]@{ utc = $now.ToString('yyyy-MM-ddTHH:mm:ss.fffZ', [Globalization.CultureInfo]::InvariantCulture); utc_ms = $now.ToUnixTimeMilliseconds(); state = [string]$hb.State; exit = $code } |
-      ConvertTo-Json -Compress | Set-Content -LiteralPath $paths.PollStamp -ErrorAction Stop
-  } catch { }
   $global:LASTEXITCODE = $code
   return $hb
 }

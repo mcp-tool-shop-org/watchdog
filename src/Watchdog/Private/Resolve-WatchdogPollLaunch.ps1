@@ -18,7 +18,7 @@ function Resolve-WatchdogPwshPath {
 }
 
 function Read-WatchdogPollStamp([string]$Path) {
-  # The stamp Invoke-WatchdogPoll writes at the end of every run, or $null when it is missing or unreadable.
+  # The stamp Invoke-WatchdogPoll writes after its liveness work on every run, or $null when it is missing or unreadable.
   # The instant is utc_ms (Unix milliseconds). The 'utc' text is for people only: ConvertFrom-Json turns an ISO
   # string into a DateTime, and re-reading that as text shifts it by the local UTC offset and drops the milliseconds
   # (2026-11-24, on a rig in Eastern time a stale stamp read as fresh).
@@ -26,16 +26,16 @@ function Read-WatchdogPollStamp([string]$Path) {
     if (-not (Test-Path -LiteralPath $Path)) { return $null }
     $doc = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if ($null -eq $doc.utc_ms) { return $null }
-    $utc = [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$doc.utc_ms)
-    return [pscustomobject]@{ Utc = $utc; State = [string]$doc.state; Exit = $doc.exit }
+    $ms = [int64]$doc.utc_ms
+    return [pscustomobject]@{ UtcMs = $ms; Utc = [DateTimeOffset]::FromUnixTimeMilliseconds($ms); State = [string]$doc.state; Exit = $doc.exit }
   } catch {
     return $null
   }
 }
 
 function Invoke-WatchdogPollTaskProbe {
-  # Starts the task once and proves that the poll itself ran: Invoke-WatchdogPoll writes a stamp under Root at the end
-  # of every run, and only a stamp newer than this start counts. The task's exit code proves nothing, because the
+  # Starts the task once and proves that the poll itself ran: Invoke-WatchdogPoll writes a stamp under Root after its
+  # liveness work on every run, and only a stamp newer than this start counts. The task's exit code proves nothing, because the
   # action is conhost --headless, which exits 0 even when the pwsh it should start does not exist (measured on the
   # rig, 2026-11-24). A registered task is not a running one: on 2026-11-24 the poll task had existed for weeks and
   # never started.
@@ -45,7 +45,7 @@ function Invoke-WatchdogPollTaskProbe {
     [int]$TimeoutSec = 60,
     [int]$StepMs = 500
   )
-  $started = [DateTimeOffset]::UtcNow
+  $startedMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
   # Clear the previous stamp, so a stamp present after the run was written after this point; the time check below
   # is the second guard. A run the trigger starts meanwhile also counts: it is the same action.
   if (Test-Path -LiteralPath $StampPath) {
@@ -59,11 +59,10 @@ function Invoke-WatchdogPollTaskProbe {
   $deadline = (Get-Date).AddSeconds($TimeoutSec)
   while ((Get-Date) -lt $deadline) {
     Start-Sleep -Milliseconds $StepMs
-    # The state first: a run that ends between the two reads then shows as finished, never as a stale result.
-    $state = "$((Get-ScheduledTask -TaskName $TaskName).State)"
-    if ($state -eq 'Running') { continue }
+    # The poll writes its stamp right after its liveness work, so a fresh stamp counts at once, even while the task
+    # is still running an opt-in cache release that can take minutes.
     $stamp = Read-WatchdogPollStamp $StampPath
-    if ($stamp -and $stamp.Utc -ge $started) {
+    if ($stamp -and $stamp.UtcMs -ge $startedMs) {
       $info = Get-ScheduledTaskInfo -TaskName $TaskName
       return [pscustomobject]@{ State = $stamp.State; Exit = $stamp.Exit; LastTaskResult = [int64]$info.LastTaskResult }
     }

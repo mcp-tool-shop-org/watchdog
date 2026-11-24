@@ -54,6 +54,9 @@ function Register-WatchdogPoll {
   # Run it once now and require proof that the poll itself ran (a fresh stamp under Root), so a task that can never
   # start is an error here, not a silent gap. The probe throws when no fresh stamp appears.
   $paths = Get-WatchdogPaths -Root $cfg.Root
+  # The first poll writes its stamp (and _watchdog_DEAD, when no loop runs yet) under Root, which may not exist
+  # before the first Start-Watchdog.
+  if (-not (Test-Path -LiteralPath $cfg.Root)) { New-Item -ItemType Directory -Path $cfg.Root -Force | Out-Null }
   $first = Invoke-WatchdogPollTaskProbe -TaskName 'MCPToolShop.Watchdog.Poll' -StampPath $paths.PollStamp -TimeoutSec 60
   $wsl = if ($cfg.WslCacheRelease) { '; WslCacheRelease is on, so each poll may also drop the WSL page cache' } else { '' }
   Write-Output "registered scheduled task MCPToolShop.Watchdog.Poll every ${interval}s (detects death, never kills or restarts$wsl); its first run polled and saw $($first.State)."
