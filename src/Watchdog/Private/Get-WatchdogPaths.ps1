@@ -13,6 +13,7 @@ function Get-WatchdogPaths([string]$Root) {
     WslCacheLog       = Join-Path $Root '_watchdog_wslcache.log'
     WslCacheLast      = Join-Path $Root '_watchdog_wslcache.last'
     WslCacheHeartbeat = Join-Path $Root '_watchdog_wslcache.hb'
+    PollStamp         = Join-Path $Root '_watchdog_poll_last.json'
   }
 }
 

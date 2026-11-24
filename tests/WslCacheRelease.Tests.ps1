@@ -252,7 +252,7 @@ Describe 'WSL cache config' {
 
   It 'keeps the new files under Root' {
     $p = Get-WatchdogPaths -Root 'C:\watchdog-state'
-    foreach ($leaf in @($p.WslCacheLog, $p.WslCacheLast, $p.WslCacheHeartbeat)) {
+    foreach ($leaf in @($p.WslCacheLog, $p.WslCacheLast, $p.WslCacheHeartbeat, $p.PollStamp)) {
       Test-WatchdogPathUnderRoot -Root 'C:\watchdog-state' -Path $leaf | Should -BeTrue
     }
   }
@@ -287,6 +287,28 @@ Describe 'Invoke-WatchdogPoll with WSL cache release' {
     $global:WatchdogTestDeadBeforeRelease | Should -BeTrue
     $LASTEXITCODE | Should -Be 1
     Remove-Variable -Name WatchdogTestDeadBeforeRelease -Scope Global
+  }
+
+  It 'writes a fresh stamp with its state and exit code on every run' {
+    $root = Get-WatchdogTestDir 'poll-stamp'
+    $cfgPath = New-WatchdogTestConfig -Root $root
+    $paths = Get-WatchdogPaths -Root $root
+    $before = [DateTimeOffset]::UtcNow.AddSeconds(-1)
+    [void](Invoke-WatchdogPoll -ConfigPath $cfgPath)
+    $doc = Get-Content -LiteralPath $paths.PollStamp -Raw | ConvertFrom-Json
+    $doc.state | Should -Be 'NOT_RUNNING'
+    $doc.exit | Should -Be 1
+    [DateTimeOffset]::Parse([string]$doc.utc, [System.Globalization.CultureInfo]::InvariantCulture) | Should -BeGreaterOrEqual $before
+  }
+
+  It 'still reports liveness when the stamp cannot be written' {
+    $root = Get-WatchdogTestDir 'poll-stamp-blocked'
+    $cfgPath = New-WatchdogTestConfig -Root $root
+    $paths = Get-WatchdogPaths -Root $root
+    New-Item -ItemType Directory -Path $paths.PollStamp -Force | Out-Null
+    Get-WatchdogTimestamp | Set-Content $paths.Heartbeat
+    { Invoke-WatchdogPoll -ConfigPath $cfgPath } | Should -Not -Throw
+    $LASTEXITCODE | Should -Be 0
   }
 
   It 'does not run the release check when disabled' {

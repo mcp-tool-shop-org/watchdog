@@ -49,6 +49,13 @@ function Invoke-WatchdogPoll {
     [void](Invoke-WslCacheRelease -Cfg $cfg -Paths $paths)
   }
 
-  $global:LASTEXITCODE = switch ($hb.State) { 'RUNNING' { 0 } 'NOT_RUNNING' { 1 } default { 2 } }
+  $code = switch ($hb.State) { 'RUNNING' { 0 } 'NOT_RUNNING' { 1 } default { 2 } }
+  # Proof that a poll ran, for Register-WatchdogPoll's first-run check (a task's exit code cannot show it: the
+  # action is conhost, which exits 0 even when pwsh never starts). Never allowed to break the poll.
+  try {
+    [ordered]@{ utc = (Get-WatchdogTimestamp); state = [string]$hb.State; exit = $code } | ConvertTo-Json -Compress |
+      Set-Content -LiteralPath $paths.PollStamp -ErrorAction Stop
+  } catch { }
+  $global:LASTEXITCODE = $code
   return $hb
 }

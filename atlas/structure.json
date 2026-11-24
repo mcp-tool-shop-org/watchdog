@@ -141,11 +141,11 @@
           "path": ".gitignore"
         },
         {
-          "hash": "ff417e6ffcf405cf3e131199144469f8a84feb5d05ac68213fe948d1b4046861",
+          "hash": "3fb4d53d60bb963a0eb2fd01d3b118aeee69034f42fb068c639b8cb0761f4367",
           "path": ".polyglot-pins.json"
         },
         {
-          "hash": "d7bbea1bae800c4ab2644db6d77d24c3d3e17b7208585f89d32c4ee9777b376a",
+          "hash": "88e876f345ada92e0233bb35b732b1d2f8dcd9e99db127312b3943800d037d22",
           "path": "CHANGELOG.md"
         },
         {
@@ -157,35 +157,35 @@
           "path": "LICENSE"
         },
         {
-          "hash": "c4ea515b22f3154866566670b1817e56abcc7114ae1ed23f19d984ba8aacbde1",
+          "hash": "76111488cfa0bfb41f48814f229de7493ccd54427a181c7efd4ab11062afd87b",
           "path": "README.es.md"
         },
         {
-          "hash": "6698a7bf1403e03ddfb752de005493caf776cb20784ec825cb311b58e4085094",
+          "hash": "24f21342bf801d646596d9273f72e253eb8a57cee8b21053881a7286c09f1b55",
           "path": "README.fr.md"
         },
         {
-          "hash": "6f221f441c27a15311ba23bbbac78b035035550d079f2f1ebce29f07d0f866ab",
+          "hash": "2f8d5eb350046531707c22f2bcc02f03bd3265e1b7a43dff7308a4990d67e95f",
           "path": "README.hi.md"
         },
         {
-          "hash": "d1207a454c60953a2211f43ae4f3bfbd7cdcb8a447db057ac50046c7698bb950",
+          "hash": "e37daea127b59108929a9fcfcd7c5101991b56b8c7785be769c5e94ab72a1a61",
           "path": "README.it.md"
         },
         {
-          "hash": "06cdc07c800a9049753aba8adbba267fdbbf8baaa70551d0d948ce18bbd4355a",
+          "hash": "c01c93423b2906a6674b4d0b13a14c21cd16360839a31e5f530b0659f05010d5",
           "path": "README.ja.md"
         },
         {
-          "hash": "aaab8224e411c688a9500f0fa916278cf2f5ccc413e71b33c80d4b4a07114468",
+          "hash": "1b4523fea5e220165f292470c4c58173fd2556b8dee98ed0e8ddb53a34780e72",
           "path": "README.md"
         },
         {
-          "hash": "751412a181f1290153d7aed3d92a61be36cbfc719597aaf27cb191657965be81",
+          "hash": "5903e9e2e9af17ac6582229a6109dca662ea9220471a07f1d60caaf8679244b5",
           "path": "README.pt-BR.md"
         },
         {
-          "hash": "a8454e42baf7c4d32ecb254ddedf0ab85ea3e8171db25a88b215dd7565f4ae42",
+          "hash": "c32c86de960b31dfc1a6eef12fe1eebb266d041c0d73422f2aac3bdd1ea8b9d1",
           "path": "README.zh.md"
         },
         {
@@ -253,11 +253,11 @@
           "path": "site/src/content.config.ts"
         },
         {
-          "hash": "2694cfea1354eafbc60fefb9360b644ceabf850983d02b1a703fa62bfbea620a",
+          "hash": "dcb8227126c2879cfc582e1ee89a32109c15a6f667f8f0e8a97deae79b15c7bb",
           "path": "site/src/content/docs/handbook/configuration.md"
         },
         {
-          "hash": "f84b2b2de3968f6e2ff4549489b3d7be7cc06450da15d83a8e1d92cab93b684c",
+          "hash": "2d4fb16eec0f16d16e8a6632b291bf3109b44ded62a9e500ffd17ba939a4931a",
           "path": "site/src/content/docs/handbook/getting-started.md"
         },
         {
@@ -269,7 +269,7 @@
           "path": "site/src/content/docs/handbook/operations.md"
         },
         {
-          "hash": "c4268e38b5b2d611ac40a2d52c6b059bc64d58808d83cad9c5a61beaf4c85f4f",
+          "hash": "f428df89b4113a2d54467d9ef1ef3fbe99e0469a42eddc75323eaefe87f2d414",
           "path": "site/src/content/docs/handbook/reference.md"
         },
         {
@@ -294,7 +294,7 @@
         },
         {
           "constantOnly": true,
-          "hash": "84843a2d8b179778813414a8a9ada551c5695a4b98c5cc3cc5195eaa6b1a00d5",
+          "hash": "317bee0a5f64f439751ba946d64090d0a1b5c7220a8b775e93f8b18217f5a120",
           "path": "site/src/site-config.ts"
         },
         {
@@ -337,7 +337,7 @@
           "path": "src/Watchdog/Private/Get-WatchdogHeartbeatState.ps1"
         },
         {
-          "hash": "f4bac995e9d2e83f19ef2c994bae8d620c73ffac2a64665ec2e1503ac74b9b3f",
+          "hash": "ca89846026e48f21dcb944072b32b60324c0ad0b415fcc6bcc2a4189e92dc615",
           "path": "src/Watchdog/Private/Get-WatchdogPaths.ps1"
         },
         {
@@ -369,7 +369,7 @@
           "path": "src/Watchdog/Private/Resolve-WatchdogConfig.ps1"
         },
         {
-          "hash": "570c977c0919c58d2ddee29d0bfe1249ff6834b150b55ca5be9839530a427b5a",
+          "hash": "098d004c2819aefa49a93b8315f98d3cb465be8d432641ad523d96a917e13da0",
           "path": "src/Watchdog/Private/Resolve-WatchdogPollLaunch.ps1"
         },
         {
@@ -393,11 +393,11 @@
           "path": "src/Watchdog/Public/Install-Watchdog.ps1"
         },
         {
-          "hash": "d4888f24aa5be83195742d65c2367a469510603a71bbfb220f33f50d6cfaf0bd",
+          "hash": "d5011264bd239f818f58dc4967b2883ae7863e2f7fdc4246782e5e0dd8efea6f",
           "path": "src/Watchdog/Public/Invoke-WatchdogPoll.ps1"
         },
         {
-          "hash": "242927cb50be941db8bc9c3f9dbdcfaf04c64dc6d0bd09b3cc0cf990a69f69d4",
+          "hash": "e9b254c9b7f369b4cbcb03ab6e6ab394655bb42125a9b070f8559002b2e893ea",
           "path": "src/Watchdog/Public/Register-WatchdogPoll.ps1"
         },
         {
@@ -476,7 +476,7 @@
           "path": "tests/Hysteresis.Tests.ps1"
         },
         {
-          "hash": "15a36bba34f536cba65eb80d7d5d7384ce555479eccd201426ee1577a8aec5ea",
+          "hash": "3334b763c80059e749c3b5aaaaf61babb627dd851edbf155a4a631337269b821",
           "path": "tests/Lifecycle.Tests.ps1"
         },
         {
@@ -492,7 +492,7 @@
           "path": "tests/Poller.Tests.ps1"
         },
         {
-          "hash": "d08e5c9bdfa76568a7c3fcdbcc08ac301d1347e2b41fa12c9cfac8e17a28024b",
+          "hash": "d36b8f818f9e600450e8481e90117ce5ccf79033f7d732e9c9276edd255772b8",
           "path": "tests/WslCacheRelease.Tests.ps1"
         },
         {
@@ -865,7 +865,7 @@
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "3b5af9e203cd4d0b20a30910d9123713affc026e",
+    "commit": "df2ef9a78a4c642e066bef46ba2a62e627187290",
     "tracked": 90
   },
   "landings": [
