@@ -1,14 +1,14 @@
 # watchdog: how it works
 
-Mapped at 2026-11-24 from commit 3978a55 by Atlas 1.26.0.
+Mapped at 2026-11-24 from commit 6e018c7 by Atlas 1.26.0.
 
 ## What this is
 
-8 parts, mostly PowerShell (34 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 1 door; the busiest is ci, which reaches 1 part.
+8 parts, mostly PowerShell (39 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 1 door; the busiest is ci, which reaches 1 part.
 
-## What changed since 2026-11-13 (d4953d7)
+## What changed since 2026-11-24 (3978a55)
 
-Nothing structural changed since 2026-11-13; 11 files changed content.
+Nothing structural changed since 2026-11-24; 6 files added and 19 changed content.
 
 ## What comes in
 

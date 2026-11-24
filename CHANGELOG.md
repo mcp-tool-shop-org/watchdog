@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-24
+
+### Changed
+
+- The landing page and handbook are back on GitHub Pages (Pages could not be enabled while the repository was private). The deploy workflow pins every action to a commit SHA, audits the site's dependencies, and checks that the landing page and the handbook both return 200 after each deploy. The handbook documents the WSL cache release, its log, and the coverage bar.
+
 ### Added
 
 - **WSL file-cache release (opt-in, `WslCacheRelease`).** The poller drops the Linux page cache when the WSL VM crowds Windows memory, reading memory from the Windows side so it never wakes a stopped VM. It has thresholds, a cooldown and a timeout, never kills a process, and logs to `_watchdog_wslcache.log` (hourly heartbeat, each drop, and an alert if Windows stays high).

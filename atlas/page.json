@@ -9,22 +9,22 @@
   "breaks": [],
   "changes": {
     "fileCounts": {
-      "added": 0,
-      "changed": 11,
+      "added": 6,
+      "changed": 19,
       "moved": 0,
-      "parts": 3,
+      "parts": 5,
       "removed": 0
     },
     "items": [
       {
         "kind": "counts",
-        "sentence": "Nothing structural changed since 2026-11-13; 11 files changed content.",
+        "sentence": "Nothing structural changed since 2026-11-24; 6 files added and 19 changed content.",
         "subjects": []
       }
     ],
     "since": {
-      "commit": "d4953d7428f4f709ddf59c3518d566037cc5f5b4",
-      "generatedAt": "2026-11-13T00:07:34.460Z"
+      "commit": "3978a551bb5503fb7f7ccc692263df1c769265f7",
+      "generatedAt": "2026-11-24T03:28:41.114Z"
     },
     "unchanged": true
   },
@@ -33,9 +33,9 @@
     "Window: 180 days; a pair counts from 3 shared commits, since the window holds fewer than 30 qualifying commits."
   ],
   "changesTogetherWithTests": 0,
-  "commit": "3978a551bb5503fb7f7ccc692263df1c769265f7",
+  "commit": "6e018c7b585039035c3ec0dd1dfd6d7126c28e17",
   "defaultBranch": "main",
-  "derived": "8 parts, mostly PowerShell (34 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 1 door; the busiest is ci, which reaches 1 part.",
+  "derived": "8 parts, mostly PowerShell (39 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 1 door; the busiest is ci, which reaches 1 part.",
   "doors": [
     {
       "checks": [],
@@ -75,7 +75,7 @@
   "edges": [],
   "engine": "1.26.0",
   "generated": [],
-  "generatedAt": "2026-11-24T03:28:41.114Z",
+  "generatedAt": "2026-11-24T03:48:33.355Z",
   "limits": [
     "Statistics confidence is low: fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions."
   ],
@@ -99,7 +99,7 @@
   "startNote": "ci runs no code this map can follow, so there is no path of files to read in order.",
   "summary": null,
   "summaryFrom": null,
-  "testFiles": 12,
+  "testFiles": 16,
   "testedBy": {},
   "testedCodeParts": 0,
   "unnamedWrites": 0,

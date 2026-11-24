@@ -29,7 +29,44 @@ Missing config is a hard refuse (`CONFIG_MISSING`). Relative `Root` or
 
 `IntervalSec = 2`, `BreachSamples = 3`, `StaleSec = 15`,
 `PollIntervalSec = 30`, `AllowKill = $false`, `WslKillPattern = ''`
-(WSL abort disabled).
+(WSL abort disabled), `WslCacheRelease = $false`.
+
+`Register-WatchdogPoll` registers the poller every
+`max(60, PollIntervalSec)` seconds: Windows scheduled-task repetition
+cannot go below one minute.
+
+## WSL file-cache release (opt-in)
+
+The WSL VM (`vmmemWSL`) keeps Linux file cache from large reads, such as
+container image pulls. WSL's `autoMemoryReclaim` only gives it back when
+the VM is idle, and a running container engine keeps it busy. With
+`WslCacheRelease = $true`, each poll:
+
+1. reads `vmmemWSL` and Windows memory from the Windows side (a stopped VM
+   is never started);
+2. acts when `vmmemWSL >= WslCacheHighGB`, or when Windows used
+   `>= WslCacheWinHighPct` and `vmmemWSL >= WslCacheMinGB`;
+3. drops the page cache in `WslDistro` (`sync; echo 1 > /proc/sys/vm/drop_caches`
+   as root) only if the Linux cache is `>= WslCacheMinCacheGB`, at most
+   once per `WslCacheCooldownSec`.
+
+It never kills a process, and a failure is logged, never thrown into the
+poll.
+
+| Field | Default | Meaning |
+|---|---|---|
+| `WslCacheRelease` | `$false` | Turns the feature on. |
+| `WslCacheHighGB` | `16` | Act when `vmmemWSL` reaches this many GB. |
+| `WslCacheMinGB` | `8` | With Windows under pressure, act from this size. |
+| `WslCacheWinHighPct` | `80` | Windows memory used, in percent, that counts as pressure. |
+| `WslCacheMinCacheGB` | `6` | Do not drop a cache smaller than this. |
+| `WslCacheAlertPct` | `90` | Log an `ALERT` if Windows is still at or above this after a drop. |
+| `WslCacheCooldownSec` | `300` | Minimum time between drops. |
+| `WslCacheTimeoutSec` | `90` | Hard timeout for each `wsl.exe` call. |
+| `WslCacheSettleSec` | `10` | Wait before re-reading memory after a drop. |
+
+Each value must be a positive number (`WslCacheSettleSec` may be 0), and
+the two percentages at most 100; anything else is `CONFIG_INVALID`.
 
 ## The 31200 bound
 
