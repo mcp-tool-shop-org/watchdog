@@ -9,22 +9,22 @@
   "breaks": [],
   "changes": {
     "fileCounts": {
-      "added": 1,
-      "changed": 10,
+      "added": 0,
+      "changed": 17,
       "moved": 0,
-      "parts": 3,
+      "parts": 4,
       "removed": 0
     },
     "items": [
       {
         "kind": "counts",
-        "sentence": "Nothing structural changed since 2026-11-24; 1 file added and 10 changed content.",
+        "sentence": "Nothing structural changed since 2026-11-24; 17 files changed content.",
         "subjects": []
       }
     ],
     "since": {
-      "commit": "157f6d4c0b8278e2529fa5c92cc74b2fbd650bff",
-      "generatedAt": "2026-11-24T04:13:04.044Z"
+      "commit": "f4fbeb0796991e156ead1c6e27cdb237643718f6",
+      "generatedAt": "2026-11-24T04:23:19.143Z"
     },
     "unchanged": true
   },
@@ -33,7 +33,7 @@
     "Window: 180 days; a pair counts from 3 shared commits, since the window holds fewer than 30 qualifying commits."
   ],
   "changesTogetherWithTests": 0,
-  "commit": "f4fbeb0796991e156ead1c6e27cdb237643718f6",
+  "commit": "a5c024deb4593af5c2644e183eb39583e502db2a",
   "defaultBranch": "main",
   "derived": "8 parts, mostly PowerShell (39 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it. It deploys a site to GitHub Pages.",
   "doors": [
@@ -117,7 +117,7 @@
   "edges": [],
   "engine": "1.26.0",
   "generated": [],
-  "generatedAt": "2026-11-24T04:23:19.143Z",
+  "generatedAt": "2026-11-24T04:44:47.459Z",
   "limits": [
     "Statistics confidence is low: fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions."
   ],
