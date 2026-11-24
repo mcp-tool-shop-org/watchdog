@@ -61,6 +61,42 @@
       "translation": "108 test unitari, senza GPU. Le fixture del parser includono l’output nvidia-smi malformato che ha interrotto il ciclo il 2026-06-12. Il test di abort hardware resta locale e non viene eseguito in CI.",
       "pinnedAt": "2026-11-24T04:22:27.623Z"
     },
+    "710ed0fe7227a0ad:es": {
+      "lang": "es",
+      "source": "`pwsh -File .\\verify.ps1 -Coverage` adds line coverage of `src/Watchdog/Private`\nand `src/Watchdog/Public` only (`Watchdog.psm1`, `watchdog.ps1` and\n`watchdog-loop.ps1` are not measured). CI's own floor fails the build below 90%\nfor the measured module (`verify.ps1 -MinCoverage 90`) and uploads the report\nto Codecov, which checks every change at 90% while Codecov's whole-module status\nallows one point below.",
+      "translation": "`pwsh -File .\\verify.ps1 -Coverage` añade la cobertura de líneas de `src/Watchdog/Private` y `src/Watchdog/Public` únicamente (no se miden `Watchdog.psm1`, `watchdog.ps1` y `watchdog-loop.ps1`). El umbral mínimo de las pruebas de integración continua hace que la compilación falle si está por debajo del 90 % para el módulo medido (`verify.ps1 -MinCoverage 90`) y sube el informe a Codecov, que comprueba cada cambio al 90 %, mientras que el estado general del módulo en Codecov permite un margen de un punto por debajo.",
+      "pinnedAt": "2026-11-24T13:24:31.051Z"
+    },
+    "710ed0fe7227a0ad:fr": {
+      "lang": "fr",
+      "source": "`pwsh -File .\\verify.ps1 -Coverage` adds line coverage of `src/Watchdog/Private`\nand `src/Watchdog/Public` only (`Watchdog.psm1`, `watchdog.ps1` and\n`watchdog-loop.ps1` are not measured). CI's own floor fails the build below 90%\nfor the measured module (`verify.ps1 -MinCoverage 90`) and uploads the report\nto Codecov, which checks every change at 90% while Codecov's whole-module status\nallows one point below.",
+      "translation": "`pwsh -File .\\verify.ps1 -Coverage` ajoute la couverture de ligne pour `src/Watchdog/Private` et `src/Watchdog/Public` uniquement (`Watchdog.psm1`, `watchdog.ps1` et `watchdog-loop.ps1` ne sont pas mesurés). Le seuil minimal de l’intégration continue fait échouer la compilation si le résultat est inférieur à 90 % pour le module mesuré (`verify.ps1 -MinCoverage 90`) et envoie le rapport à Codecov, qui vérifie chaque modification à 90 %, tandis que le statut global du module dans Codecov autorise une marge d’un point en dessous.",
+      "pinnedAt": "2026-11-24T13:24:31.172Z"
+    },
+    "710ed0fe7227a0ad:hi": {
+      "lang": "hi",
+      "source": "`pwsh -File .\\verify.ps1 -Coverage` adds line coverage of `src/Watchdog/Private`\nand `src/Watchdog/Public` only (`Watchdog.psm1`, `watchdog.ps1` and\n`watchdog-loop.ps1` are not measured). CI's own floor fails the build below 90%\nfor the measured module (`verify.ps1 -MinCoverage 90`) and uploads the report\nto Codecov, which checks every change at 90% while Codecov's whole-module status\nallows one point below.",
+      "translation": "`pwsh -File .\\verify.ps1 -Coverage`, केवल `src/Watchdog/Private` और `src/Watchdog/Public` के लिए लाइन कवरेज जोड़ता है (`Watchdog.psm1`, `watchdog.ps1` और `watchdog-loop.ps1` को मापा नहीं जाता)। मापे गए मॉड्यूल का कवरेज 90% से नीचे होने पर सीआई का अपना न्यूनतम स्तर बिल्ड को विफल कर देता है (`verify.ps1 -MinCoverage 90`) और रिपोर्ट को कोडकोव पर अपलोड करता है, जो 90% पर हर बदलाव की जाँच करता है, जबकि कोडकोव का संपूर्ण-मॉड्यूल स्टेटस एक अंक कम होने की अनुमति देता है।",
+      "pinnedAt": "2026-11-24T13:24:31.269Z"
+    },
+    "710ed0fe7227a0ad:it": {
+      "lang": "it",
+      "source": "`pwsh -File .\\verify.ps1 -Coverage` adds line coverage of `src/Watchdog/Private`\nand `src/Watchdog/Public` only (`Watchdog.psm1`, `watchdog.ps1` and\n`watchdog-loop.ps1` are not measured). CI's own floor fails the build below 90%\nfor the measured module (`verify.ps1 -MinCoverage 90`) and uploads the report\nto Codecov, which checks every change at 90% while Codecov's whole-module status\nallows one point below.",
+      "translation": "`pwsh -File .\\verify.ps1 -Coverage` aggiunge la copertura delle righe di `src/Watchdog/Private` e `src/Watchdog/Public` soltanto (non vengono misurati `Watchdog.psm1`, `watchdog.ps1` e `watchdog-loop.ps1`). Il limite minimo di CI fa fallire la build quando il valore scende sotto il 90% per il modulo misurato (`verify.ps1 -MinCoverage 90`) e carica il rapporto su Codecov, che verifica ogni modifica con una soglia del 90%, mentre lo stato complessivo del modulo in Codecov consente un margine di un punto in meno.",
+      "pinnedAt": "2026-11-24T13:24:31.390Z"
+    },
+    "710ed0fe7227a0ad:ja": {
+      "lang": "ja",
+      "source": "`pwsh -File .\\verify.ps1 -Coverage` adds line coverage of `src/Watchdog/Private`\nand `src/Watchdog/Public` only (`Watchdog.psm1`, `watchdog.ps1` and\n`watchdog-loop.ps1` are not measured). CI's own floor fails the build below 90%\nfor the measured module (`verify.ps1 -MinCoverage 90`) and uploads the report\nto Codecov, which checks every change at 90% while Codecov's whole-module status\nallows one point below.",
+      "translation": "`pwsh -File .\\verify.ps1 -Coverage`は、`src/Watchdog/Private`と`src/Watchdog/Public`のみの行カバレッジを追加します（`Watchdog.psm1`、`watchdog.ps1`、および`watchdog-loop.ps1`は測定されません）。CI独自の最低基準により、測定対象モジュールのカバレッジが90%を下回るとビルドを失敗させ（`verify.ps1 -MinCoverage 90`）、レポートをCodecovにアップロードします。Codecovは、すべての変更に対して90%の基準を満たしているか確認し、Codecovのモジュール全体のステータスでは、1ポイント低い場合でも許容されます。",
+      "pinnedAt": "2026-11-24T13:24:31.510Z"
+    },
+    "710ed0fe7227a0ad:zh": {
+      "lang": "zh",
+      "source": "`pwsh -File .\\verify.ps1 -Coverage` adds line coverage of `src/Watchdog/Private`\nand `src/Watchdog/Public` only (`Watchdog.psm1`, `watchdog.ps1` and\n`watchdog-loop.ps1` are not measured). CI's own floor fails the build below 90%\nfor the measured module (`verify.ps1 -MinCoverage 90`) and uploads the report\nto Codecov, which checks every change at 90% while Codecov's whole-module status\nallows one point below.",
+      "translation": "`pwsh -File .\\verify.ps1 -Coverage` 仅增加了对 `src/Watchdog/Private` 和 `src/Watchdog/Public` 的行覆盖率统计（未测量 `Watchdog.psm1`、`watchdog.ps1` 和 `watchdog-loop.ps1`）。CI 自身的最低覆盖率要求会在被测模块低于 90% 时使构建失败（`verify.ps1 -MinCoverage 90`），并将报告上传到 Codecov。Codecov 会检查每次更改是否达到 90% 的覆盖率，而 Codecov 的整体模块状态允许低一个百分点。",
+      "pinnedAt": "2026-11-24T13:24:31.618Z"
+    },
     "72a126fe2b433fa3:es": {
       "lang": "es",
       "source": "144 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
@@ -366,6 +402,18 @@
       "source": "134 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
       "translation": "134 个单元测试，未使用 GPU。解析器测试用例包括导致 2026-06-12 日循环中断的格式错误的 nvidia-smi 输出。硬件中止测试保持本地状态，不会在 CI 中进行绿色测试。",
       "pinnedAt": "2026-11-24T06:24:10.072Z"
+    },
+    "cbd8bfcbdd6d2953:hi": {
+      "lang": "hi",
+      "source": "182 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "182 यूनिट परीक्षण, कोई जीपीयू नहीं। पार्सर फिक्स्चर में गलत फ़ॉर्मेट वाला nvidia-smi आउटपुट शामिल है, जिसके कारण 2026-06-12 को लूप बंद हो गया। हार्डवेयर एबॉर्ट परीक्षण स्थानीय स्तर पर ही रहता है और इसे सीआई में शामिल नहीं किया जाता है।",
+      "pinnedAt": "2026-11-24T13:24:31.268Z"
+    },
+    "cbd8bfcbdd6d2953:ja": {
+      "lang": "ja",
+      "source": "182 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "182個のユニットテスト、GPUは使用しません。パーサーのテストデータには、2026年6月12日にループを停止させた、形式が正しくないnvidia-smiの出力が含まれます。ハードウェアアボートテストはローカル環境でのみ実行され、CI環境では実行されません。",
+      "pinnedAt": "2026-11-24T13:24:31.509Z"
     },
     "d3f043d75710e34d:es": {
       "lang": "es",
