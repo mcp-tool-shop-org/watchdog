@@ -75,7 +75,7 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 | `watchdog stop` | センチネルを停止し、待機します。プロセスを照合することは行いません。 |
 | `watchdog poll` | ワンショット：ハートビートが古い場合、外部から`_watchdog_DEAD`を書き込みます。 |
 | `watchdog help` | フラグと終了コード |
-| `watchdog version` | `1.1.1` |
+| `watchdog version` | `1.1.2` |
 
 `status`/`poll`の終了コード：**0**（正常終了）、**1**（ハートビートが途絶）、**2**（タイムアウト）。`start`では、さらに**3**（VRAMの使用量が上限を超えた）、**4**（古いループが停止しなかった）、**5**（起動後にハートビートが途絶）も使用されます。
 
@@ -101,7 +101,7 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 pwsh -File .\verify.ps1
 ```
 
-144個のユニットテスト、GPUは使用しません。パーサーのテストデータには、2026年6月12日にループを停止させた、不正なnvidia-smiの出力が含まれています。ハードウェア異常テストはローカルで実行され、CI環境ではグリーン化されません。
+166個のユニットテスト、GPUは使用しません。パーサーのテストデータには、2026年6月12日にループを停止させた、不正なnvidia-smiの出力が含まれています。ハードウェア異常テストはローカルで実行され、CI環境ではグリーン化されません。
 
 `pwsh -File .\verify.ps1 -Coverage`により、`src/Watchdog`の行カバレッジが追加され、90%未満の場合にはテストが失敗します。CI（継続的インテグレーション）システムでは、このテストが実行され、その結果がCodecovにアップロードされます。Codecovでは、モジュール全体および各変更に対して、少なくとも90%のカバレッジが必要です。
 

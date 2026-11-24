@@ -1,21 +1,21 @@
-BeforeAll {
+﻿BeforeAll {
   . (Join-Path $PSScriptRoot 'Helpers.ps1')
   Import-Module (Join-Path $script:WatchdogModule 'Watchdog.psd1') -Force
 }
 
-AfterAll {
-  InModuleScope Watchdog {
-    Remove-Item function:script:nvidia-smi, function:script:wsl -ErrorAction SilentlyContinue
-  }
-}
-
-# Every external effect is replaced inside the module: nvidia-smi and wsl are stub functions (functions win
-# over applications), Stop-Process / Get-Process / Get-CimInstance / Start-Sleep are mocked. Nothing on the
-# host is read for real or killed.
+# Every external effect is replaced inside the module: nvidia-smi is a stub function (functions win
+# over applications), Stop-Process / Get-Process / Get-CimInstance / Start-Sleep / Test-WslDistroRunning /
+# Invoke-ProcessWithTimeout are mocked. Nothing on the host is read for real, called, or killed.
 Describe 'Invoke-WatchdogLoop' {
   BeforeEach {
     $script:loopRoot = Get-WatchdogTestDir ('loop-' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $script:loopRoot -Force | Out-Null
+  }
+
+  AfterEach {
+    InModuleScope Watchdog {
+      Remove-Item function:script:nvidia-smi -ErrorAction SilentlyContinue
+    }
   }
 
   It 'logs a normal sample and stops cleanly on the STOP file' {
@@ -63,16 +63,20 @@ Describe 'Invoke-WatchdogLoop' {
       param($Root)
       $script:T = Get-WatchdogPaths -Root $Root
       function script:nvidia-smi { '90, 300.0, 1000' }
-      function script:wsl { $global:LASTEXITCODE = 0 }
       Mock Get-CimInstance { [pscustomobject]@{ TotalVisibleMemorySize = 67108864; FreePhysicalMemory = 33554432 } }
       Mock Get-Process { @() }
       Mock Get-VramHolders { 'holders: none reported >0' }
-      Mock Test-WslRunning { $true }
+      Mock Test-WslDistroRunning { $true }
+      Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 0; Out = ''; StreamsDrained = $true } }
       Mock Start-Sleep { New-Item -ItemType File -Path $script:T.Stop -Force | Out-Null }
       $cfg = [pscustomobject]@{ Root = $Root; Targets = @('C:\t\python.exe'); IntervalSec = 2; RamKillPct = 90; VramKillMiB = 31200; TempKillC = 87; BreachSamples = 1; WslDistro = 'Ubuntu'; WslKillPattern = 'train.py' }
       Invoke-WatchdogLoop -Config $cfg
+      Should -Invoke Test-WslDistroRunning -Times 1 -Exactly -ParameterFilter { $Distro -eq 'Ubuntu' -and $TimeoutSec -eq 10 }
+      Should -Invoke Invoke-ProcessWithTimeout -Times 1 -Exactly -ParameterFilter {
+        $FileName -eq 'wsl.exe' -and $TimeoutSec -eq 15 -and $PassThru -and ($ArgumentList -join '|') -eq '-d|Ubuntu|--|pkill|-9|-f|train.py'
+      }
       $log = Get-Content $script:T.Kill -Raw
-      $log | Should -Match "ABORT — TEMP 90C>=87C — wsl\[Ubuntu\] pkill -9 -f 'train.py' exit=0"
+      $log | Should -Match 'ABORT — TEMP 90C>=87C — wsl pkill exit=0'
       Test-Path $script:T.NoTarget | Should -BeFalse
     }
   }
@@ -85,14 +89,96 @@ Describe 'Invoke-WatchdogLoop' {
       Mock Get-CimInstance { [pscustomobject]@{ TotalVisibleMemorySize = 67108864; FreePhysicalMemory = 3355443 } }
       Mock Get-Process { @() }
       Mock Get-VramHolders { 'holders: none reported >0' }
-      Mock Test-WslRunning { $false }
+      Mock Test-WslDistroRunning { $false }
+      Mock Invoke-ProcessWithTimeout { throw 'should not run pkill' }
+      Mock Start-Sleep { New-Item -ItemType File -Path $script:T.Stop -Force | Out-Null }
+      $cfg = [pscustomobject]@{ Root = $Root; Targets = @('C:\t\python.exe'); IntervalSec = 2; RamKillPct = 90; VramKillMiB = 31200; TempKillC = 87; BreachSamples = 1; WslDistro = 'Ubuntu'; WslKillPattern = 'train.py' }
+      Invoke-WatchdogLoop -Config $cfg
+      Should -Invoke Invoke-ProcessWithTimeout -Times 0 -Exactly
+      $log = Get-Content $script:T.Kill -Raw
+      $log | Should -Match 'BREACH WITH NO KILLABLE TARGET — RAM 95%>=90%'
+      $log | Should -Match 'wsl distro not running, skipped'
+      Get-Content $script:T.NoTarget -Raw | Should -Match 'no killable target'
+    }
+  }
+
+  It 'skips WSL pkill and logs a short reason when checking the distro throws' {
+    InModuleScope Watchdog -Parameters @{ Root = $script:loopRoot } {
+      param($Root)
+      $script:T = Get-WatchdogPaths -Root $Root
+      function script:nvidia-smi { '90, 300.0, 1000' }
+      Mock Get-CimInstance { [pscustomobject]@{ TotalVisibleMemorySize = 67108864; FreePhysicalMemory = 33554432 } }
+      Mock Get-Process { @() }
+      Mock Get-VramHolders { 'holders: none reported >0' }
+      Mock Test-WslDistroRunning { throw 'wsl.exe timed out after 10 s' }
+      Mock Invoke-ProcessWithTimeout { throw 'should not run pkill' }
+      Mock Start-Sleep { New-Item -ItemType File -Path $script:T.Stop -Force | Out-Null }
+      $cfg = [pscustomobject]@{ Root = $Root; Targets = @('C:\t\python.exe'); IntervalSec = 2; RamKillPct = 90; VramKillMiB = 31200; TempKillC = 87; BreachSamples = 1; WslDistro = 'Ubuntu'; WslKillPattern = 'train.py' }
+      Invoke-WatchdogLoop -Config $cfg
+      Should -Invoke Invoke-ProcessWithTimeout -Times 0 -Exactly
+      $log = Get-Content $script:T.Kill -Raw
+      $log | Should -Match 'BREACH WITH NO KILLABLE TARGET'
+      $log | Should -Match 'wsl distro check failed \(wsl\.exe timed out after 10 s\), skipped'
+      Test-Path $script:T.NoTarget | Should -BeTrue
+    }
+  }
+
+  It 'treats WSL pkill exit 1 as no match and records NO_TARGET' {
+    InModuleScope Watchdog -Parameters @{ Root = $script:loopRoot } {
+      param($Root)
+      $script:T = Get-WatchdogPaths -Root $Root
+      function script:nvidia-smi { '90, 300.0, 1000' }
+      Mock Get-CimInstance { [pscustomobject]@{ TotalVisibleMemorySize = 67108864; FreePhysicalMemory = 33554432 } }
+      Mock Get-Process { @() }
+      Mock Get-VramHolders { 'holders: none reported >0' }
+      Mock Test-WslDistroRunning { $true }
+      Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 1; Out = ''; StreamsDrained = $true } }
       Mock Start-Sleep { New-Item -ItemType File -Path $script:T.Stop -Force | Out-Null }
       $cfg = [pscustomobject]@{ Root = $Root; Targets = @('C:\t\python.exe'); IntervalSec = 2; RamKillPct = 90; VramKillMiB = 31200; TempKillC = 87; BreachSamples = 1; WslDistro = 'Ubuntu'; WslKillPattern = 'train.py' }
       Invoke-WatchdogLoop -Config $cfg
       $log = Get-Content $script:T.Kill -Raw
-      $log | Should -Match 'BREACH WITH NO KILLABLE TARGET — RAM 95%>=90%'
-      $log | Should -Match 'wsl\[Ubuntu\] not running, skipped'
-      Get-Content $script:T.NoTarget -Raw | Should -Match 'no killable target'
+      $log | Should -Match 'BREACH WITH NO KILLABLE TARGET — TEMP 90C>=87C — wsl pkill exit=1'
+      Test-Path $script:T.NoTarget | Should -BeTrue
+    }
+  }
+
+  It 'records wsl pkill timeout and keeps the loop running' {
+    InModuleScope Watchdog -Parameters @{ Root = $script:loopRoot } {
+      param($Root)
+      $script:T = Get-WatchdogPaths -Root $Root
+      function script:nvidia-smi { '90, 300.0, 1000' }
+      Mock Get-CimInstance { [pscustomobject]@{ TotalVisibleMemorySize = 67108864; FreePhysicalMemory = 33554432 } }
+      Mock Get-Process { @() }
+      Mock Get-VramHolders { 'holders: none reported >0' }
+      Mock Test-WslDistroRunning { $true }
+      Mock Invoke-ProcessWithTimeout { throw 'wsl.exe timed out after 15 s' }
+      Mock Start-Sleep { New-Item -ItemType File -Path $script:T.Stop -Force | Out-Null }
+      $cfg = [pscustomobject]@{ Root = $Root; Targets = @('C:\t\python.exe'); IntervalSec = 2; RamKillPct = 90; VramKillMiB = 31200; TempKillC = 87; BreachSamples = 1; WslDistro = 'Ubuntu'; WslKillPattern = 'train.py' }
+      Invoke-WatchdogLoop -Config $cfg
+      $log = Get-Content $script:T.Kill -Raw
+      $log | Should -Match 'wsl pkill timed out'
+      $log | Should -Match 'watchdog stopped \(clean'
+      Test-Path $script:T.NoTarget | Should -BeTrue
+    }
+  }
+
+  It 'records wsl pkill failure reason and keeps the loop running' {
+    InModuleScope Watchdog -Parameters @{ Root = $script:loopRoot } {
+      param($Root)
+      $script:T = Get-WatchdogPaths -Root $Root
+      function script:nvidia-smi { '90, 300.0, 1000' }
+      Mock Get-CimInstance { [pscustomobject]@{ TotalVisibleMemorySize = 67108864; FreePhysicalMemory = 33554432 } }
+      Mock Get-Process { @() }
+      Mock Get-VramHolders { 'holders: none reported >0' }
+      Mock Test-WslDistroRunning { $true }
+      Mock Invoke-ProcessWithTimeout { throw 'wsl.exe failed to start' }
+      Mock Start-Sleep { New-Item -ItemType File -Path $script:T.Stop -Force | Out-Null }
+      $cfg = [pscustomobject]@{ Root = $Root; Targets = @('C:\t\python.exe'); IntervalSec = 2; RamKillPct = 90; VramKillMiB = 31200; TempKillC = 87; BreachSamples = 1; WslDistro = 'Ubuntu'; WslKillPattern = 'train.py' }
+      Invoke-WatchdogLoop -Config $cfg
+      $log = Get-Content $script:T.Kill -Raw
+      $log | Should -Match 'wsl pkill failed \(wsl\.exe failed to start\)'
+      $log | Should -Match 'watchdog stopped \(clean'
+      Test-Path $script:T.NoTarget | Should -BeTrue
     }
   }
 
@@ -146,7 +232,27 @@ Describe 'Invoke-WatchdogLoop' {
         $lock.Dispose()
       }
       $log = Get-Content $script:T.Kill -Raw
-      $log | Should -Match 'heartbeat write skipped \(file locked\)'
+      $log | Should -Match 'heartbeat write skipped \(.+?\) — loop continues'
+      $log | Should -Match 'cannot access the file'
+      $log | Should -Not -Match 'heartbeat write skipped \(file locked\)'
+      $log | Should -Match 'watchdog stopped \(clean'
+    }
+  }
+
+  It 'records the first-line exception message when heartbeat write fails for another reason' {
+    InModuleScope Watchdog -Parameters @{ Root = $script:loopRoot } {
+      param($Root)
+      $script:T = Get-WatchdogPaths -Root $Root
+      function script:nvidia-smi { '50, 100.0, 10000' }
+      Mock Get-CimInstance { [pscustomobject]@{ TotalVisibleMemorySize = 67108864; FreePhysicalMemory = 33554432 } }
+      Mock Get-Process { @() }
+      Mock Set-Content { throw "Disk full`r`nsecond line detail" }
+      Mock Start-Sleep { New-Item -ItemType File -Path $script:T.Stop -Force | Out-Null }
+      $cfg = [pscustomobject]@{ Root = $Root; Targets = @(); IntervalSec = 2; RamKillPct = 90; VramKillMiB = 31200; TempKillC = 87; BreachSamples = 3; WslDistro = 'Ubuntu'; WslKillPattern = '' }
+      Invoke-WatchdogLoop -Config $cfg
+      $log = Get-Content $script:T.Kill -Raw
+      $log | Should -Match 'heartbeat write skipped \(Disk full\) — loop continues'
+      $log | Should -Not -Match 'second line detail'
       $log | Should -Match 'watchdog stopped \(clean'
     }
   }

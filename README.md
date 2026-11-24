@@ -97,7 +97,7 @@ above `WslCacheAlertPct` after a release. Thresholds are in the example config.
 | `watchdog stop` | STOP sentinel, wait. Never process-match. |
 | `watchdog poll` | One-shot: if heartbeat is stale, write `_watchdog_DEAD` from the outside |
 | `watchdog help` | Flags and exit codes |
-| `watchdog version` | `1.1.1` |
+| `watchdog version` | `1.1.2` |
 
 `status` / `poll` exit codes: **0** running · **1** no heartbeat · **2**
 stale. `start` also uses **3** (VRAM already over ceiling), **4** (old
@@ -130,14 +130,16 @@ never kills and never auto-restarts; auto-restart can abort a live job.
 pwsh -File .\verify.ps1
 ```
 
-144 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
+166 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
 output that killed the loop on 2026-06-12. The hardware abort test stays
 local and is not greened in CI.
 
-`pwsh -File .\verify.ps1 -Coverage` adds line coverage of `src/Watchdog`
-and fails below 90%. CI runs it that way and uploads the report to Codecov,
-which requires at least 90% coverage for the whole module and for every
-change.
+`pwsh -File .\verify.ps1 -Coverage` adds line coverage of `src/Watchdog/Private`
+and `src/Watchdog/Public` only (`Watchdog.psm1`, `watchdog.ps1` and
+`watchdog-loop.ps1` are not measured). CI's own floor fails the build below 90%
+for the measured module (`verify.ps1 -MinCoverage 90`) and uploads the report
+to Codecov, which checks every change at 90% while Codecov's whole-module status
+allows one point below.
 
 ## Origin
 

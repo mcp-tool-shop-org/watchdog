@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-11-24
+
+### Fixed
+
+- `Invoke-WatchdogPoll` now creates `Root` before reading the heartbeat, returns a structured error naming `Root` on failure, and uses `-LiteralPath` for Console, Crash, Dead, and Kill files so a standalone poll works on a new or bracket-containing `Root`.
+- `Register-WatchdogPoll` now verifies that `Root` is writable with a uniquely named probe file before creating or registering the scheduled task.
+- `Unregister-WatchdogPoll` now checks whether the task exists first, reports when nothing is registered, and throws with an elevation hint on refusal; every scheduled-task call passes `-TaskPath '\'`.
+- `Invoke-ProcessWithTimeout` now waits at most 5 s per stream after exit, avoids `.Result` on incomplete stream tasks, adds `StreamsDrained` to `-PassThru`, and reports an undrained stderr stream instead of blocking on failure.
+- The loop's emergency WSL abort path now runs `Test-WslDistroRunning` (10 s timeout) and `Invoke-ProcessWithTimeout` (15 s timeout, `-ArgumentList`) inside `try`/`catch` so a wedged WSL daemon or special characters in `WslKillPattern` cannot hang or misparse the abort command.
+- The loop's heartbeat-skip log line now records the caught exception's first-line message instead of assuming a locked file.
+- `Invoke-WslCacheRelease` now passes `-ErrorAction Stop` when writing `.hb` and `.last` state files so write failures are logged as errors while preserving its non-throwing contract.
+- Config validation now rejects `NaN`, `±Infinity`, sub-1 fractions that round to `0` on `[int]` cast for positive integer fields, and non-boolean `WslCacheRelease` values (such as quoted `'false'`) without echoing input values in refusal messages.
+
+### Changed
+
+- `PollIntervalSec` now defaults to `60` (matching the Windows Task Scheduler minimum); the handbook documents that a WSL cache release hitting `WslCacheTimeoutSec` can skip the next poll tick under `-MultipleInstances IgnoreNew` without delaying the liveness check or poll stamp.
+- `ci.yml` now triggers on `codecov.yml` changes and skips the OIDC Codecov upload job on fork pull requests.
+- `pages.yml` removes unused `contents: read` permission from the `deploy` job.
+- Coverage docs clarify that `verify.ps1` measures `src/Watchdog/Private` and `src/Watchdog/Public` only and fails below 90%, Codecov checks patches at 90% and allows a 1% whole-module threshold, and unit tests spawn short-lived `pwsh` child processes in CLI and helper tests.
+
 ## [1.1.1] - 2026-11-24
 
 ### Fixed

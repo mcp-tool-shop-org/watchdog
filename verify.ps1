@@ -1,7 +1,8 @@
-# verify — unit tests only. GPU abort dogfood is tests/dogfood and is not this command.
+﻿# verify — unit tests only. GPU abort dogfood is tests/dogfood and is not this command.
 #   pwsh -File .\verify.ps1            unit tests
-#   pwsh -File .\verify.ps1 -Coverage  unit tests + line coverage of src/Watchdog (JaCoCo coverage.xml);
-#                                      fails below -MinCoverage (default 90), as CI does
+#   pwsh -File .\verify.ps1 -Coverage  unit tests + line coverage of src/Watchdog/Private and src/Watchdog/Public
+#                                      only (Watchdog.psm1, watchdog.ps1 and watchdog-loop.ps1 are not measured;
+#                                      JaCoCo coverage.xml); fails below -MinCoverage (default 90), as CI does
 param(
   [switch]$Coverage,
   [double]$MinCoverage = 90

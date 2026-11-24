@@ -48,11 +48,15 @@ goes stale. It never restarts the loop.
 ## Verify (no GPU)
 
 ```powershell
-pwsh -File .\verify.ps1             # 144 unit tests
-pwsh -File .\verify.ps1 -Coverage   # also measures line coverage; fails below 90%
+pwsh -File .\verify.ps1             # 166 unit tests
+pwsh -File .\verify.ps1 -Coverage   # measures Private/ and Public/; fails below 90%
 ```
 
-Every kill, process launch, scheduled-task call and module copy in the
-tests is mocked, so running them never touches the machine's processes or
-tasks. CI runs the coverage form and uploads the report to Codecov, which
-requires at least 90% coverage for the whole module and for every change.
+Every kill, watchdog launch, scheduled-task call and module copy in the tests is
+mocked, so running them never touches existing machine processes or tasks; some
+tests (`tests/Cli.Tests.ps1`, `tests/Helpers.Tests.ps1`) start short-lived `pwsh`
+child processes. CI's own floor fails the build below 90% for the measured module
+(`src/Watchdog/Private` and `src/Watchdog/Public` only; `Watchdog.psm1`,
+`watchdog.ps1` and `watchdog-loop.ps1` are not measured) via
+`verify.ps1 -MinCoverage 90`. CI uploads the report to Codecov, which checks
+every change at 90% while Codecov's whole-module status allows one point below.

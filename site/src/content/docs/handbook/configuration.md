@@ -28,7 +28,7 @@ Missing config is a hard refuse (`CONFIG_MISSING`). Relative `Root` or
 ## Defaults if omitted
 
 `IntervalSec = 2`, `BreachSamples = 3`, `StaleSec = 15`,
-`PollIntervalSec = 30`, `AllowKill = $false`, `WslKillPattern = ''`
+`PollIntervalSec = 60`, `AllowKill = $false`, `WslKillPattern = ''`
 (WSL abort disabled), `WslCacheRelease = $false`.
 
 `Register-WatchdogPoll` registers the poller every
@@ -80,11 +80,10 @@ after it, so the release can never delay the report of a dead loop.
 | `WslCacheMinCacheGB` | `6` | Do not drop a cache smaller than this. |
 | `WslCacheAlertPct` | `90` | Log an `ALERT` if Windows is still at or above this after a drop. |
 | `WslCacheCooldownSec` | `300` | Minimum time between drops. |
-| `WslCacheTimeoutSec` | `90` | Hard timeout for each `wsl.exe` call. |
+| `WslCacheTimeoutSec` | `90` | Hard timeout for each `wsl.exe` call. A release that runs into its timeout can make Task Scheduler skip the next poll tick (`-MultipleInstances IgnoreNew`); the liveness check and the poll stamp run before the release, so the cost is one delayed check. |
 | `WslCacheSettleSec` | `10` | Wait before re-reading memory after a drop. |
 
-Each value must be a positive number (`WslCacheSettleSec` may be 0), and
-the two percentages at most 100; anything else is `CONFIG_INVALID`.
+`WslCacheRelease` must be a boolean (`$true` or `$false`, not quoted). Numeric fields reject `NaN`, `±Infinity`, and sub-1 fractions that round to `0` (`WslCacheSettleSec` may be `0`); the two percentages are at most `100`. Anything else is `CONFIG_INVALID`.
 
 ## The 31200 bound
 

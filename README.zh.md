@@ -75,7 +75,7 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 | `watchdog stop` | 停止哨兵，等待。不要进行进程匹配。 |
 | `watchdog poll` | 单次执行：如果心跳已过期，则从外部写入 `_watchdog_DEAD` |
 | `watchdog help` | 标志和退出代码 |
-| `watchdog version` | `1.1.1` |
+| `watchdog version` | `1.1.2` |
 
 `status` / `poll` 退出代码：**0** 正在运行 · **1** 没有心跳 · **2** 已过期。`start` 还会使用 **3**（VRAM 已经超过限制）、**4**（旧循环未停止）、**5**（启动后没有心跳）。
 
@@ -101,7 +101,7 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 pwsh -File .\verify.ps1
 ```
 
-144 个单元测试，未使用 GPU。解析器测试用例包括导致 2026-06-12 日循环中断的格式错误的 nvidia-smi 输出。硬件中止测试保持本地状态，不会在 CI 中进行绿色测试。
+166 个单元测试，未使用 GPU。解析器测试用例包括导致 2026-06-12 日循环中断的格式错误的 nvidia-smi 输出。硬件中止测试保持本地状态，不会在 CI 中进行绿色测试。
 
 `pwsh -File .\verify.ps1 -Coverage` 添加了对 `src/Watchdog` 的行覆盖率测试，并且当覆盖率低于 90% 时，测试会失败。持续集成（CI）系统会以这种方式运行测试，并将报告上传到 Codecov，Codecov 要求整个模块以及每次更改的覆盖率都至少达到 90%。
 

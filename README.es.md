@@ -75,7 +75,7 @@ Nunca finaliza un proceso y nunca inicia una distribución que se ha detenido: c
 | `watchdog stop` | DETENGA el vigilante, espere. Nunca realice una coincidencia de procesos. |
 | `watchdog poll` | Ejecución única: si el "latido" está desactualizado, escriba `_watchdog_DEAD` desde el exterior. |
 | `watchdog help` | Indicadores y códigos de salida |
-| `watchdog version` | `1.1.1` |
+| `watchdog version` | `1.1.2` |
 
 Códigos de salida `status` / `poll`: **0** en ejecución · **1** sin "latido" · **2** desactualizado. `start` también utiliza **3** (la VRAM ya está por encima del límite), **4** (el ciclo anterior no se detuvo), **5** (no hay "latido" después del lanzamiento).
 
@@ -101,7 +101,7 @@ Consentimiento: `-AllowKill` (o `AllowKill = $true` en la configuración). El so
 pwsh -File .\verify.ps1
 ```
 
-144 pruebas unitarias, sin GPU. Los elementos de prueba del analizador incluyen la salida incorrecta de nvidia-smi que interrumpió el ciclo el 12 de junio de 2026. La prueba de interrupción de hardware permanece local y no se incluye en la integración continua.
+166 pruebas unitarias, sin GPU. Los elementos de prueba del analizador incluyen la salida incorrecta de nvidia-smi que interrumpió el ciclo el 12 de junio de 2026. La prueba de interrupción de hardware permanece local y no se incluye en la integración continua.
 
 `pwsh -File .\verify.ps1 -Coverage` añade la medición de cobertura de líneas de `src/Watchdog` y falla si el resultado es inferior al 90 %. El sistema de integración continua (CI) lo ejecuta de esta manera y sube el informe a Codecov, que exige una cobertura de al menos el 90 % para todo el módulo y para cada cambio.
 

@@ -3,12 +3,6 @@ BeforeAll {
   Import-Module (Join-Path $script:WatchdogModule 'Watchdog.psd1') -Force
 }
 
-AfterAll {
-  InModuleScope Watchdog {
-    Remove-Item function:script:wsl -ErrorAction SilentlyContinue
-  }
-}
-
 Describe 'Get-WatchdogConfig' {
   It 'returns the validated config' {
     $root = Get-WatchdogTestDir 'getcfg-ok'
@@ -31,22 +25,6 @@ Describe 'Resolve-WatchdogConfig edge cases' {
     $p = Join-Path $dir 'bad.psd1'
     'this is not a hashtable {' | Set-Content $p
     (Resolve-WatchdogConfig -Path $p).code | Should -Be 'CONFIG_INVALID'
-  }
-}
-
-Describe 'Test-WslRunning' {
-  It 'is true only when the distro is in the running list' {
-    InModuleScope Watchdog {
-      function script:wsl { "Ubuntu`0", "docker-desktop`0" }
-      Test-WslRunning 'Ubuntu' | Should -BeTrue
-      Test-WslRunning 'Debian' | Should -BeFalse
-    }
-  }
-  It 'is false when wsl itself fails' {
-    InModuleScope Watchdog {
-      function script:wsl { throw 'wsl not installed' }
-      Test-WslRunning 'Ubuntu' | Should -BeFalse
-    }
   }
 }
 
@@ -89,9 +67,33 @@ Describe 'Format-WatchdogAge' {
 }
 
 Describe 'Write-WatchdogError' {
-  It 'writes the structured error, with the full object when asked' {
+  It 'writes code, message, hint, cause and retryable to stderr, and includes the full object only with -IncludeStack' {
     $e = New-WatchdogError -Code 'X_TEST' -Message 'm' -Hint 'h' -Cause 'c'
-    { Write-WatchdogError -ErrorObject $e -IncludeStack } | Should -Not -Throw
+    $prevErr = [Console]::Error
+    try {
+      $swPlain = [System.IO.StringWriter]::new()
+      [Console]::SetError($swPlain)
+      Write-WatchdogError -ErrorObject $e
+      $plainText = $swPlain.ToString()
+      $plainText | Should -Match 'WATCHDOG X_TEST'
+      $plainText | Should -Match 'message: m'
+      $plainText | Should -Match 'hint: h'
+      $plainText | Should -Match 'cause: c'
+      $plainText | Should -Match 'retryable: False'
+      $plainText | Should -Not -Match 'exitCode\s*:'
+
+      $swStack = [System.IO.StringWriter]::new()
+      [Console]::SetError($swStack)
+      Write-WatchdogError -ErrorObject $e -IncludeStack
+      $stackText = $swStack.ToString()
+      $stackText | Should -Match 'WATCHDOG X_TEST'
+      $stackText | Should -Match 'message: m'
+      $stackText | Should -Match 'hint: h'
+      $stackText | Should -Match 'cause: c'
+      $stackText | Should -Match 'exitCode\s*:\s*1'
+    } finally {
+      [Console]::SetError($prevErr)
+    }
   }
 }
 
@@ -158,6 +160,77 @@ Describe 'WSL cache helpers' {
       $r = Invoke-ProcessWithTimeout -FileName 'pwsh' -Arguments '-NoProfile -Command "Write-Output partial; exit 3"' -TimeoutSec 60 -PassThru
       $r.ExitCode | Should -Be 3
       $r.Out.Trim() | Should -Be 'partial'
+      $r.StreamsDrained | Should -BeTrue
+    }
+  }
+  It 'returns within the stream drain bound when a fake stream task never completes' {
+    InModuleScope Watchdog {
+      $launcher = {
+        param($psi)
+        $fakeProc = [pscustomobject]@{ ExitCode = 0 }
+        $fakeProc | Add-Member -MemberType ScriptMethod -Name WaitForExit -Value { param($ms) $true }
+        $neverOut = [System.Threading.Tasks.TaskCompletionSource[string]]::new()
+        [pscustomobject]@{
+          Process = $fakeProc
+          Out     = $neverOut.Task
+          Err     = [System.Threading.Tasks.Task]::FromResult('')
+        }
+      }
+      $sw = [System.Diagnostics.Stopwatch]::StartNew()
+      $r = Invoke-ProcessWithTimeout -FileName 'fake' -PassThru -Launcher $launcher
+      $sw.Stop()
+      $sw.Elapsed.TotalSeconds | Should -BeLessThan 15
+      $r.ExitCode | Should -Be 0
+      $r.Out | Should -Be ''
+      $r.StreamsDrained | Should -BeFalse
+    }
+  }
+  It 'throws with a stream-not-drained message when a failing exit leaves stderr incomplete' {
+    InModuleScope Watchdog {
+      $launcher = {
+        param($psi)
+        $fakeProc = [pscustomobject]@{ ExitCode = 2 }
+        $fakeProc | Add-Member -MemberType ScriptMethod -Name WaitForExit -Value { param($ms) $true }
+        $neverErr = [System.Threading.Tasks.TaskCompletionSource[string]]::new()
+        [pscustomobject]@{
+          Process = $fakeProc
+          Out     = [System.Threading.Tasks.Task]::FromResult('')
+          Err     = $neverErr.Task
+        }
+      }
+      { Invoke-ProcessWithTimeout -FileName 'fake' -StreamDrainMs 100 -Launcher $launcher } | Should -Throw '*fake exited 2: stderr stream was not drained*'
+    }
+  }
+  It 'passes each -ArgumentList element untouched, including spaces and quotes' {
+    $dir = Get-WatchdogTestDir ('arglist-' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    $scriptPath = Join-Path $dir 'echo-args.ps1'
+    '[Environment]::GetCommandLineArgs() | ConvertTo-Json -Compress' | Set-Content -LiteralPath $scriptPath
+    InModuleScope Watchdog -Parameters @{ Script = $scriptPath } {
+      param($Script)
+      $pattern = 'python "my train.py" --tag=''a b'''
+      $r = Invoke-ProcessWithTimeout -FileName 'pwsh' -ArgumentList @(
+        '-NoProfile', '-File', $Script, '-d', 'Ubuntu', '--', 'pkill', '-9', '-f', $pattern
+      ) -TimeoutSec 30 -PassThru
+      $r.ExitCode | Should -Be 0
+      $r.StreamsDrained | Should -BeTrue
+      $all = @($r.Out.Trim() | ConvertFrom-Json)
+      $idx = [Array]::IndexOf($all, $Script)
+      $idx | Should -BeGreaterOrEqual 0
+      $got = @($all | Select-Object -Skip ($idx + 1))
+      $got.Count | Should -Be 7
+      $got[0] | Should -Be '-d'
+      $got[1] | Should -Be 'Ubuntu'
+      $got[2] | Should -Be '--'
+      $got[3] | Should -Be 'pkill'
+      $got[4] | Should -Be '-9'
+      $got[5] | Should -Be '-f'
+      $got[6] | Should -BeExactly $pattern
+    }
+  }
+  It 'refuses combining -Arguments and -ArgumentList' {
+    InModuleScope Watchdog {
+      { Invoke-ProcessWithTimeout -FileName 'pwsh' -Arguments '-NoProfile' -ArgumentList @('-NoProfile') } | Should -Throw '*cannot be combined*'
     }
   }
   It 'kills and throws when the process outlives the timeout' {

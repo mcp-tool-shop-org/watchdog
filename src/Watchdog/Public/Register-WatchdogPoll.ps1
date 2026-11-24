@@ -29,6 +29,14 @@ function Register-WatchdogPoll {
   if (-not (Test-Path -LiteralPath $cfg.Root -PathType Container)) {
     throw "Root '$($cfg.Root)' is not a folder, so no poll could write there."
   }
+  $probeFile = Join-Path $cfg.Root ('_watchdog_write_probe_' + [guid]::NewGuid().ToString('N'))
+  try {
+    Set-Content -LiteralPath $probeFile -Value '' -NoNewline -ErrorAction Stop
+    Remove-Item -LiteralPath $probeFile -Force -ErrorAction Stop
+  } catch {
+    Remove-Item -LiteralPath $probeFile -Force -ErrorAction SilentlyContinue
+    throw "Root is not writable, so no poll could write there: $($_.Exception.Message)"
+  }
   $mod = Join-Path $script:WatchdogModuleRoot 'Watchdog.psd1'
   $interval = [Math]::Max(60, [int]$cfg.PollIntervalSec)
   # A per-registration token in the action: only a stamp that carries it proves that THIS action ran a poll, not a
@@ -52,11 +60,11 @@ function Register-WatchdogPoll {
   $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew
   $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
   try {
-    Register-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force -ErrorAction Stop | Out-Null
+    Register-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -TaskPath '\' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force -ErrorAction Stop | Out-Null
   } catch {
     throw ("Task Scheduler refused to register MCPToolShop.Watchdog.Poll: {0} A task first registered from an elevated shell can only be replaced from one: run Unregister-WatchdogPoll there once, then register again." -f $_.Exception.Message)
   }
-  $task = Get-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -ErrorAction SilentlyContinue
+  $task = Get-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -TaskPath '\' -ErrorAction SilentlyContinue
   if (-not $task) {
     throw "Register-ScheduledTask returned without creating MCPToolShop.Watchdog.Poll"
   }
@@ -79,6 +87,15 @@ function Unregister-WatchdogPoll {
   #>
   [CmdletBinding()]
   param()
-  Unregister-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -Confirm:$false -ErrorAction SilentlyContinue
-  Write-Output "unregistered scheduled task MCPToolShop.Watchdog.Poll (if it existed)."
+  $existing = Get-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -TaskPath '\' -ErrorAction SilentlyContinue
+  if (-not $existing) {
+    Write-Output 'no scheduled task MCPToolShop.Watchdog.Poll to remove.'
+    return
+  }
+  try {
+    Unregister-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -TaskPath '\' -Confirm:$false -ErrorAction Stop
+  } catch {
+    throw ("Task Scheduler refused to unregister MCPToolShop.Watchdog.Poll: {0} A task first registered from an elevated shell can only be removed from one: run Unregister-WatchdogPoll there once." -f $_.Exception.Message)
+  }
+  Write-Output 'unregistered scheduled task MCPToolShop.Watchdog.Poll.'
 }

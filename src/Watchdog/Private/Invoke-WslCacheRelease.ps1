@@ -45,35 +45,64 @@ function Invoke-WslRootCommand {
 }
 
 function Invoke-ProcessWithTimeout {
-  # Starts a process with no window, waits up to TimeoutSec, kills it on timeout. Returns stdout and throws on a
-  # non-zero exit; with -PassThru it returns the exit code and stdout instead of throwing. A timeout always throws.
+  # Starts a process with no window, waits up to TimeoutSec, kills it on timeout, and bounds stream reads after exit.
+  # Returns stdout and throws on a non-zero exit; with -PassThru it returns ExitCode, Out and StreamsDrained instead
+  # of throwing. A timeout always throws.
   param(
     [Parameter(Mandatory)][string]$FileName,
     [string]$Arguments = '',
+    [string[]]$ArgumentList,
     [int]$TimeoutSec = 90,
-    [switch]$PassThru
+    [switch]$PassThru,
+    [int]$StreamDrainMs = 5000,
+    [scriptblock]$Launcher
   )
+  if ($PSBoundParameters.ContainsKey('Arguments') -and $PSBoundParameters.ContainsKey('ArgumentList')) {
+    throw 'Invoke-ProcessWithTimeout: -Arguments and -ArgumentList cannot be combined.'
+  }
   $psi = New-Object System.Diagnostics.ProcessStartInfo
   $psi.FileName = $FileName
-  $psi.Arguments = $Arguments
+  if ($PSBoundParameters.ContainsKey('ArgumentList')) {
+    foreach ($arg in $ArgumentList) {
+      [void]$psi.ArgumentList.Add($arg)
+    }
+  } else {
+    $psi.Arguments = $Arguments
+  }
   $psi.RedirectStandardOutput = $true
   $psi.RedirectStandardError = $true
   $psi.UseShellExecute = $false
   $psi.CreateNoWindow = $true
-  $p = [System.Diagnostics.Process]::Start($psi)
-  $out = $p.StandardOutput.ReadToEndAsync()
-  $err = $p.StandardError.ReadToEndAsync()
+  $started = if ($Launcher) {
+    & $Launcher $psi
+  } else {
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    [pscustomobject]@{
+      Process = $proc
+      Out     = $proc.StandardOutput.ReadToEndAsync()
+      Err     = $proc.StandardError.ReadToEndAsync()
+    }
+  }
+  $p = $started.Process
+  $out = $started.Out
+  $err = $started.Err
   if (-not $p.WaitForExit($TimeoutSec * 1000)) {
     try { $p.Kill($true) } catch { }
     throw "$FileName timed out after $TimeoutSec s"
   }
+  $outOk = try { $out.Wait($StreamDrainMs) -and $out.Status -eq [System.Threading.Tasks.TaskStatus]::RanToCompletion } catch { $false }
+  $errOk = try { $err.Wait($StreamDrainMs) -and $err.Status -eq [System.Threading.Tasks.TaskStatus]::RanToCompletion } catch { $false }
+  $drained = ($outOk -and $errOk)
+  $outText = if ($outOk) { $out.Result -replace "`0", '' } else { '' }
+  $errText = if ($errOk) { $err.Result -replace "`0", '' } else { '' }
   if ($PassThru) {
-    return [pscustomobject]@{ ExitCode = $p.ExitCode; Out = ($out.Result -replace "`0", '') }
+    return [pscustomobject]@{ ExitCode = $p.ExitCode; Out = $outText; StreamsDrained = $drained }
   }
   if ($p.ExitCode -ne 0) {
-    throw ("{0} exited {1}: {2}" -f $FileName, $p.ExitCode, (($err.Result -replace "`0", '').Trim()))
+    $detail = if ($errOk) { $errText.Trim() } else { 'stderr stream was not drained' }
+    throw ("{0} exited {1}: {2}" -f $FileName, $p.ExitCode, $detail)
   }
-  return ($out.Result -replace "`0", '')
+  return $outText
 }
 
 function Test-WslDistroRunning {
@@ -133,7 +162,7 @@ function Invoke-WslCacheRelease {
       $lastHb = if (Test-Path -LiteralPath $Paths.WslCacheHeartbeat) { ([string](Get-Content -LiteralPath $Paths.WslCacheHeartbeat -Raw -ErrorAction SilentlyContinue)).Trim() } else { '' }
       if ($lastHb -ne $hour) {
         Write-WslCacheLog $Paths.WslCacheLog "heartbeat $state"
-        Set-Content -LiteralPath $Paths.WslCacheHeartbeat -Value $hour
+        Set-Content -LiteralPath $Paths.WslCacheHeartbeat -Value $hour -ErrorAction Stop
       }
     }
 
@@ -163,7 +192,7 @@ function Invoke-WslCacheRelease {
     }
 
     [void](& $RunWsl $Cfg.WslDistro 'sync; echo 1 > /proc/sys/vm/drop_caches' $Cfg.WslCacheTimeoutSec)
-    Set-Content -LiteralPath $Paths.WslCacheLast -Value $Now.ToString('o')
+    Set-Content -LiteralPath $Paths.WslCacheLast -Value $Now.ToString('o') -ErrorAction Stop
     if ($Cfg.WslCacheSettleSec -gt 0) { Start-Sleep -Seconds $Cfg.WslCacheSettleSec }
     $a = & $ReadHost
     Write-WslCacheLog $Paths.WslCacheLog ('DROPPED linux cache {0:N1}GB; before {1}; after win_used={2:N0}% free={3:N1}GB vmmemWSL={4:N1}GB' -f $cacheGB, $state, $a.WinUsedPct, $a.WinFreeGB, $a.WslGB)

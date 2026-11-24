@@ -193,6 +193,23 @@ Describe 'Invoke-WslCacheRelease' {
     Test-Path ($script:paths.WslCacheLog + '.1') | Should -BeTrue
     (Get-Content $script:paths.WslCacheLog -Raw) | Should -Match 'after rotation'
   }
+
+  It 'logs an error and still never throws when writing WslCacheHeartbeat fails' {
+    New-Item -ItemType Directory -Path $script:paths.WslCacheHeartbeat -Force | Out-Null
+    $run = New-WslRecorder -CacheGB 1
+    { $script:r = Invoke-WslCacheRelease -Cfg (New-CacheCfg) -Paths $script:paths -ReadHost (New-HostReader @((New-HostState 50 4))) -RunWsl $run } | Should -Not -Throw
+    $script:r.Action | Should -Be 'error'
+    Get-Content $script:paths.WslCacheLog -Raw | Should -Match 'ERROR '
+  }
+
+  It 'logs an error and still never throws when writing WslCacheLast fails' {
+    New-Item -ItemType Directory -Path $script:paths.WslCacheLast -Force | Out-Null
+    $read = New-HostReader @((New-HostState 81 24.6), (New-HostState 52 6.4))
+    $run = New-WslRecorder -CacheGB 27
+    { $script:r = Invoke-WslCacheRelease -Cfg (New-CacheCfg) -Paths $script:paths -ReadHost $read -RunWsl $run -DistroRunning $script:distroUp } | Should -Not -Throw
+    $script:r.Action | Should -Be 'error'
+    Get-Content $script:paths.WslCacheLog -Raw | Should -Match 'ERROR '
+  }
 }
 
 Describe 'Test-WslDistroRunning' {
@@ -248,6 +265,49 @@ Describe 'WSL cache config' {
     $root = Get-WatchdogTestDir 'wslcache-pct'
     $r = Resolve-WatchdogConfig -Path (New-WatchdogTestConfig -Root $root) -Override @{ WslCacheAlertPct = 150 }
     $r.code | Should -Be 'CONFIG_INVALID'
+  }
+
+  It 'accepts only real booleans for WslCacheRelease (rejecting quoted strings like false)' {
+    $root = Get-WatchdogTestDir 'wslcache-bool'
+    $path = New-WatchdogTestConfig -Root $root
+    (Resolve-WatchdogConfig -Path $path -Override @{ WslCacheRelease = $true }).WslCacheRelease | Should -BeTrue
+    (Resolve-WatchdogConfig -Path $path -Override @{ WslCacheRelease = $false }).WslCacheRelease | Should -BeFalse
+    foreach ($bad in @('false', 'true', 1, 'sk-test-0123456789abcdef')) {
+      $r = Resolve-WatchdogConfig -Path $path -Override @{ WslCacheRelease = $bad }
+      $r.code | Should -Be 'CONFIG_INVALID'
+      $r.message | Should -Match 'WslCacheRelease'
+      $r.message | Should -Not -Match ([regex]::Escape([string]$bad))
+    }
+  }
+
+  It 'refuses NaN and Infinity for numeric WSL cache keys' {
+    $root = Get-WatchdogTestDir 'wslcache-nan'
+    $path = New-WatchdogTestConfig -Root $root
+    foreach ($key in @('WslCacheHighGB', 'WslCacheCooldownSec', 'WslCacheSettleSec')) {
+      foreach ($bad in @([double]::NaN, [double]::PositiveInfinity, [double]::NegativeInfinity, 'NaN', 'Infinity', '-Infinity')) {
+        $r = Resolve-WatchdogConfig -Path $path -Override @{ $key = $bad }
+        $r.code | Should -Be 'CONFIG_INVALID'
+        $r.message | Should -Match $key
+      }
+    }
+  }
+
+  It 'refuses sub-1 values that round to zero on integer WSL cache keys while allowing WslCacheSettleSec 0' {
+    $root = Get-WatchdogTestDir 'wslcache-round0'
+    $path = New-WatchdogTestConfig -Root $root
+    foreach ($key in @('WslCacheCooldownSec', 'WslCacheTimeoutSec')) {
+      foreach ($bad in @(0.4, 0.5)) {
+        $r = Resolve-WatchdogConfig -Path $path -Override @{ $key = $bad }
+        $r.code | Should -Be 'CONFIG_INVALID'
+        $r.message | Should -Match $key
+      }
+    }
+    (Resolve-WatchdogConfig -Path $path -Override @{ WslCacheSettleSec = 0 }).WslCacheSettleSec | Should -Be 0
+    foreach ($bad in @(-1, -0.4)) {
+      $r = Resolve-WatchdogConfig -Path $path -Override @{ WslCacheSettleSec = $bad }
+      $r.code | Should -Be 'CONFIG_INVALID'
+      $r.message | Should -Match 'WslCacheSettleSec'
+    }
   }
 
   It 'keeps the new files under Root' {
