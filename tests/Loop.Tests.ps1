@@ -246,6 +246,7 @@ Describe 'Invoke-WatchdogLoop' {
       function script:nvidia-smi { '50, 100.0, 10000' }
       Mock Get-CimInstance { [pscustomobject]@{ TotalVisibleMemorySize = 67108864; FreePhysicalMemory = 33554432 } }
       Mock Get-Process { @() }
+      [IO.File]::WriteAllText($script:T.Csv, "timestamp,gpu_temp_c,gpu_power_w,vram_mib,ram_pct,ram_gb,sd_python_pids,state`n")
       Mock Set-Content { throw "Disk full`r`nsecond line detail" }
       Mock Start-Sleep { New-Item -ItemType File -Path $script:T.Stop -Force | Out-Null }
       $cfg = [pscustomobject]@{ Root = $Root; Targets = @(); IntervalSec = 2; RamKillPct = 90; VramKillMiB = 31200; TempKillC = 87; BreachSamples = 3; WslDistro = 'Ubuntu'; WslKillPattern = '' }

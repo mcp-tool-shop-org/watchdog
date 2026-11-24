@@ -275,8 +275,8 @@ Describe 'WSL cache config' {
     foreach ($bad in @('false', 'true', 1, 'sk-test-0123456789abcdef')) {
       $r = Resolve-WatchdogConfig -Path $path -Override @{ WslCacheRelease = $bad }
       $r.code | Should -Be 'CONFIG_INVALID'
-      $r.message | Should -Match 'WslCacheRelease'
-      $r.message | Should -Not -Match ([regex]::Escape([string]$bad))
+      $r.message | Should -Be 'Config field ''WslCacheRelease'' must be a boolean ($true or $false).'
+      $r.message | Should -Not -Match 'sk-test-0123456789abcdef'
     }
   }
 
