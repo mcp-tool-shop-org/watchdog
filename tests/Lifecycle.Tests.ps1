@@ -429,14 +429,14 @@ Describe 'Poll task launch helpers' {
     $stamp = Join-Path (Get-WatchdogTestDir ('probe-' + [guid]::NewGuid().ToString('N'))) '_watchdog_poll_last.json'
     New-Item -ItemType Directory -Path (Split-Path $stamp -Parent) -Force | Out-Null
     $old = [DateTimeOffset]::UtcNow.AddMinutes(-1).ToUnixTimeMilliseconds()
-    ('{"utc_ms":' + $old + ',"state":"RUNNING","exit":0}') | Set-Content -LiteralPath $stamp
+    ('{"utc_ms":' + $old + ',"started_ms":' + $old + ',"state":"RUNNING","exit":0}') | Set-Content -LiteralPath $stamp
     $global:WdProbeStamp = $stamp
     InModuleScope Watchdog -Parameters @{ Stamp = $stamp } {
       param($Stamp)
       # The run the probe starts writes a fresh stamp, as Invoke-WatchdogPoll does at the end of every run.
       Mock Start-ScheduledTask {
         $global:WdProbeOldGone = -not (Test-Path -LiteralPath $global:WdProbeStamp)
-        ('{"utc_ms":' + [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() + ',"state":"NOT_RUNNING","exit":1}') | Set-Content -LiteralPath $global:WdProbeStamp
+        ('{"utc_ms":' + [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() + ',"started_ms":' + [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() + ',"state":"NOT_RUNNING","exit":1}') | Set-Content -LiteralPath $global:WdProbeStamp
       }
       Mock Get-ScheduledTask { [pscustomobject]@{ State = 'Ready' } }
       Mock Get-ScheduledTaskInfo { [pscustomobject]@{ LastTaskResult = 0 } }
@@ -452,7 +452,7 @@ Describe 'Poll task launch helpers' {
   It 'throws when the run leaves no fresh stamp, as when conhost exits 0 but pwsh never started' {
     $stamp = Join-Path (Get-WatchdogTestDir ('probe-' + [guid]::NewGuid().ToString('N'))) '_watchdog_poll_last.json'
     New-Item -ItemType Directory -Path (Split-Path $stamp -Parent) -Force | Out-Null
-    ('{"utc_ms":' + [DateTimeOffset]::UtcNow.AddMinutes(-1).ToUnixTimeMilliseconds() + ',"state":"RUNNING","exit":0}') | Set-Content -LiteralPath $stamp
+    ('{"utc_ms":' + [DateTimeOffset]::UtcNow.AddMinutes(-1).ToUnixTimeMilliseconds() + ',"started_ms":' + [DateTimeOffset]::UtcNow.AddMinutes(-1).ToUnixTimeMilliseconds() + ',"state":"RUNNING","exit":0}') | Set-Content -LiteralPath $stamp
     InModuleScope Watchdog -Parameters @{ Stamp = $stamp } {
       param($Stamp)
       Mock Start-ScheduledTask { }
@@ -462,13 +462,27 @@ Describe 'Poll task launch helpers' {
     }
   }
 
+  It 'does not count a poll that began before the start, even if its stamp lands after the clear' {
+    $stamp = Join-Path (Get-WatchdogTestDir ('probe-' + [guid]::NewGuid().ToString('N'))) '_watchdog_poll_last.json'
+    New-Item -ItemType Directory -Path (Split-Path $stamp -Parent) -Force | Out-Null
+    $global:WdProbeStamp = $stamp
+    InModuleScope Watchdog -Parameters @{ Stamp = $stamp } {
+      param($Stamp)
+      # An instance already running when the task was replaced: IgnoreNew drops this start, and the old poll stamps late.
+      Mock Start-ScheduledTask { ('{"utc_ms":' + [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() + ',"started_ms":' + [DateTimeOffset]::UtcNow.AddSeconds(-30).ToUnixTimeMilliseconds() + ',"state":"RUNNING","exit":0}') | Set-Content -LiteralPath $global:WdProbeStamp }
+      Mock Get-ScheduledTaskInfo { [pscustomobject]@{ LastTaskResult = 267009 } }
+      { Invoke-WatchdogPollTaskProbe -TaskName 'MCPToolShop.Watchdog.Poll' -StampPath $Stamp -TimeoutSec 1 -StepMs 50 } | Should -Throw '*did not write a fresh poll stamp*'
+    }
+    Remove-Variable -Name WdProbeStamp -Scope Global
+  }
+
   It 'does not count a stamp whose time is before the start, even if it appears after' {
     $stamp = Join-Path (Get-WatchdogTestDir ('probe-' + [guid]::NewGuid().ToString('N'))) '_watchdog_poll_last.json'
     New-Item -ItemType Directory -Path (Split-Path $stamp -Parent) -Force | Out-Null
     $global:WdProbeStamp = $stamp
     InModuleScope Watchdog -Parameters @{ Stamp = $stamp } {
       param($Stamp)
-      Mock Start-ScheduledTask { ('{"utc_ms":' + [DateTimeOffset]::UtcNow.AddMinutes(-1).ToUnixTimeMilliseconds() + ',"state":"RUNNING","exit":0}') | Set-Content -LiteralPath $global:WdProbeStamp }
+      Mock Start-ScheduledTask { ('{"utc_ms":' + [DateTimeOffset]::UtcNow.AddMinutes(-1).ToUnixTimeMilliseconds() + ',"started_ms":' + [DateTimeOffset]::UtcNow.AddMinutes(-1).ToUnixTimeMilliseconds() + ',"state":"RUNNING","exit":0}') | Set-Content -LiteralPath $global:WdProbeStamp }
       Mock Get-ScheduledTask { [pscustomobject]@{ State = 'Ready' } }
       Mock Get-ScheduledTaskInfo { [pscustomobject]@{ LastTaskResult = 0 } }
       { Invoke-WatchdogPollTaskProbe -TaskName 'MCPToolShop.Watchdog.Poll' -StampPath $Stamp -TimeoutSec 1 -StepMs 50 } | Should -Throw '*did not write a fresh poll stamp*'
@@ -495,7 +509,7 @@ Describe 'Poll task launch helpers' {
     $global:WdProbeStamp = $stamp
     InModuleScope Watchdog -Parameters @{ Stamp = $stamp } {
       param($Stamp)
-      Mock Start-ScheduledTask { ('{"utc_ms":' + [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() + ',"state":"RUNNING","exit":0}') | Set-Content -LiteralPath $global:WdProbeStamp }
+      Mock Start-ScheduledTask { ('{"utc_ms":' + [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() + ',"started_ms":' + [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() + ',"state":"RUNNING","exit":0}') | Set-Content -LiteralPath $global:WdProbeStamp }
       Mock Get-ScheduledTask { [pscustomobject]@{ State = 'Running' } }
       Mock Get-ScheduledTaskInfo { [pscustomobject]@{ LastTaskResult = 267009 } }
       $r = Invoke-WatchdogPollTaskProbe -TaskName 'MCPToolShop.Watchdog.Poll' -StampPath $Stamp -TimeoutSec 5 -StepMs 10
@@ -510,7 +524,7 @@ Describe 'Poll task launch helpers' {
     New-Item -ItemType Directory -Path $dir -Force | Out-Null
     $f = Join-Path $dir 'stamp.json'
     # The text 'utc' is for people; a reader that parses it as local time shifts it by the UTC offset.
-    '{"utc":"2026-11-24T06:04:17.263Z","utc_ms":1795500257263,"state":"NOT_RUNNING","exit":1}' | Set-Content -LiteralPath $f
+    '{"utc":"2026-11-24T06:04:17.263Z","utc_ms":1795500257263,"started_ms":1795500256900,"state":"NOT_RUNNING","exit":1}' | Set-Content -LiteralPath $f
     InModuleScope Watchdog -Parameters @{ F = $f } {
       param($F)
       $r = Read-WatchdogPollStamp $F
@@ -527,7 +541,7 @@ Describe 'Poll task launch helpers' {
     $bad = Join-Path $dir 'bad.json'
     'not json' | Set-Content -LiteralPath $bad
     $textOnly = Join-Path $dir 'text-only.json'
-    '{"utc":"2026-11-24T06:04:17.263Z","state":"RUNNING","exit":0}' | Set-Content -LiteralPath $textOnly
+    '{"utc":"2026-11-24T06:04:17.263Z","utc_ms":1795500257263,"state":"RUNNING","exit":0}' | Set-Content -LiteralPath $textOnly
     InModuleScope Watchdog -Parameters @{ Dir = $dir; Bad = $bad; TextOnly = $textOnly } {
       param($Dir, $Bad, $TextOnly)
       Read-WatchdogPollStamp (Join-Path $Dir 'missing.json') | Should -BeNullOrEmpty

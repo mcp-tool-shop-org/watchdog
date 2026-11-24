@@ -303,6 +303,8 @@ Describe 'Invoke-WatchdogPoll with WSL cache release' {
     $doc.exit | Should -Be 1
     [int64]$doc.utc_ms | Should -BeGreaterOrEqual $before
     [int64]$doc.utc_ms | Should -BeLessOrEqual $after
+    [int64]$doc.started_ms | Should -BeGreaterOrEqual $before
+    [int64]$doc.started_ms | Should -BeLessOrEqual ([int64]$doc.utc_ms)
   }
 
   It 'still reports liveness when the stamp cannot be written' {

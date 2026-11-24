@@ -10,6 +10,9 @@ function Invoke-WatchdogPoll {
   param(
     [string]$ConfigPath
   )
+  # When this poll began, for its stamp: Register-WatchdogPoll's check counts only a poll that began after the check
+  # did, never one that was already running.
+  $pollStartedMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
   $cfg = Resolve-WatchdogConfig -Path $ConfigPath
   if (Test-WatchdogError $cfg) {
     Write-WatchdogError -ErrorObject $cfg
@@ -49,7 +52,7 @@ function Invoke-WatchdogPoll {
   # the opt-in release, so the proof never waits on WSL. Never allowed to break the poll.
   try {
     $now = [DateTimeOffset]::UtcNow
-    [ordered]@{ utc = $now.ToString('yyyy-MM-ddTHH:mm:ss.fffZ', [Globalization.CultureInfo]::InvariantCulture); utc_ms = $now.ToUnixTimeMilliseconds(); state = [string]$hb.State; exit = $code } |
+    [ordered]@{ utc = $now.ToString('yyyy-MM-ddTHH:mm:ss.fffZ', [Globalization.CultureInfo]::InvariantCulture); utc_ms = $now.ToUnixTimeMilliseconds(); started_ms = $pollStartedMs; state = [string]$hb.State; exit = $code } |
       ConvertTo-Json -Compress | Set-Content -LiteralPath $paths.PollStamp -ErrorAction Stop
   } catch { }
 

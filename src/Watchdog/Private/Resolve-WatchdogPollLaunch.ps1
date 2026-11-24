@@ -25,9 +25,9 @@ function Read-WatchdogPollStamp([string]$Path) {
   try {
     if (-not (Test-Path -LiteralPath $Path)) { return $null }
     $doc = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
-    if ($null -eq $doc.utc_ms) { return $null }
+    if ($null -eq $doc.utc_ms -or $null -eq $doc.started_ms) { return $null }
     $ms = [int64]$doc.utc_ms
-    return [pscustomobject]@{ UtcMs = $ms; Utc = [DateTimeOffset]::FromUnixTimeMilliseconds($ms); State = [string]$doc.state; Exit = $doc.exit }
+    return [pscustomobject]@{ UtcMs = $ms; StartedMs = [int64]$doc.started_ms; Utc = [DateTimeOffset]::FromUnixTimeMilliseconds($ms); State = [string]$doc.state; Exit = $doc.exit }
   } catch {
     return $null
   }
@@ -60,9 +60,11 @@ function Invoke-WatchdogPollTaskProbe {
   while ((Get-Date) -lt $deadline) {
     Start-Sleep -Milliseconds $StepMs
     # The poll writes its stamp right after its liveness work, so a fresh stamp counts at once, even while the task
-    # is still running an opt-in cache release that can take minutes.
+    # is still running an opt-in cache release that can take minutes. Only a poll that BEGAN after this start counts:
+    # with IgnoreNew, Start-ScheduledTask is dropped while an older instance runs, and that instance's stamp would
+    # otherwise prove nothing about the action just registered.
     $stamp = Read-WatchdogPollStamp $StampPath
-    if ($stamp -and $stamp.UtcMs -ge $startedMs) {
+    if ($stamp -and $stamp.StartedMs -ge $startedMs -and $stamp.UtcMs -ge $startedMs) {
       $info = Get-ScheduledTaskInfo -TaskName $TaskName
       return [pscustomobject]@{ State = $stamp.State; Exit = $stamp.Exit; LastTaskResult = [int64]$info.LastTaskResult }
     }
