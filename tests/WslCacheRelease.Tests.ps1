@@ -307,6 +307,16 @@ Describe 'Invoke-WatchdogPoll with WSL cache release' {
     [int64]$doc.started_ms | Should -BeLessOrEqual ([int64]$doc.utc_ms)
   }
 
+  It 'writes the registration token into the stamp only when the task passes one' {
+    $root = Get-WatchdogTestDir 'poll-stamp-token'
+    $cfgPath = New-WatchdogTestConfig -Root $root
+    $paths = Get-WatchdogPaths -Root $root
+    [void](Invoke-WatchdogPoll -ConfigPath $cfgPath -RegistrationToken '0123456789abcdef0123456789abcdef')
+    (Get-Content -LiteralPath $paths.PollStamp -Raw | ConvertFrom-Json).token | Should -BeExactly '0123456789abcdef0123456789abcdef'
+    [void](Invoke-WatchdogPoll -ConfigPath $cfgPath)
+    (Get-Content -LiteralPath $paths.PollStamp -Raw | ConvertFrom-Json).PSObject.Properties.Name | Should -Not -Contain 'token'
+  }
+
   It 'still reports liveness when the stamp cannot be written' {
     $root = Get-WatchdogTestDir 'poll-stamp-blocked'
     $cfgPath = New-WatchdogTestConfig -Root $root

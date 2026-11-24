@@ -8,7 +8,10 @@ function Invoke-WatchdogPoll {
   #>
   [CmdletBinding()]
   param(
-    [string]$ConfigPath
+    [string]$ConfigPath,
+    # Set only by the scheduled task's action (Register-WatchdogPoll): it goes into the stamp, so the first-run check
+    # can tell this registration's polls from a manual poll or another registration's.
+    [string]$RegistrationToken
   )
   # When this poll began, for its stamp: Register-WatchdogPoll's check counts only a poll that began after the check
   # did, never one that was already running.
@@ -52,8 +55,9 @@ function Invoke-WatchdogPoll {
   # the opt-in release, so the proof never waits on WSL. Never allowed to break the poll.
   try {
     $now = [DateTimeOffset]::UtcNow
-    [ordered]@{ utc = $now.ToString('yyyy-MM-ddTHH:mm:ss.fffZ', [Globalization.CultureInfo]::InvariantCulture); utc_ms = $now.ToUnixTimeMilliseconds(); started_ms = $pollStartedMs; state = [string]$hb.State; exit = $code } |
-      ConvertTo-Json -Compress | Set-Content -LiteralPath $paths.PollStamp -ErrorAction Stop
+    $doc = [ordered]@{ utc = $now.ToString('yyyy-MM-ddTHH:mm:ss.fffZ', [Globalization.CultureInfo]::InvariantCulture); utc_ms = $now.ToUnixTimeMilliseconds(); started_ms = $pollStartedMs; state = [string]$hb.State; exit = $code }
+    if ($RegistrationToken) { $doc.token = $RegistrationToken }
+    $doc | ConvertTo-Json -Compress | Set-Content -LiteralPath $paths.PollStamp -ErrorAction Stop
   } catch { }
 
   # Opt-in, and only after the liveness check, so it can never delay or block the poller's main job. It never

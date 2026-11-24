@@ -19,35 +19,48 @@ function Resolve-WatchdogPwshPath {
 
 function Read-WatchdogPollStamp([string]$Path) {
   # The stamp Invoke-WatchdogPoll writes after its liveness work on every run, or $null when it is missing or unreadable.
-  # The instant is utc_ms (Unix milliseconds). The 'utc' text is for people only: ConvertFrom-Json turns an ISO
-  # string into a DateTime, and re-reading that as text shifts it by the local UTC offset and drops the milliseconds
-  # (2026-11-24, on a rig in Eastern time a stale stamp read as fresh).
+  # Times are Unix milliseconds (utc_ms when written, started_ms when the poll began). The 'utc' text is for people
+  # only: ConvertFrom-Json turns an ISO string into a DateTime, and re-reading that as text shifts it by the local UTC
+  # offset and drops the milliseconds (2026-11-24, on a rig in Eastern time a stale stamp read as fresh).
   try {
     if (-not (Test-Path -LiteralPath $Path)) { return $null }
     $doc = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if ($null -eq $doc.utc_ms -or $null -eq $doc.started_ms) { return $null }
     $ms = [int64]$doc.utc_ms
-    return [pscustomobject]@{ UtcMs = $ms; StartedMs = [int64]$doc.started_ms; Utc = [DateTimeOffset]::FromUnixTimeMilliseconds($ms); State = [string]$doc.state; Exit = $doc.exit }
+    $startedMs = [int64]$doc.started_ms
+    # Both must be real instants; FromUnixTimeMilliseconds throws on values out of range.
+    [void][DateTimeOffset]::FromUnixTimeMilliseconds($startedMs)
+    return [pscustomobject]@{
+      UtcMs     = $ms
+      StartedMs = $startedMs
+      Utc       = [DateTimeOffset]::FromUnixTimeMilliseconds($ms)
+      Token     = $(if ($null -ne $doc.token) { [string]$doc.token } else { $null })
+      State     = [string]$doc.state
+      Exit      = $doc.exit
+    }
   } catch {
     return $null
   }
 }
 
 function Invoke-WatchdogPollTaskProbe {
-  # Starts the task once and proves that the poll itself ran: Invoke-WatchdogPoll writes a stamp under Root after its
-  # liveness work on every run, and only a stamp newer than this start counts. The task's exit code proves nothing, because the
-  # action is conhost --headless, which exits 0 even when the pwsh it should start does not exist (measured on the
-  # rig, 2026-11-24). A registered task is not a running one: on 2026-11-24 the poll task had existed for weeks and
-  # never started.
+  # Starts the task once and proves that the action just registered ran a poll. Invoke-WatchdogPoll writes a stamp
+  # under Root after its liveness work on every run. Only a stamp that carries this registration's token, from a poll
+  # that began at or after this start and wrote no earlier than it began, counts. The task's exit code proves nothing,
+  # because the action is conhost --headless, which exits 0 even when the pwsh it should start does not exist
+  # (measured on the rig, 2026-11-24). A registered task is not a running one: on 2026-11-24 the poll task had existed
+  # for weeks and never started.
   param(
     [Parameter(Mandatory)][string]$TaskName,
     [Parameter(Mandatory)][string]$StampPath,
+    [Parameter(Mandatory)][string]$Token,
     [int]$TimeoutSec = 60,
-    [int]$StepMs = 500
+    [int]$StepMs = 500,
+    [scriptblock]$NowMs = { [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() }
   )
-  $startedMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
-  # Clear the previous stamp, so a stamp present after the run was written after this point; the time check below
-  # is the second guard. A run the trigger starts meanwhile also counts: it is the same action.
+  $startedMs = [int64](& $NowMs)
+  # Clear the previous stamp, so a stamp present after the run was written after this point; the token and the times
+  # below are the guards that decide.
   if (Test-Path -LiteralPath $StampPath) {
     try {
       Remove-Item -LiteralPath $StampPath -Force -ErrorAction Stop
@@ -56,18 +69,19 @@ function Invoke-WatchdogPollTaskProbe {
     }
   }
   Start-ScheduledTask -TaskName $TaskName
-  $deadline = (Get-Date).AddSeconds($TimeoutSec)
-  while ((Get-Date) -lt $deadline) {
+  $clock = [Diagnostics.Stopwatch]::StartNew()
+  while ($clock.Elapsed.TotalSeconds -lt $TimeoutSec) {
     Start-Sleep -Milliseconds $StepMs
-    # The poll writes its stamp right after its liveness work, so a fresh stamp counts at once, even while the task
-    # is still running an opt-in cache release that can take minutes. Only a poll that BEGAN after this start counts:
-    # with IgnoreNew, Start-ScheduledTask is dropped while an older instance runs, and that instance's stamp would
-    # otherwise prove nothing about the action just registered.
+    # The poll writes its stamp right after its liveness work, so a fresh stamp counts at once, even while the task is
+    # still running an opt-in cache release that can take minutes.
     $stamp = Read-WatchdogPollStamp $StampPath
-    if ($stamp -and $stamp.StartedMs -ge $startedMs -and $stamp.UtcMs -ge $startedMs) {
+    if ($stamp -and
+        $stamp.Token -ceq $Token -and
+        $stamp.StartedMs -ge $startedMs -and
+        $stamp.UtcMs -ge $stamp.StartedMs) {
       $info = Get-ScheduledTaskInfo -TaskName $TaskName
       return [pscustomobject]@{ State = $stamp.State; Exit = $stamp.Exit; LastTaskResult = [int64]$info.LastTaskResult }
     }
   }
-  throw "$TaskName did not write a fresh poll stamp ($StampPath) within $TimeoutSec s, so the poll did not run. Check that pwsh starts from Task Scheduler; or an older poll of this task was still running and Task Scheduler dropped this start: register again."
+  throw "$TaskName did not write a fresh poll stamp with this registration's token ($StampPath) within $TimeoutSec s, so the poll did not run. Check that pwsh starts from Task Scheduler; or an older poll of this task was still running and Task Scheduler dropped this start: register again."
 }

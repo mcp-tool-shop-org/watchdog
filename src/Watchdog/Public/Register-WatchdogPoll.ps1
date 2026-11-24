@@ -19,8 +19,21 @@ function Register-WatchdogPoll {
     $global:LASTEXITCODE = $cfg.exitCode
     return
   }
+  # The first poll writes its stamp (and _watchdog_DEAD, when no loop runs yet) under Root, which may not exist before
+  # the first Start-Watchdog. Create it before registering anything, and stop here if Root is not a usable folder.
+  try {
+    [void][IO.Directory]::CreateDirectory([string]$cfg.Root)
+  } catch {
+    throw "Root '$($cfg.Root)' could not be created as a folder, so no poll could write there: $($_.Exception.Message)"
+  }
+  if (-not (Test-Path -LiteralPath $cfg.Root -PathType Container)) {
+    throw "Root '$($cfg.Root)' is not a folder, so no poll could write there."
+  }
   $mod = Join-Path $script:WatchdogModuleRoot 'Watchdog.psd1'
   $interval = [Math]::Max(60, [int]$cfg.PollIntervalSec)
+  # A per-registration token in the action: only a stamp that carries it proves that THIS action ran a poll, not a
+  # manual poll on the same Root or another registration's run. Hex only, so it needs no quoting.
+  $token = [guid]::NewGuid().ToString('N')
   # The absolute pwsh path (a bare 'pwsh' is not found by Task Scheduler for a Store install), started through
   # conhost --headless so no console window flashes on every poll.
   $pwsh = Resolve-WatchdogPwshPath
@@ -28,7 +41,7 @@ function Register-WatchdogPoll {
   # Single-quoted PowerShell strings: an apostrophe in a path is doubled.
   $modQ = $mod.Replace("'", "''")
   $cfgQ = ([string]$cfg.ConfigPath).Replace("'", "''")
-  $poll = "Import-Module -Force '$modQ'; Invoke-WatchdogPoll -ConfigPath '$cfgQ'"
+  $poll = "Import-Module -Force '$modQ'; Invoke-WatchdogPoll -ConfigPath '$cfgQ' -RegistrationToken '$token'"
   $arg = "--headless `"$pwsh`" -NoProfile -ExecutionPolicy Bypass -Command `"$poll`""
   $action = New-ScheduledTaskAction -Execute $conhost -Argument $arg
   # Windows rejects TimeSpan.MaxValue as ISO duration P99999999DT23H59M59S (this build).
@@ -51,13 +64,10 @@ function Register-WatchdogPoll {
   if ("$($held.Execute)" -ne $conhost -or "$($held.Arguments)" -ne $arg) {
     throw "MCPToolShop.Watchdog.Poll exists but still holds an older action ($($held.Execute)); it was not replaced."
   }
-  # Run it once now and require proof that the poll itself ran (a fresh stamp under Root), so a task that can never
-  # start is an error here, not a silent gap. The probe throws when no fresh stamp appears.
+  # Run it once now and require proof that this action ran a poll (a fresh stamp under Root carrying this
+  # registration's token), so a task that can never start is an error here, not a silent gap.
   $paths = Get-WatchdogPaths -Root $cfg.Root
-  # The first poll writes its stamp (and _watchdog_DEAD, when no loop runs yet) under Root, which may not exist
-  # before the first Start-Watchdog.
-  if (-not (Test-Path -LiteralPath $cfg.Root)) { New-Item -ItemType Directory -Path $cfg.Root -Force | Out-Null }
-  $first = Invoke-WatchdogPollTaskProbe -TaskName 'MCPToolShop.Watchdog.Poll' -StampPath $paths.PollStamp -TimeoutSec 60
+  $first = Invoke-WatchdogPollTaskProbe -TaskName 'MCPToolShop.Watchdog.Poll' -StampPath $paths.PollStamp -Token $token -TimeoutSec 60
   $wsl = if ($cfg.WslCacheRelease) { '; WslCacheRelease is on, so each poll may also drop the WSL page cache' } else { '' }
   Write-Output "registered scheduled task MCPToolShop.Watchdog.Poll every ${interval}s (detects death, never kills or restarts$wsl); its first run polled and saw $($first.State)."
 }
