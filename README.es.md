@@ -101,7 +101,7 @@ Consentimiento: `-AllowKill` (o `AllowKill = $true` en la configuración). El so
 pwsh -File .\verify.ps1
 ```
 
-123 pruebas unitarias, sin GPU. Los elementos de prueba del analizador incluyen la salida incorrecta de nvidia-smi que interrumpió el ciclo el 12 de junio de 2026. La prueba de interrupción de hardware permanece local y no se incluye en la integración continua.
+129 pruebas unitarias, sin GPU. Los elementos de prueba del analizador incluyen la salida incorrecta de nvidia-smi que interrumpió el ciclo el 12 de junio de 2026. La prueba de interrupción de hardware permanece local y no se incluye en la integración continua.
 
 `pwsh -File .\verify.ps1 -Coverage` añade la medición de cobertura de líneas de `src/Watchdog` y falla si el resultado es inferior al 90 %. El sistema de integración continua (CI) lo ejecuta de esta manera y sube el informe a Codecov, que exige una cobertura de al menos el 90 % para todo el módulo y para cada cambio.
 
