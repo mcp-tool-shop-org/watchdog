@@ -32,7 +32,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "6ea7a97c54ec8faa1b554490addd50915b37d510df6ec703567661b7f1681ce3",
+          "hash": "868b3a4efc5edcabe1f369a07bad1464e2526c517c459fb68a35d1669dcdbf43",
           "path": ".github/workflows/ci.yml"
         }
       ],
@@ -133,11 +133,11 @@
           "path": ".gitattributes"
         },
         {
-          "hash": "f0fb0450cd94a75ef69b53c8311f135f04d20c807cde350b83b0d7022ebf163b",
+          "hash": "b82988d3dacc5762b812a5792d491941d8f2ed500e6ac005140c5b028f1c8d8d",
           "path": ".gitignore"
         },
         {
-          "hash": "e855d29f741c84d8d004dd8badd16f5d321b560dd3e3d37e19f4c41ace367084",
+          "hash": "0e28d602633ec59251b0bad44cfddc6e295fec9d68354bd41e3b4d2a7b81db4d",
           "path": "CHANGELOG.md"
         },
         {
@@ -169,7 +169,7 @@
           "path": "README.ja.md"
         },
         {
-          "hash": "416b3851d77c31dcc10c7162d4b60cc525b4d67b6eff573ddd82d8b04b50494c",
+          "hash": "268c99cbe77fd42711472f0f6c047873a17c7e7ea0e7d0949396e037036f6100",
           "path": "README.md"
         },
         {
@@ -193,7 +193,7 @@
           "path": "SHIP_GATE.md"
         },
         {
-          "hash": "7813325d53dfc17a8009642e9c00043d3f1a2a9858d40f48dd9959c7d28dc82e",
+          "hash": "34b9486d52b79fefd533b464b6f5fc0e9a6b3437f2e788372e27fd17d8037f5d",
           "path": "verify.ps1"
         },
         {
@@ -325,7 +325,7 @@
           "path": "src/Watchdog/Private/Get-WatchdogHeartbeatState.ps1"
         },
         {
-          "hash": "e33d6f89043e69075870e15a9f8dcfecf7ed95123effcbb5b7ac66d7e404e356",
+          "hash": "f4bac995e9d2e83f19ef2c994bae8d620c73ffac2a64665ec2e1503ac74b9b3f",
           "path": "src/Watchdog/Private/Get-WatchdogPaths.ps1"
         },
         {
@@ -337,7 +337,7 @@
           "path": "src/Watchdog/Private/Initialize-WatchdogCsv.ps1"
         },
         {
-          "hash": "86bba36ed36d51cb100d504387ab6c7420dc6f502c0ac803ca57b8634c6748e5",
+          "hash": "9a8c9e39cfc6a494f6b98bed3826993573cf8f52bd0c8ebbab69dc1e4392b9f7",
           "path": "src/Watchdog/Private/Invoke-WatchdogLoop.ps1"
         },
         {
@@ -349,7 +349,7 @@
           "path": "src/Watchdog/Private/Parse-GpuSample.ps1"
         },
         {
-          "hash": "9bd4eec7235aeb0f4ee315e268dc79d46265b3b9fa9426e764055f177674c166",
+          "hash": "bc0ed6f41868ef985750cd5b4cd967fb5ec91e8ae37d744a046a683bd7407978",
           "path": "src/Watchdog/Private/Resolve-WatchdogConfig.ps1"
         },
         {
@@ -373,11 +373,11 @@
           "path": "src/Watchdog/Public/Install-Watchdog.ps1"
         },
         {
-          "hash": "19d8e6f87309853862ac312dff2df56b6d9930d4fa588c41808d6526c4f109f2",
+          "hash": "2df022d26f43f53f4c0b0543518a54aca5501e01c24281d11ffb6235e4e3be7e",
           "path": "src/Watchdog/Public/Invoke-WatchdogPoll.ps1"
         },
         {
-          "hash": "bc610cb349b2e0c78922930cfa843a355ae952c8da5c1e504ab10878e68d6513",
+          "hash": "9acebef865b743fa1a93f33b76516b4d6a5f3d46ba6aa3d155f37564617c710b",
           "path": "src/Watchdog/Public/Register-WatchdogPoll.ps1"
         },
         {
@@ -397,7 +397,7 @@
           "path": "src/Watchdog/Watchdog.psm1"
         },
         {
-          "hash": "aa36620a88ed272d0e029a5cd705a5634bba21dccb5af36df73b693487fd87ed",
+          "hash": "04ec926a2f7adf2f9d0f72008af88d2c9cbb2bb4e9f17cd780ada1c47e013a4f",
           "path": "src/Watchdog/config/watchdog.example.psd1"
         },
         {
@@ -507,7 +507,7 @@
             "Install-Module",
             "Set-PSRepository"
           ],
-          "step": "Pester (no GPU)"
+          "step": "Pester (no GPU) with coverage"
         }
       ],
       "elsewhere": [],
@@ -540,13 +540,30 @@
               "version": "22"
             }
           ]
+        },
+        {
+          "basis": "declared",
+          "name": "codecov",
+          "runsOn": [
+            {
+              "labels": [
+                "ubuntu-latest"
+              ],
+              "platform": {
+                "cpu": "x64",
+                "libc": "glibc",
+                "os": "linux"
+              }
+            }
+          ]
         }
       ],
       "landings": [],
       "mentions": [],
       "name": "ci",
       "permissions": [
-        "contents:read"
+        "contents:read",
+        "id-token:write"
       ],
       "pushes": false,
       "reach": [
@@ -612,7 +629,10 @@
       ],
       "uses": [
         "actions/checkout",
-        "actions/setup-node"
+        "actions/download-artifact",
+        "actions/setup-node",
+        "actions/upload-artifact",
+        "codecov/codecov-action"
       ],
       "usesWorkflowToken": false
     }
@@ -620,7 +640,7 @@
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "d4953d7428f4f709ddf59c3518d566037cc5f5b4",
+    "commit": "3978a551bb5503fb7f7ccc692263df1c769265f7",
     "tracked": 81
   },
   "landings": [

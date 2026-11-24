@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **WSL file-cache release (opt-in, `WslCacheRelease`).** The poller drops the Linux page cache when the WSL VM crowds Windows memory, reading memory from the Windows side so it never wakes a stopped VM. It has thresholds, a cooldown and a timeout, never kills a process, and logs to `_watchdog_wslcache.log` (hourly heartbeat, each drop, and an alert if Windows stays high).
+- **Coverage bar of 90%.** `verify.ps1 -Coverage` measures line coverage of `src/Watchdog` and fails below 90%. CI runs it and uploads the JaCoCo report to Codecov through OIDC, with `codecov.yml` project and patch targets at 90%. Coverage went from 38% to 96%, with tests for the loop, status, start, stop, install, poll registration and helpers.
+
+### Fixed
+
+- The loop no longer dies when its heartbeat file is locked; it retries the write three times and logs a skipped write.
+- `Register-WatchdogPoll` registers with a 60 s minimum interval and a 10-year repetition duration (Windows rejects `TimeSpan.MaxValue`), and throws unless the task exists afterwards.
+
 ### Security
 
 - The CI workflow declares `permissions: contents: read` at the top level, so no job gets more than read access unless it sets its own.

@@ -68,6 +68,21 @@ Required fields: `Root`, `Targets`, `VramKillMiB`, `RamKillPct`,
 below a 32607 MiB WDDM ceiling). Do **not** raise it to stop ComfyUI
 trips — cap ComfyUI (`--reserve-vram`) instead.
 
+### WSL file-cache release (opt-in)
+
+With `WslCacheRelease = $true`, each poll checks the WSL VM's memory from
+the Windows side (it never wakes a stopped VM). When `vmmemWSL` is large,
+or Windows memory is under pressure and `vmmemWSL` is mid-sized, the poller
+drops the Linux page cache in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches`
+as root, with a timeout and a cooldown). WSL's own `autoMemoryReclaim` only
+fires when the VM is idle, and a running container engine keeps it busy, so
+large image pulls can leave tens of GB of cache held against Windows.
+
+It never kills a process. It logs to `Root\_watchdog_wslcache.log`: an
+hourly heartbeat, each drop with memory before and after, and an `ALERT`
+naming the top processes if Windows is still above `WslCacheAlertPct`
+afterwards. Thresholds are in the example config.
+
 ## Commands
 
 | Command | What it does |
@@ -98,7 +113,7 @@ never kills and never auto-restarts; auto-restart can abort a live job.
 
 ## Threat model
 
-- **Touched:** files under `Root` (heartbeat, CSV, kill/console/crash logs, sentinels); process list; GPU counters; optional local WSL pkill.
+- **Touched:** files under `Root` (heartbeat, CSV, kill/console/crash logs, sentinels); process list; GPU counters; optional local WSL pkill; optional WSL page-cache drop (opt-in, never a kill).
 - **Not touched:** your source tree, checkpoints, credentials, the network.
 - **Permissions:** the user who starts it can kill the configured interpreters. There is no extra service account.
 - **No telemetry** leaves the machine. No secrets in logs.
@@ -110,9 +125,13 @@ never kills and never auto-restarts; auto-restart can abort a live job.
 pwsh -File .\verify.ps1
 ```
 
-32 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
+106 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
 output that killed the loop on 2026-06-12. The hardware abort test stays
 local and is not greened in CI.
+
+`pwsh -File .\verify.ps1 -Coverage` adds line coverage of `src/Watchdog`
+and fails below 90%. CI runs it that way and uploads the report to Codecov,
+which holds the whole module and every change to 90%.
 
 ## Origin
 

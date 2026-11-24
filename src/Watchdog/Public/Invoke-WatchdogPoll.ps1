@@ -18,6 +18,13 @@ function Invoke-WatchdogPoll {
   }
 
   $paths = Get-WatchdogPaths -Root $cfg.Root
+
+  # Opt-in and independent of liveness: it never throws, and it reads memory from the Windows side
+  # so it never wakes a stopped WSL VM.
+  if ($cfg.WslCacheRelease) {
+    [void](Invoke-WslCacheRelease -Cfg $cfg -Paths $paths)
+  }
+
   $hb = Get-WatchdogHeartbeatState -Path $paths.Heartbeat -StaleSec $cfg.StaleSec
   if ($hb.State -eq 'RUNNING') {
     $global:LASTEXITCODE = 0
