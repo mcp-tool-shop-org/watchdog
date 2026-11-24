@@ -97,7 +97,7 @@ above `WslCacheAlertPct` after a release. Thresholds are in the example config.
 | `watchdog stop` | STOP sentinel, wait. Never process-match. |
 | `watchdog poll` | One-shot: if heartbeat is stale, write `_watchdog_DEAD` from the outside |
 | `watchdog help` | Flags and exit codes |
-| `watchdog version` | `1.1.0` |
+| `watchdog version` | `1.1.1` |
 
 `status` / `poll` exit codes: **0** running · **1** no heartbeat · **2**
 stale. `start` also uses **3** (VRAM already over ceiling), **4** (old
@@ -130,7 +130,7 @@ never kills and never auto-restarts; auto-restart can abort a live job.
 pwsh -File .\verify.ps1
 ```
 
-114 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
+123 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
 output that killed the loop on 2026-06-12. The hardware abort test stays
 local and is not greened in CI.
 

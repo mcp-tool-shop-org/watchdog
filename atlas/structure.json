@@ -36,7 +36,7 @@
           "path": ".github/workflows/ci.yml"
         },
         {
-          "hash": "093f4ab76b2148bdf4ae9b5ce1f36617cfc4b218bdb8d8c6c967f8b43fa60a67",
+          "hash": "074c51c7eea5169fc57cf81d160704c5e90945cf379277de1d82f6e6e2b178af",
           "path": ".github/workflows/pages.yml"
         }
       ],
@@ -71,7 +71,7 @@
           "path": "docs/open-decisions.md"
         },
         {
-          "hash": "36f64e2557cadefc09be3d975a3dbeba48786376aee262c6a60f14a7a9056e8f",
+          "hash": "f7f6bbde6c55ac86147ead8b82687bc4aceea4cde5f315c6a4d61ef5df3cdb2e",
           "path": "docs/workflow-standards.md"
         }
       ],
@@ -145,7 +145,7 @@
           "path": ".polyglot-pins.json"
         },
         {
-          "hash": "6a7840400f501a32c779256f12a7839ecc36f957bca21310114cbde40e7d5306",
+          "hash": "d7bbea1bae800c4ab2644db6d77d24c3d3e17b7208585f89d32c4ee9777b376a",
           "path": "CHANGELOG.md"
         },
         {
@@ -177,7 +177,7 @@
           "path": "README.ja.md"
         },
         {
-          "hash": "e480a8ea866378c6d6af772c0d05a597ff2e61b7e0d46c7eaec00ec69ff05362",
+          "hash": "aaab8224e411c688a9500f0fa916278cf2f5ccc413e71b33c80d4b4a07114468",
           "path": "README.md"
         },
         {
@@ -197,7 +197,7 @@
           "path": "SECURITY.md"
         },
         {
-          "hash": "d06cc53b9eb60fa4c7fb7af4633ece00110601575123cac7757c3654d297da20",
+          "hash": "5f383d198dfb08c4c72bd8a68eb30f4f18177ec41180a806885976ddceeaf7cd",
           "path": "SHIP_GATE.md"
         },
         {
@@ -253,11 +253,11 @@
           "path": "site/src/content.config.ts"
         },
         {
-          "hash": "1d11c175fb939324df13e772ba8544023a591f88ebae2ed125e2150aa67bf52c",
+          "hash": "2694cfea1354eafbc60fefb9360b644ceabf850983d02b1a703fa62bfbea620a",
           "path": "site/src/content/docs/handbook/configuration.md"
         },
         {
-          "hash": "9e7da8e02ddec5fce1ec2aceba4ef59489c3e16fd29fbed392add40727d3b0a0",
+          "hash": "f84b2b2de3968f6e2ff4549489b3d7be7cc06450da15d83a8e1d92cab93b684c",
           "path": "site/src/content/docs/handbook/getting-started.md"
         },
         {
@@ -269,7 +269,7 @@
           "path": "site/src/content/docs/handbook/operations.md"
         },
         {
-          "hash": "a71c4f0ec9fa626bd37785cddfc3f803fdd672de07c56e7a2f1a95ee6b0600e9",
+          "hash": "c4268e38b5b2d611ac40a2d52c6b059bc64d58808d83cad9c5a61beaf4c85f4f",
           "path": "site/src/content/docs/handbook/reference.md"
         },
         {
@@ -294,7 +294,7 @@
         },
         {
           "constantOnly": true,
-          "hash": "1ecd1f2ed96163eb6f49ec8190400b17acf1f4dfaa8f6c73d7276c52e31ef453",
+          "hash": "84843a2d8b179778813414a8a9ada551c5695a4b98c5cc3cc5195eaa6b1a00d5",
           "path": "site/src/site-config.ts"
         },
         {
@@ -369,6 +369,10 @@
           "path": "src/Watchdog/Private/Resolve-WatchdogConfig.ps1"
         },
         {
+          "hash": "570c977c0919c58d2ddee29d0bfe1249ff6834b150b55ca5be9839530a427b5a",
+          "path": "src/Watchdog/Private/Resolve-WatchdogPollLaunch.ps1"
+        },
+        {
           "hash": "c6954e974a1ac55a307db940e8bdb9ff965e50fe4642b9400d4965d35a2c33ab",
           "path": "src/Watchdog/Private/Test-WslRunning.ps1"
         },
@@ -393,7 +397,7 @@
           "path": "src/Watchdog/Public/Invoke-WatchdogPoll.ps1"
         },
         {
-          "hash": "9acebef865b743fa1a93f33b76516b4d6a5f3d46ba6aa3d155f37564617c710b",
+          "hash": "242927cb50be941db8bc9c3f9dbdcfaf04c64dc6d0bd09b3cc0cf990a69f69d4",
           "path": "src/Watchdog/Public/Register-WatchdogPoll.ps1"
         },
         {
@@ -405,7 +409,7 @@
           "path": "src/Watchdog/Public/Stop-Watchdog.ps1"
         },
         {
-          "hash": "dfd931b08bec68c4dd7d39353fa59c9a25b45f81004c7d4c8fdb0c33ba4117d0",
+          "hash": "127cebb604554ac740fbb50a7680a6d7336a5fd6afac0e7dc248e09160a4b86f",
           "path": "src/Watchdog/Watchdog.psd1"
         },
         {
@@ -444,7 +448,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "dfa9ec21b248be41e26104c5e41535cebe1aaf0de67da5cce063e3a0c98435b8",
+          "hash": "62c5e43c2dae177fa0cd02d26d75561da8f8663203a4408f3458e24cd94ead24",
           "path": "tests/Cli.Tests.ps1"
         },
         {
@@ -472,7 +476,7 @@
           "path": "tests/Hysteresis.Tests.ps1"
         },
         {
-          "hash": "b659ea5c6683f4f3b458cec61321c36a5e6a2271870f7b05ec51179f307e21c5",
+          "hash": "15a36bba34f536cba65eb80d7d5d7384ce555479eccd201426ee1577a8aec5ea",
           "path": "tests/Lifecycle.Tests.ps1"
         },
         {
@@ -723,9 +727,7 @@
           "when": {
             "branches": [
               "main"
-            ],
-            "byHand": true,
-            "event": "push"
+            ]
           }
         }
       ],
@@ -806,9 +808,7 @@
           "when": {
             "branches": [
               "main"
-            ],
-            "byHand": true,
-            "event": "push"
+            ]
           }
         },
         {
@@ -821,9 +821,7 @@
           "when": {
             "branches": [
               "main"
-            ],
-            "byHand": true,
-            "event": "push"
+            ]
           }
         }
       ],
@@ -852,12 +850,6 @@
           ]
         },
         {
-          "event": "release",
-          "types": [
-            "published"
-          ]
-        },
-        {
           "event": "workflow_dispatch"
         }
       ],
@@ -873,8 +865,8 @@
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "4627e2c193b6256121d9e1002772c0cfc383e738",
-    "tracked": 89
+    "commit": "3b5af9e203cd4d0b20a30910d9123713affc026e",
+    "tracked": 90
   },
   "landings": [
     {

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-24
+
+### Fixed
+
+- The poll task now starts. `Register-WatchdogPoll` registered a bare `pwsh`, which Task Scheduler looks up on the machine PATH only; with PowerShell installed from the Microsoft Store (an execution alias in the user's WindowsApps folder), every trigger ended with 0x80070002 (file not found) and the poller never ran. It now registers the absolute `pwsh` path, started through `conhost --headless` so no window flashes on each poll. It refuses to report success unless the task holds the new action and its first run returns 0, and it throws with an elevation hint when Task Scheduler refuses the registration.
+- The Pages workflow deploys from `main` only. The `github-pages` environment lets only `main` deploy, so v1.1.0's release-event deploy was refused; site changes reach `main` in the release PR.
+
 ## [1.1.0] - 2026-11-24
 
 ### Changed

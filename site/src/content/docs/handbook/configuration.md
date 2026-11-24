@@ -33,7 +33,13 @@ Missing config is a hard refuse (`CONFIG_MISSING`). Relative `Root` or
 
 `Register-WatchdogPoll` registers the poller every
 `max(60, PollIntervalSec)` seconds: Windows scheduled-task repetition
-cannot go below one minute.
+cannot go below one minute. It registers the absolute path of `pwsh`
+(Task Scheduler cannot find a bare `pwsh` from a Microsoft Store install),
+started through `conhost --headless` so no window flashes on each poll.
+It then runs the task once and fails unless that run returns 0. If
+Windows refuses to replace the task with "Access is denied", the task was
+first registered from an elevated shell: run `Unregister-WatchdogPoll`
+there once, then register again from a normal shell.
 
 ## WSL file-cache release (opt-in)
 
