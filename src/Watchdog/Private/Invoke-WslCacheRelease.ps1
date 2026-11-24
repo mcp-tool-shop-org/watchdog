@@ -103,6 +103,7 @@ function Invoke-WslCacheRelease {
     [scriptblock]$ReadHost = { Get-WslHostMemory },
     [scriptblock]$RunWsl = { param($Distro, $Command, $TimeoutSec) Invoke-WslRootCommand -Distro $Distro -Command $Command -TimeoutSec $TimeoutSec },
     [scriptblock]$TopProcesses = { Get-WslTopProcesses },
+    [scriptblock]$DistroRunning = { param($Distro) Test-WslRunning $Distro },
     [datetime]$Now = (Get-Date)
   )
   try {
@@ -124,6 +125,17 @@ function Invoke-WslCacheRelease {
     if (Test-Path -LiteralPath $Paths.WslCacheLast) {
       $last = [datetime]::Parse((Get-Content -LiteralPath $Paths.WslCacheLast -Raw).Trim(), [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::RoundtripKind)
       if (($Now - $last).TotalSeconds -lt $Cfg.WslCacheCooldownSec) { return [pscustomobject]@{ Action = 'cooldown' } }
+    }
+
+    # Another distro (a container engine's, for example) can keep vmmemWSL up while WslDistro is stopped, and
+    # `wsl -d <distro>` would START it. So act only when WslDistro is already running; listing the running
+    # distros starts nothing. A run of skips logs one line, and the hourly heartbeat ends the run, so a long
+    # run shows at most one skip line an hour.
+    if (-not (& $DistroRunning $Cfg.WslDistro)) {
+      $skip = "skip: distro '$($Cfg.WslDistro)' is not running, and a cache drop never starts it"
+      $lastLine = if (Test-Path -LiteralPath $Paths.WslCacheLog) { [string](Get-Content -LiteralPath $Paths.WslCacheLog -Tail 1) } else { '' }
+      if (-not $lastLine.Contains($skip)) { Write-WslCacheLog $Paths.WslCacheLog "$skip; $state" }
+      return [pscustomobject]@{ Action = 'distro-not-running' }
     }
 
     $cacheGB = ConvertFrom-WslMeminfoCache (& $RunWsl $Cfg.WslDistro "grep -E '^(Buffers|Cached):' /proc/meminfo" $Cfg.WslCacheTimeoutSec)

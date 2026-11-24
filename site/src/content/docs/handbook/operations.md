@@ -41,6 +41,9 @@ With `WslCacheRelease` on, `_watchdog_wslcache.log` under `Root` records:
 - `DROPPED`, with the cache size dropped and memory before and after;
 - `no drop`, when the VM was large but its cache was small, meaning real
   process memory is holding it;
+- `skip`, when the VM was large but `WslDistro` was not running (another
+  distro is holding the VM up). A run of skips logs one line, and at most
+  one an hour;
 - `ALERT`, with the top five processes, when Windows is still at or above
   `WslCacheAlertPct` after a drop. That memory is held by processes, not
   cache, and the watchdog will not free it. Find the process;

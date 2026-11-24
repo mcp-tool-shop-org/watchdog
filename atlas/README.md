@@ -1,15 +1,14 @@
 # watchdog: how it works
 
-Mapped at 2026-11-24 from commit b61a16f by Atlas 1.26.0.
+Mapped at 2026-11-24 from commit 157f6d4 by Atlas 1.26.0.
 
 ## What this is
 
 8 parts, mostly PowerShell (39 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it. It deploys a site to GitHub Pages.
 
-## What changed since 2026-11-24 (6e018c7)
+## What changed since 2026-11-24 (b61a16f)
 
-- Deploy site to GitHub Pages (.github/workflows/pages.yml) is a new door. It starts on a push to main touching 2 paths; when a release is published; or by hand. It runs site/astro.config.mjs and site/src/.
-- 1 file added and 2 removed, across 2 parts.
+Nothing structural changed since 2026-11-24; 2 files added and 7 changed content.
 
 ## What comes in
 

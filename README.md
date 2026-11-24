@@ -81,10 +81,12 @@ as root, with a timeout and a cooldown). WSL's own `autoMemoryReclaim` only
 fires when the VM is idle, and a running container engine keeps it busy, so
 large image pulls can leave tens of GB of cache held against Windows.
 
-It never kills a process. It logs to `Root\_watchdog_wslcache.log`: an
-hourly heartbeat, each drop with memory before and after, and an `ALERT`
-naming the top processes if Windows is still above `WslCacheAlertPct`
-afterwards. Thresholds are in the example config.
+It never kills a process, and it never starts a stopped distro: if another
+distro keeps the VM up while `WslDistro` is stopped, it skips. It logs to
+`Root\_watchdog_wslcache.log`: an hourly heartbeat, each drop with memory
+before and after, each run of skips, and an `ALERT` naming the top processes
+if Windows is still above `WslCacheAlertPct` afterwards. Thresholds are in
+the example config.
 
 ## Commands
 
@@ -128,7 +130,7 @@ never kills and never auto-restarts; auto-restart can abort a live job.
 pwsh -File .\verify.ps1
 ```
 
-106 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
+108 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi
 output that killed the loop on 2026-06-12. The hardware abort test stays
 local and is not greened in CI.
 

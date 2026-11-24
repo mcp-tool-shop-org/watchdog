@@ -9,40 +9,31 @@
   "breaks": [],
   "changes": {
     "fileCounts": {
-      "added": 1,
-      "changed": 0,
+      "added": 2,
+      "changed": 7,
       "moved": 0,
-      "parts": 2,
-      "removed": 2
+      "parts": 5,
+      "removed": 0
     },
     "items": [
       {
-        "kind": "door",
-        "sentence": "Deploy site to GitHub Pages (.github/workflows/pages.yml) is a new door. It starts on a push to main touching 2 paths; when a release is published; or by hand. It runs site/astro.config.mjs and site/src/.",
-        "subjects": [
-          ".github/workflows/pages.yml",
-          "site/astro.config.mjs",
-          "site/src/"
-        ]
-      },
-      {
         "kind": "counts",
-        "sentence": "1 file added and 2 removed, across 2 parts.",
+        "sentence": "Nothing structural changed since 2026-11-24; 2 files added and 7 changed content.",
         "subjects": []
       }
     ],
     "since": {
-      "commit": "6e018c7b585039035c3ec0dd1dfd6d7126c28e17",
-      "generatedAt": "2026-11-24T03:48:33.355Z"
+      "commit": "b61a16fbdf05c482b702e2b12cb9f10f777327f2",
+      "generatedAt": "2026-11-24T04:04:44.584Z"
     },
-    "unchanged": false
+    "unchanged": true
   },
   "changesTogether": [],
   "changesTogetherNote": [
     "Window: 180 days; a pair counts from 3 shared commits, since the window holds fewer than 30 qualifying commits."
   ],
   "changesTogetherWithTests": 0,
-  "commit": "b61a16fbdf05c482b702e2b12cb9f10f777327f2",
+  "commit": "157f6d4c0b8278e2529fa5c92cc74b2fbd650bff",
   "defaultBranch": "main",
   "derived": "8 parts, mostly PowerShell (39 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it. It deploys a site to GitHub Pages.",
   "doors": [
@@ -126,7 +117,7 @@
   "edges": [],
   "engine": "1.26.0",
   "generated": [],
-  "generatedAt": "2026-11-24T04:04:44.584Z",
+  "generatedAt": "2026-11-24T04:13:04.044Z",
   "limits": [
     "Statistics confidence is low: fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions."
   ],

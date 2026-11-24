@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **WSL file-cache release (opt-in, `WslCacheRelease`).** The poller drops the Linux page cache when the WSL VM crowds Windows memory, reading memory from the Windows side so it never wakes a stopped VM. It has thresholds, a cooldown and a timeout, never kills a process, and logs to `_watchdog_wslcache.log` (hourly heartbeat, each drop, and an alert if Windows stays high).
+- **WSL file-cache release (opt-in, `WslCacheRelease`).** The poller drops the Linux page cache when the WSL VM crowds Windows memory, reading memory from the Windows side so it never wakes a stopped VM, and acting only when `WslDistro` is already running, so a distro stopped while another one (a container engine's) keeps the VM up is never started. It has thresholds, a cooldown and a timeout, never kills a process, and logs to `_watchdog_wslcache.log` (hourly heartbeat, each drop, each run of skips, and an alert if Windows stays high).
 - **Coverage bar of 90%.** `verify.ps1 -Coverage` measures line coverage of `src/Watchdog` and fails below 90%. CI runs it and uploads the JaCoCo report to Codecov through OIDC, with `codecov.yml` project and patch targets at 90%. Coverage went from 38% to 96%, with tests for the loop, status, start, stop, install, poll registration and helpers.
 
 ### Fixed

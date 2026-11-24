@@ -59,7 +59,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "b6589ba2e3a4f06428a188120b3402096077e8ee1589125d48be305fa2fa8eda",
+          "hash": "d9ff6d4cc9a8454dd35f1c5c65f5eefcabb5e5fabf5d0fecef0db6fe79adb879",
           "path": "docs/compensators.md"
         },
         {
@@ -141,6 +141,10 @@
           "path": ".gitignore"
         },
         {
+          "hash": "d6709e2e547d6d6027bd6b35f7fbc9556482a024554a66057a6a24a1604d27ab",
+          "path": "CHANGELOG.md"
+        },
+        {
           "hash": "af6c396dd794b80a1d3d3f529ced3ece1f6fdf2225a67c4a6e453ac2cabee3a5",
           "path": "HANDBOOK.md"
         },
@@ -167,6 +171,10 @@
         {
           "hash": "26c080ae8e8d73f6202a6556e5c35d5fee90362ab9cbfcccf747206f9d5dc31f",
           "path": "README.ja.md"
+        },
+        {
+          "hash": "763c11d465588f2dbb2dc71e8e17a4700e3b48b7bffb69819042e72e381e2ad3",
+          "path": "README.md"
         },
         {
           "hash": "421a68b76bf672cdafab5e95a2d77bf7de1f46a70072e58192cb9138c97a73ee",
@@ -241,11 +249,11 @@
           "path": "site/src/content.config.ts"
         },
         {
-          "hash": "1fc9302615d7e6c243efff65148ce66c07431fec3fc83a754a5234c84c05e174",
+          "hash": "b427dcd13f10febab40676edb3b9a866172d5b56db33b3b013b6ef12cdcb9887",
           "path": "site/src/content/docs/handbook/configuration.md"
         },
         {
-          "hash": "fd0195bf6ad52b7c631b2e9f6f233f8b77e423e79f0dd3d321636e25bc65b2a9",
+          "hash": "ad337374221c9c9e03fc389df62e4180c12e2d1671b1d13f41c94c85cfc6f4ab",
           "path": "site/src/content/docs/handbook/getting-started.md"
         },
         {
@@ -253,7 +261,7 @@
           "path": "site/src/content/docs/handbook/index.md"
         },
         {
-          "hash": "1c5c852383e5f6c5bf83e1fc55f853a7498677fe71d55055cb9e51c0bf6c44d6",
+          "hash": "13315ea3099078373351fc04fea33f11c8991a28cdf9859eb2d39414888f3bf5",
           "path": "site/src/content/docs/handbook/operations.md"
         },
         {
@@ -282,7 +290,7 @@
         },
         {
           "constantOnly": true,
-          "hash": "529bed9013fb7af31f5ff65d68d8711fc0c7e983db3ced30d498c46fc5b1e793",
+          "hash": "2903af7a9810715f7f2e2f5b89fa86a7eb4ddc424009010a05a36fedd779ccaf",
           "path": "site/src/site-config.ts"
         },
         {
@@ -341,7 +349,7 @@
           "path": "src/Watchdog/Private/Invoke-WatchdogLoop.ps1"
         },
         {
-          "hash": "1ca787a19b9df08c94ce0c5c3b2f0d284addbe3f770244aedced380ab2376d10",
+          "hash": "cf7513f1678eea61578091de4f1b1d33da278a35f41cd0dd669ac361511e3653",
           "path": "src/Watchdog/Private/Invoke-WslCacheRelease.ps1"
         },
         {
@@ -476,7 +484,7 @@
           "path": "tests/Poller.Tests.ps1"
         },
         {
-          "hash": "d40657cd1b8321b176a6009e27c16fd720e1d5d69be9e704bf524395eb46bb34",
+          "hash": "ee792981b20fbb77042a365bb6e08cec615500386e5f4e884b48d727bf696f1c",
           "path": "tests/WslCacheRelease.Tests.ps1"
         },
         {
@@ -861,8 +869,8 @@
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "b61a16fbdf05c482b702e2b12cb9f10f777327f2",
-    "tracked": 86
+    "commit": "157f6d4c0b8278e2529fa5c92cc74b2fbd650bff",
+    "tracked": 88
   },
   "landings": [
     {

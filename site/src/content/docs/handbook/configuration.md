@@ -46,7 +46,10 @@ the VM is idle, and a running container engine keeps it busy. With
    is never started);
 2. acts when `vmmemWSL >= WslCacheHighGB`, or when Windows used
    `>= WslCacheWinHighPct` and `vmmemWSL >= WslCacheMinGB`;
-3. drops the page cache in `WslDistro` (`sync; echo 1 > /proc/sys/vm/drop_caches`
+3. skips, and logs a `skip` line, when `WslDistro` is not running. Another
+   distro (a container engine's) can keep the VM up while yours is stopped,
+   and `wsl -d` would start it; listing the running distros starts nothing;
+4. drops the page cache in `WslDistro` (`sync; echo 1 > /proc/sys/vm/drop_caches`
    as root) only if the Linux cache is `>= WslCacheMinCacheGB`, at most
    once per `WslCacheCooldownSec`.
 

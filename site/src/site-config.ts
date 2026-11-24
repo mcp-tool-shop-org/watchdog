@@ -52,7 +52,7 @@ export const config: SiteConfig = {
         },
         {
           title: 'WSL cache gives memory back',
-          desc: 'Opt-in: the poller drops the WSL page cache when the VM crowds Windows memory. It reads from the Windows side, never wakes a stopped VM, and never kills a process.',
+          desc: 'Opt-in: the poller drops the WSL page cache when the VM crowds Windows memory. It reads from the Windows side, never starts a stopped VM or distro, and never kills a process.',
         },
       ],
     },
@@ -71,7 +71,7 @@ export const config: SiteConfig = {
         },
         {
           title: 'Verify (no GPU)',
-          code: 'pwsh -File .\\verify.ps1 -Coverage\n# 106 unit tests, 90% coverage floor. The abort test stays local.',
+          code: 'pwsh -File .\\verify.ps1 -Coverage\n# 108 unit tests, 90% coverage floor. The abort test stays local.',
         },
       ],
     },
