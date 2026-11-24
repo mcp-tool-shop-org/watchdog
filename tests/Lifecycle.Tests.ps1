@@ -236,25 +236,98 @@ Describe 'Register-WatchdogPoll / Unregister-WatchdogPoll' {
     $script:rCfg = New-WatchdogTestConfig -Root $script:rRoot
   }
 
-  It 'registers the poll every 60 s for ten years and checks the task exists' {
+  It 'registers the poll every 60 s for ten years, through conhost with the absolute pwsh path, and runs it once' {
     InModuleScope Watchdog -Parameters @{ Cfg = $script:rCfg } {
       param($Cfg)
+      Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
+      Mock New-ScheduledTaskAction { $script:regExecute = $Execute; $script:regArgument = $Argument; 'action' }
+      Mock New-ScheduledTaskTrigger { 'trigger' }
+      Mock New-ScheduledTaskSettingsSet { 'settings' }
+      Mock New-ScheduledTaskPrincipal { 'principal' }
+      Mock Register-ScheduledTask { } -RemoveParameterType 'Action', 'Trigger', 'Settings', 'Principal'
+      Mock Get-ScheduledTask { [pscustomobject]@{ TaskName = 'MCPToolShop.Watchdog.Poll'; Actions = @([pscustomobject]@{ Execute = $script:regExecute; Arguments = $script:regArgument }) } }
+      Mock Invoke-WatchdogPollTaskProbe { 0 }
+      (Register-WatchdogPoll -ConfigPath $Cfg) | Should -Match 'every 60s \(detects death, never kills or restarts\); its first run returned 0'
+      Should -Invoke New-ScheduledTaskTrigger -Times 1 -Exactly -ParameterFilter { $RepetitionInterval.TotalSeconds -eq 60 -and $RepetitionDuration.TotalDays -eq 3650 }
+      Should -Invoke Register-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' }
+      Should -Invoke New-ScheduledTaskAction -Times 1 -Exactly -ParameterFilter {
+        $Execute -like '*\System32\conhost.exe' -and
+        $Argument -like '--headless "C:\Program Files\PowerShell\7\pwsh.exe" -NoProfile -ExecutionPolicy Bypass -Command "Import-Module -Force *Watchdog.psd1''; Invoke-WatchdogPoll -ConfigPath *"'
+      }
+      Should -Invoke Invoke-WatchdogPollTaskProbe -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' }
+    }
+  }
+
+  It 'throws when the first run fails, instead of reporting a task that would never poll' {
+    InModuleScope Watchdog -Parameters @{ Cfg = $script:rCfg } {
+      param($Cfg)
+      Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
+      Mock New-ScheduledTaskAction { $script:regExecute = $Execute; $script:regArgument = $Argument; 'action' }
+      Mock New-ScheduledTaskTrigger { 'trigger' }
+      Mock New-ScheduledTaskSettingsSet { 'settings' }
+      Mock New-ScheduledTaskPrincipal { 'principal' }
+      Mock Register-ScheduledTask { } -RemoveParameterType 'Action', 'Trigger', 'Settings', 'Principal'
+      Mock Get-ScheduledTask { [pscustomobject]@{ TaskName = 'MCPToolShop.Watchdog.Poll'; Actions = @([pscustomobject]@{ Execute = $script:regExecute; Arguments = $script:regArgument }) } }
+      # 0x80070002, file not found: what the bare 'pwsh' action returned on every trigger on the rig (2026-11-24).
+      Mock Invoke-WatchdogPollTaskProbe { 2147942402 }
+      { Register-WatchdogPoll -ConfigPath $Cfg } | Should -Throw '*first run failed with 0x80070002*'
+    }
+  }
+
+  It 'says the poll may drop the WSL page cache when the config turns that on' {
+    $cfgText = (Get-Content $script:rCfg -Raw).TrimEnd()
+    Set-Content -Path $script:rCfg -Value ($cfgText.Substring(0, $cfgText.Length - 1) + "  WslCacheRelease = `$true`n}`n")
+    InModuleScope Watchdog -Parameters @{ Cfg = $script:rCfg } {
+      param($Cfg)
+      Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
+      Mock New-ScheduledTaskAction { $script:regExecute = $Execute; $script:regArgument = $Argument; 'action' }
+      Mock New-ScheduledTaskTrigger { 'trigger' }
+      Mock New-ScheduledTaskSettingsSet { 'settings' }
+      Mock New-ScheduledTaskPrincipal { 'principal' }
+      Mock Register-ScheduledTask { } -RemoveParameterType 'Action', 'Trigger', 'Settings', 'Principal'
+      Mock Get-ScheduledTask { [pscustomobject]@{ TaskName = 'MCPToolShop.Watchdog.Poll'; Actions = @([pscustomobject]@{ Execute = $script:regExecute; Arguments = $script:regArgument }) } }
+      Mock Invoke-WatchdogPollTaskProbe { 0 }
+      (Register-WatchdogPoll -ConfigPath $Cfg) | Should -Match 'WslCacheRelease is on, so each poll may also drop the WSL page cache'
+    }
+  }
+
+  It 'throws with the elevation hint when Task Scheduler refuses the registration' {
+    InModuleScope Watchdog -Parameters @{ Cfg = $script:rCfg } {
+      param($Cfg)
+      Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
+      Mock New-ScheduledTaskAction { 'action' }
+      Mock New-ScheduledTaskTrigger { 'trigger' }
+      Mock New-ScheduledTaskSettingsSet { 'settings' }
+      Mock New-ScheduledTaskPrincipal { 'principal' }
+      # What Task Scheduler said on the rig (2026-11-24) when a normal shell tried to replace the task.
+      Mock Register-ScheduledTask { throw 'Access is denied.' } -RemoveParameterType 'Action', 'Trigger', 'Settings', 'Principal'
+      Mock Invoke-WatchdogPollTaskProbe { 0 }
+      { Register-WatchdogPoll -ConfigPath $Cfg } | Should -Throw '*refused to register MCPToolShop.Watchdog.Poll: Access is denied.*elevated shell*'
+      Should -Invoke Invoke-WatchdogPollTaskProbe -Times 0 -Exactly
+    }
+  }
+
+  It 'throws when the task still holds an older action, instead of probing a task it did not replace' {
+    InModuleScope Watchdog -Parameters @{ Cfg = $script:rCfg } {
+      param($Cfg)
+      Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
       Mock New-ScheduledTaskAction { 'action' }
       Mock New-ScheduledTaskTrigger { 'trigger' }
       Mock New-ScheduledTaskSettingsSet { 'settings' }
       Mock New-ScheduledTaskPrincipal { 'principal' }
       Mock Register-ScheduledTask { } -RemoveParameterType 'Action', 'Trigger', 'Settings', 'Principal'
-      Mock Get-ScheduledTask { [pscustomobject]@{ TaskName = 'MCPToolShop.Watchdog.Poll' } }
-      (Register-WatchdogPoll -ConfigPath $Cfg) | Should -Match 'every 60s \(detect only, never restart\)'
-      Should -Invoke New-ScheduledTaskTrigger -Times 1 -Exactly -ParameterFilter { $RepetitionInterval.TotalSeconds -eq 60 -and $RepetitionDuration.TotalDays -eq 3650 }
-      Should -Invoke Register-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' }
+      Mock Get-ScheduledTask { [pscustomobject]@{ TaskName = 'MCPToolShop.Watchdog.Poll'; Actions = @([pscustomobject]@{ Execute = 'pwsh'; Arguments = '-NoProfile -Command old' }) } }
+      Mock Invoke-WatchdogPollTaskProbe { 0 }
+      { Register-WatchdogPoll -ConfigPath $Cfg } | Should -Throw '*still holds an older action (pwsh)*'
+      Should -Invoke Invoke-WatchdogPollTaskProbe -Times 0 -Exactly
     }
   }
 
   It 'throws instead of printing success when the task did not appear' {
     InModuleScope Watchdog -Parameters @{ Cfg = $script:rCfg } {
       param($Cfg)
-      Mock New-ScheduledTaskAction { 'action' }
+      Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
+      Mock New-ScheduledTaskAction { $script:regExecute = $Execute; $script:regArgument = $Argument; 'action' }
       Mock New-ScheduledTaskTrigger { 'trigger' }
       Mock New-ScheduledTaskSettingsSet { 'settings' }
       Mock New-ScheduledTaskPrincipal { 'principal' }
@@ -278,6 +351,54 @@ Describe 'Register-WatchdogPoll / Unregister-WatchdogPoll' {
       Mock Unregister-ScheduledTask { }
       (Unregister-WatchdogPoll) | Should -Match 'unregistered scheduled task MCPToolShop.Watchdog.Poll'
       Should -Invoke Unregister-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' }
+    }
+  }
+}
+
+Describe 'Poll task launch helpers' {
+  It 'resolves pwsh from PATH' {
+    InModuleScope Watchdog {
+      Mock Get-Command { [pscustomobject]@{ Source = 'C:\Program Files\PowerShell\7\pwsh.exe' } }
+      Resolve-WatchdogPwshPath | Should -Be 'C:\Program Files\PowerShell\7\pwsh.exe'
+    }
+  }
+
+  It 'falls back to the pwsh that is running when PATH has none' {
+    InModuleScope Watchdog {
+      Mock Get-Command { $null }
+      Mock Get-Process { [pscustomobject]@{ Path = 'D:\tools\pwsh\pwsh.exe' } }
+      Resolve-WatchdogPwshPath | Should -Be 'D:\tools\pwsh\pwsh.exe'
+    }
+  }
+
+  It 'fails closed when no pwsh can be found' {
+    InModuleScope Watchdog {
+      Mock Get-Command { $null }
+      Mock Get-Process { [pscustomobject]@{ Path = 'D:\tools\other\powershell.exe' } }
+      { Resolve-WatchdogPwshPath } | Should -Throw '*pwsh.exe not found*'
+    }
+  }
+
+  It 'starts the task once and returns the result of that run' {
+    InModuleScope Watchdog {
+      $script:probeInfo = [System.Collections.Generic.Queue[object]]::new()
+      $script:probeInfo.Enqueue([pscustomobject]@{ LastRunTime = [datetime]'2026-11-24T00:00:00'; LastTaskResult = 267011 })
+      $script:probeInfo.Enqueue([pscustomobject]@{ LastRunTime = [datetime]'2026-11-24T00:00:00'; LastTaskResult = 267011 })
+      $script:probeInfo.Enqueue([pscustomobject]@{ LastRunTime = [datetime]'2026-11-24T00:05:00'; LastTaskResult = 2147942402 })
+      Mock Get-ScheduledTaskInfo { $script:probeInfo.Dequeue() }
+      Mock Start-ScheduledTask { }
+      Mock Get-ScheduledTask { [pscustomobject]@{ State = 'Ready' } }
+      Invoke-WatchdogPollTaskProbe -TaskName 'MCPToolShop.Watchdog.Poll' -TimeoutSec 5 -StepMs 10 | Should -Be 2147942402
+      Should -Invoke Start-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' }
+    }
+  }
+
+  It 'throws when the run does not finish in time' {
+    InModuleScope Watchdog {
+      Mock Get-ScheduledTaskInfo { [pscustomobject]@{ LastRunTime = [datetime]'2026-11-24T00:00:00'; LastTaskResult = 267009 } }
+      Mock Start-ScheduledTask { }
+      Mock Get-ScheduledTask { [pscustomobject]@{ State = 'Running' } }
+      { Invoke-WatchdogPollTaskProbe -TaskName 'MCPToolShop.Watchdog.Poll' -TimeoutSec 1 -StepMs 50 } | Should -Throw '*did not finish its first run within 1 s*'
     }
   }
 }

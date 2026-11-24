@@ -21,8 +21,13 @@ function Register-WatchdogPoll {
   }
   $mod = Join-Path $script:WatchdogModuleRoot 'Watchdog.psd1'
   $interval = [Math]::Max(60, [int]$cfg.PollIntervalSec)
-  $arg = "-NoProfile -ExecutionPolicy Bypass -Command `"Import-Module -Force '$mod'; Invoke-WatchdogPoll -ConfigPath '$($cfg.ConfigPath)'`""
-  $action = New-ScheduledTaskAction -Execute 'pwsh' -Argument $arg
+  # The absolute pwsh path (a bare 'pwsh' is not found by Task Scheduler for a Store install), started through
+  # conhost --headless so no console window flashes on every poll.
+  $pwsh = Resolve-WatchdogPwshPath
+  $conhost = Join-Path $env:SystemRoot 'System32\conhost.exe'
+  $poll = "Import-Module -Force '$mod'; Invoke-WatchdogPoll -ConfigPath '$($cfg.ConfigPath)'"
+  $arg = "--headless `"$pwsh`" -NoProfile -ExecutionPolicy Bypass -Command `"$poll`""
+  $action = New-ScheduledTaskAction -Execute $conhost -Argument $arg
   # Windows rejects TimeSpan.MaxValue as ISO duration P99999999DT23H59M59S (this build).
   # 10 years is "until we uninstall"; do not print success unless Get-ScheduledTask sees the task.
   $rep = New-TimeSpan -Seconds $interval
@@ -30,12 +35,26 @@ function Register-WatchdogPoll {
   $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval $rep -RepetitionDuration $dur
   $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew
   $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
-  Register-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
+  try {
+    Register-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force -ErrorAction Stop | Out-Null
+  } catch {
+    throw ("Task Scheduler refused to register MCPToolShop.Watchdog.Poll: {0} A task first registered from an elevated shell can only be replaced from one: run Unregister-WatchdogPoll there once, then register again." -f $_.Exception.Message)
+  }
   $task = Get-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -ErrorAction SilentlyContinue
   if (-not $task) {
     throw "Register-ScheduledTask returned without creating MCPToolShop.Watchdog.Poll"
   }
-  Write-Output "registered scheduled task MCPToolShop.Watchdog.Poll every ${interval}s (detect only, never restart)."
+  $held = @($task.Actions)[0]
+  if ("$($held.Execute)" -ne $conhost -or "$($held.Arguments)" -ne $arg) {
+    throw "MCPToolShop.Watchdog.Poll exists but still holds an older action ($($held.Execute)); it was not replaced."
+  }
+  # Run it once now and require a clean result, so a task that can never start is an error here, not a silent gap.
+  $result = Invoke-WatchdogPollTaskProbe -TaskName 'MCPToolShop.Watchdog.Poll' -TimeoutSec 60
+  if ($result -ne 0) {
+    throw ("MCPToolShop.Watchdog.Poll is registered, but its first run failed with 0x{0:X8}, so it would never poll." -f $result)
+  }
+  $wsl = if ($cfg.WslCacheRelease) { '; WslCacheRelease is on, so each poll may also drop the WSL page cache' } else { '' }
+  Write-Output "registered scheduled task MCPToolShop.Watchdog.Poll every ${interval}s (detects death, never kills or restarts$wsl); its first run returned 0."
 }
 
 function Unregister-WatchdogPoll {
