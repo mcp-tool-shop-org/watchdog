@@ -110,7 +110,25 @@ Describe 'Start-Watchdog' {
       $LASTEXITCODE | Should -Be 0
       $out | Should -Match 'no watchdog running'
       $out | Should -Match 'watchdog UP — kill@ VRAM 31200 MiB'
-      Should -Invoke Start-Process -Times 1 -Exactly -ParameterFilter { $FilePath -eq 'pwsh' -and $WindowStyle -eq 'Hidden' }
+      Should -Invoke Start-Process -Times 1 -Exactly -ParameterFilter { $FilePath -eq 'pwsh' -and $WindowStyle -eq 'Hidden' -and ($ArgumentList -contains '-AllowKill') }
+    }
+  }
+
+  It 'forwards -AllowKill to watchdog-loop.ps1 when started with -AllowKill and AllowKill = $false in config' {
+    $noKillRoot = Get-WatchdogTestDir ('start-flagkill-' + [guid]::NewGuid().ToString('N'))
+    $noKillCfg = New-WatchdogTestConfig -Root $noKillRoot -AllowKill $false
+    InModuleScope Watchdog -Parameters @{ Root = $noKillRoot; Cfg = $noKillCfg } {
+      param($Root, $Cfg)
+      $script:T = Get-WatchdogPaths -Root $Root
+      function script:nvidia-smi { '1000' }
+      Mock Start-Process { Get-WatchdogTimestamp | Set-Content $script:T.Heartbeat }
+      Mock Start-Sleep { }
+      $out = (Start-Watchdog -ConfigPath $Cfg -AllowKill) -join "`n"
+      $LASTEXITCODE | Should -Be 0
+      $out | Should -Match 'watchdog UP'
+      Should -Invoke Start-Process -Times 1 -Exactly -ParameterFilter {
+        $FilePath -eq 'pwsh' -and $WindowStyle -eq 'Hidden' -and ($ArgumentList -contains '-AllowKill')
+      }
     }
   }
 

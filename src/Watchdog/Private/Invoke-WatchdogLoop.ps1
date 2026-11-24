@@ -44,7 +44,8 @@ function Write-LoopHeartbeat {
 
 function Invoke-WatchdogLoop {
   param(
-    [Parameter(Mandatory)]$Config
+    [Parameter(Mandatory)]$Config,
+    [switch]$AllowKill
   )
   $ErrorActionPreference = 'Continue'
   $root = $Config.Root
@@ -56,6 +57,7 @@ function Invoke-WatchdogLoop {
   $BreachSamples = [int]$Config.BreachSamples
   $WslDistro = [string]$Config.WslDistro
   $WslKillPattern = [string]$Config.WslKillPattern
+  $canKill = [bool]$AllowKill -or ($Config.AllowKill -is [bool] -and $Config.AllowKill)
 
   $paths = Get-WatchdogPaths -Root $root
   if (-not (Test-Path $root)) {
@@ -102,44 +104,48 @@ function Invoke-WatchdogLoop {
           "$ts  $state $($reasons -join '; ') — $(Get-VramHolders)" | Add-Content $kill
           if ($step.ShouldAbort) {
             $acts = @(); $killedAny = $false
-            if ($pids.Count -gt 0) {
-              foreach ($pp in $pids) { Stop-Process -Id $pp -Force -EA SilentlyContinue }
-              $acts += "killed win python PID(s): $($pids -join ',')"; $killedAny = $true
-            }
-            if ($WslKillPattern) {
-              # Refresh heartbeat around each short-timeout WSL step (4s+drains, 5s+drains) so aborting stays under StaleSec.
-              Write-LoopHeartbeat -HeartbeatPath $hb -KillLogPath $kill
-              # only if the distro is already up — a cold VM start would allocate RAM mid-emergency
-              $distroUp = $false
-              $distroSkip = $null
-              try {
-                $distroUp = [bool](Test-WslDistroRunning -Distro $WslDistro -TimeoutSec 4 -StreamDrainMs 1000)
-                if (-not $distroUp) { $distroSkip = 'wsl distro not running, skipped' }
-              } catch {
-                $checkMsg = ($_.Exception.Message -split "`r?`n")[0].Trim()
-                $distroSkip = "wsl distro check failed ($checkMsg), skipped"
+            if (-not $canKill) {
+              $acts += 'kill skipped: no consent'
+            } else {
+              if ($pids.Count -gt 0) {
+                foreach ($pp in $pids) { Stop-Process -Id $pp -Force -EA SilentlyContinue }
+                $acts += "killed win python PID(s): $($pids -join ',')"; $killedAny = $true
               }
-              Write-LoopHeartbeat -HeartbeatPath $hb -KillLogPath $kill
-              if ($distroUp) {
+              if ($WslKillPattern) {
+                # Refresh heartbeat around each short-timeout WSL step (4s+drains, 5s+drains) so aborting stays under StaleSec.
+                Write-LoopHeartbeat -HeartbeatPath $hb -KillLogPath $kill
+                # only if the distro is already up — a cold VM start would allocate RAM mid-emergency
+                $distroUp = $false
+                $distroSkip = $null
                 try {
-                  $wslRes = Invoke-ProcessWithTimeout -FileName 'wsl.exe' -ArgumentList @('-d', $WslDistro, '--exec', 'pkill', '-9', '-f', $WslKillPattern) -TimeoutSec 5 -StreamDrainMs 1000 -PassThru
-                  $wslExit = $wslRes.ExitCode
-                  $acts += "wsl pkill exit=$wslExit (0=killed,1=no match)"
-                  if ($wslExit -eq 0) { $killedAny = $true }
+                  $distroUp = [bool](Test-WslDistroRunning -Distro $WslDistro -TimeoutSec 4 -StreamDrainMs 1000)
+                  if (-not $distroUp) { $distroSkip = 'wsl distro not running, skipped' }
                 } catch {
-                  if ($_.Exception.Message -like '*timed out*') {
-                    $acts += 'wsl pkill timed out'
-                  } else {
-                    $pkillMsg = ($_.Exception.Message -split "`r?`n")[0].Trim()
-                    $acts += "wsl pkill failed ($pkillMsg)"
-                  }
+                  $checkMsg = ($_.Exception.Message -split "`r?`n")[0].Trim()
+                  $distroSkip = "wsl distro check failed ($checkMsg), skipped"
                 }
                 Write-LoopHeartbeat -HeartbeatPath $hb -KillLogPath $kill
-              } else {
-                $acts += $distroSkip
+                if ($distroUp) {
+                  try {
+                    $wslRes = Invoke-ProcessWithTimeout -FileName 'wsl.exe' -ArgumentList @('-d', $WslDistro, '--exec', 'pkill', '-9', '-f', '--', $WslKillPattern) -TimeoutSec 5 -StreamDrainMs 1000 -PassThru
+                    $wslExit = $wslRes.ExitCode
+                    $acts += "wsl pkill exit=$wslExit (0=killed,1=no match)"
+                    if ($wslExit -eq 0) { $killedAny = $true }
+                  } catch {
+                    if ($_.Exception.Message -like '*timed out*') {
+                      $acts += 'wsl pkill timed out'
+                    } else {
+                      $pkillMsg = ($_.Exception.Message -split "`r?`n")[0].Trim()
+                      $acts += "wsl pkill failed ($pkillMsg)"
+                    }
+                  }
+                  Write-LoopHeartbeat -HeartbeatPath $hb -KillLogPath $kill
+                } else {
+                  $acts += $distroSkip
+                }
               }
+              if ($acts.Count -eq 0) { $acts += 'no targets found' }
             }
-            if ($acts.Count -eq 0) { $acts += 'no targets found' }
             if ($killedAny) {
               "$ts  ABORT — $($reasons -join '; ') — $($acts -join ' | ')" | Add-Content $kill
             } else {

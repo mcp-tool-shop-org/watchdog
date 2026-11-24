@@ -1,7 +1,8 @@
 # Detached entry for Start-Watchdog. Transcript + crash log are the W-03
 # forensics the hidden Start-Process used to throw away.
 param(
-  [Parameter(Mandatory)][string]$ConfigPath
+  [Parameter(Mandatory)][string]$ConfigPath,
+  [switch]$AllowKill
 )
 $ErrorActionPreference = 'Continue'
 $moduleRoot = $PSScriptRoot
@@ -23,7 +24,7 @@ try {
 } catch { }
 
 try {
-  Invoke-WatchdogLoop -Config $config
+  Invoke-WatchdogLoop -Config $config -AllowKill:$AllowKill
 } catch {
   $ts = Get-WatchdogTimestamp
   "$ts  unhandled: $($_.Exception.Message)`n$($_.ScriptStackTrace)" | Add-Content $paths.Crash

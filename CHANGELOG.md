@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `Register-WatchdogPoll` now verifies that `Root` is writable with a uniquely named probe file (cleaned up in `finally` even if probing or probe deletion fails) before creating or registering the scheduled task, reporting when `Root` is not writable or the probe file could not be removed.
 - `Unregister-WatchdogPoll` now calls `Get-ScheduledTask` with `-ErrorAction Stop`, treats only `ObjectNotFound` / `CmdletizationQuery_NotFound*` as absent, and throws with an elevation hint when querying or unregistering is refused; every scheduled-task call passes `-TaskPath '\'`.
 - `Invoke-ProcessWithTimeout` now waits at most 5 s per stream after exit (configurable via `-StreamDrainMs`), avoids `.Result` on incomplete stream tasks, adds `StreamsDrained` to `-PassThru`, and reports an undrained stderr stream instead of blocking on failure; `Test-WslDistroRunning` also treats `StreamsDrained = $false` as not running.
-- The loop's emergency WSL abort path now runs `Test-WslDistroRunning` (`4 s` timeout, `1 s` stream drains) and `Invoke-ProcessWithTimeout` (`5 s` timeout, `1 s` stream drains, `-ArgumentList` passing `wsl.exe -d <distro> --exec pkill -9 -f <pattern>`) inside `try`/`catch` while refreshing the heartbeat before and after each WSL call, so no distro shell parses `WslKillPattern` and a slow WSL call cannot push heartbeat age past `StaleSec`.
+- The loop's emergency WSL abort path now runs `Test-WslDistroRunning` (`4 s` timeout, `1 s` stream drains) and `Invoke-ProcessWithTimeout` (`5 s` timeout, `1 s` stream drains, `-ArgumentList` passing `wsl.exe -d <distro> --exec pkill -9 -f -- <pattern>`) inside `try`/`catch` while refreshing the heartbeat before and after each WSL call, so no distro shell parses `WslKillPattern`, `--` prevents leading-dash patterns from being parsed as `pkill` options, and a slow WSL call cannot push heartbeat age past `StaleSec`.
+- `watchdog-loop.ps1` and `Invoke-WatchdogLoop` now enforce kill consent directly: both accept `-AllowKill` and otherwise require boolean `$true` on config `AllowKill`, running in detect-only mode when consent is absent (skipping Windows and WSL kills and logging `kill skipped: no consent` while still starting and continuing to loop on `AllowKill = $false`); `Start-Watchdog` forwards `-AllowKill` to `watchdog-loop.ps1`.
 - The loop's heartbeat-skip log line now records the caught exception's first-line message instead of assuming a locked file.
 - `Invoke-WslCacheRelease` now passes `-ErrorAction Stop` when writing `.hb` and `.last` state files so write failures are logged as errors while preserving its non-throwing contract.
 - Config validation now rejects `NaN`, `±Infinity`, negative or out-of-range numbers, booleans/arrays/hex strings on numeric fields, values rounding to `0` (`<= 0.5`) on `Min = 1` integer fields, and non-boolean `AllowKill` or `WslCacheRelease` values (such as quoted `'false'`, `'true'`, `0`, `1`, or `$null`) without echoing input values in refusal messages.
@@ -23,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - `PollIntervalSec` now defaults to `60` (matching the Windows Task Scheduler minimum); the handbook documents that when a WSL cache release hits `WslCacheTimeoutSec` after the current liveness check and poll stamp complete, Task Scheduler `-MultipleInstances IgnoreNew` skips the next poll tick, so the cost is one delayed check.
+- `ci.yml` now triggers on `codecov.yml` changes and skips the OIDC Codecov upload job on fork pull requests.
+- `pages.yml` removes unused `contents: read` permission from the `deploy` job.
+- Coverage docs clarify that `verify.ps1` measures `src/Watchdog/Private` and `src/Watchdog/Public` only and fails below 90%, Codecov checks patches at 90% and allows a 1% whole-module threshold, and unit tests spawn short-lived `pwsh` child processes in CLI and helper tests.
 
 ### Upgrade Notes
 
@@ -31,9 +35,6 @@ If you are upgrading an existing configuration from `1.1.1`, `Resolve-WatchdogCo
 - **Strict booleans (`AllowKill`, `WslCacheRelease`):** only unquoted `$true` or `$false` is accepted when present. Quoted `'false'`, `'true'`, integers `0` / `1`, `$null`, or any other type is refused (quoted `'false'` on `AllowKill` previously evaluated truthy).
 - **Minimum `1` on core and timer integer keys:** `VramKillMiB`, `RamKillPct`, `TempKillC`, `IntervalSec`, `BreachSamples`, `StaleSec`, `PollIntervalSec`, `WslCacheCooldownSec`, and `WslCacheTimeoutSec` must be finite numbers that round to at least `1` and at most `[int]::MaxValue`. Values `<= 0.5` (including `0` and fractions that round to `0` on `[int]` cast), negatives, numbers above `[int]::MaxValue`, `NaN`, `±Infinity`, hex text (`0x...`), booleans, arrays, and `$null` are refused (`WslCacheSettleSec` still allows `0`, refusing `< 0` and non-numeric/out-of-range inputs).
 - **WSL cache thresholds (`WslCacheHighGB`, `WslCacheMinGB`, `WslCacheWinHighPct`, `WslCacheMinCacheGB`, `WslCacheAlertPct`):** must be finite positive numbers (`> 0`); `<= 0`, `NaN`, `±Infinity`, hex text, booleans, arrays, and `$null` are refused, and `WslCacheWinHighPct` / `WslCacheAlertPct` must be `<= 100`.
-- `ci.yml` now triggers on `codecov.yml` changes and skips the OIDC Codecov upload job on fork pull requests.
-- `pages.yml` removes unused `contents: read` permission from the `deploy` job.
-- Coverage docs clarify that `verify.ps1` measures `src/Watchdog/Private` and `src/Watchdog/Public` only and fails below 90%, Codecov checks patches at 90% and allows a 1% whole-module threshold, and unit tests spawn short-lived `pwsh` child processes in CLI and helper tests.
 
 ## [1.1.1] - 2026-11-24
 

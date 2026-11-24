@@ -102,7 +102,7 @@ function Start-Watchdog {
   $loop = Join-Path $script:WatchdogModuleRoot 'watchdog-loop.ps1'
   Start-Process pwsh -WindowStyle Hidden -ArgumentList @(
     '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $loop,
-    '-ConfigPath', $cfg.ConfigPath
+    '-ConfigPath', $cfg.ConfigPath, '-AllowKill'
   )
 
   # --- 5. verify it actually came up ---
