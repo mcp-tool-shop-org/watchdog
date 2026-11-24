@@ -136,13 +136,23 @@ Describe 'Invoke-WslCacheRelease' {
     $script:wslCalls.Count | Should -Be 0
   }
 
-  It 'asks Test-WslRunning about the configured distro by default' {
-    # Helpers.ps1 dot-sources Private/*.ps1, so this Invoke-WslCacheRelease resolves Test-WslRunning in the test scope.
-    Mock Test-WslRunning { $false }
+  It 'asks about the configured distro by default, bounded by WslCacheTimeoutSec' {
+    # Helpers.ps1 dot-sources Private/*.ps1, so this Invoke-WslCacheRelease resolves its helpers in the test scope.
+    Mock Test-WslDistroRunning { $false }
     $run = New-WslRecorder -CacheGB 27
     (Invoke-WslCacheRelease -Cfg (New-CacheCfg) -Paths $script:paths -ReadHost (New-HostReader @((New-HostState 81 24.6))) -RunWsl $run).Action | Should -Be 'distro-not-running'
-    Should -Invoke Test-WslRunning -Times 1 -Exactly -ParameterFilter { $distro -eq 'Ubuntu' }
+    Should -Invoke Test-WslDistroRunning -Times 1 -Exactly -ParameterFilter { $Distro -eq 'Ubuntu' -and $TimeoutSec -eq 90 }
     $script:wslCalls.Count | Should -Be 0
+  }
+
+  It 'treats a hung running-distro check as an error: logged, and nothing is dropped' {
+    $run = New-WslRecorder -CacheGB 27
+    $hung = { param($Distro, $TimeoutSec) throw "wsl.exe timed out after $TimeoutSec s" }
+    $r = Invoke-WslCacheRelease -Cfg (New-CacheCfg) -Paths $script:paths -ReadHost (New-HostReader @((New-HostState 81 24.6))) -RunWsl $run -DistroRunning $hung
+    $r.Action | Should -Be 'error'
+    $script:wslCalls.Count | Should -Be 0
+    Test-Path $script:paths.WslCacheLast | Should -BeFalse
+    Get-Content $script:paths.WslCacheLog -Raw | Should -Match 'ERROR wsl.exe timed out after 90 s'
   }
 
   It 'logs an alert with the top processes when Windows is still high after the drop' {
@@ -182,6 +192,31 @@ Describe 'Invoke-WslCacheRelease' {
     Write-WslCacheLog $script:paths.WslCacheLog 'after rotation'
     Test-Path ($script:paths.WslCacheLog + '.1') | Should -BeTrue
     (Get-Content $script:paths.WslCacheLog -Raw) | Should -Match 'after rotation'
+  }
+}
+
+Describe 'Test-WslDistroRunning' {
+  BeforeEach {
+    # Pester 6: a filtered mock needs a default one, or the real wsl.exe would run.
+    Mock Invoke-ProcessWithTimeout { throw 'unexpected process' }
+  }
+
+  It 'finds the distro in the listing as wsl.exe prints it (read on the rig, NULs stripped)' {
+    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 0; Out = "Ubuntu`r`ndocker-desktop`r`n" } } -ParameterFilter { $FileName -eq 'wsl.exe' -and $Arguments -eq '-l --running -q' -and $PassThru }
+    Test-WslDistroRunning -Distro 'Ubuntu' -TimeoutSec 5 | Should -BeTrue
+    Test-WslDistroRunning -Distro 'docker-desktop' -TimeoutSec 5 | Should -BeTrue
+    Test-WslDistroRunning -Distro 'Debian' -TimeoutSec 5 | Should -BeFalse
+    Should -Invoke Invoke-ProcessWithTimeout -Times 3 -Exactly -ParameterFilter { $Arguments -eq '-l --running -q' -and $TimeoutSec -eq 5 }
+  }
+
+  It 'counts a non-zero exit as not running' {
+    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 1; Out = "Ubuntu`r`n" } } -ParameterFilter { $Arguments -eq '-l --running -q' }
+    Test-WslDistroRunning -Distro 'Ubuntu' | Should -BeFalse
+  }
+
+  It 'lets a timeout through, so the release logs it as an error' {
+    Mock Invoke-ProcessWithTimeout { throw 'wsl.exe timed out after 5 s' } -ParameterFilter { $Arguments -eq '-l --running -q' }
+    { Test-WslDistroRunning -Distro 'Ubuntu' -TimeoutSec 5 } | Should -Throw '*timed out after 5 s*'
   }
 }
 
@@ -235,6 +270,23 @@ Describe 'Invoke-WatchdogPoll with WSL cache release' {
     Invoke-WatchdogPoll -ConfigPath $cfgPath
     Should -Invoke -ModuleName Watchdog Invoke-WslCacheRelease -Times 1 -Exactly
     $LASTEXITCODE | Should -Be 0
+  }
+
+  It 'runs the release after the liveness check, and the exit code is the liveness one' {
+    $root = Get-WatchdogTestDir 'poll-wslcache-order'
+    $cfgPath = New-WatchdogTestConfig -Root $root
+    $text = (Get-Content $cfgPath -Raw).TrimEnd()
+    Set-Content -Path $cfgPath -Value ($text.Substring(0, $text.Length - 1) + "  WslCacheRelease = `$true`n}`n")
+    # No heartbeat file: the loop is not running, so this poll writes DEAD before the release runs.
+    Mock -ModuleName Watchdog Invoke-WslCacheRelease {
+      $global:WatchdogTestDeadBeforeRelease = Test-Path -LiteralPath $Paths.Dead
+      $global:LASTEXITCODE = 99
+      [pscustomobject]@{ Action = 'error' }
+    }
+    [void](Invoke-WatchdogPoll -ConfigPath $cfgPath)
+    $global:WatchdogTestDeadBeforeRelease | Should -BeTrue
+    $LASTEXITCODE | Should -Be 1
+    Remove-Variable -Name WatchdogTestDeadBeforeRelease -Scope Global
   }
 
   It 'does not run the release check when disabled' {

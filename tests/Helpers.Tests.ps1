@@ -153,6 +153,13 @@ Describe 'WSL cache helpers' {
       { Invoke-ProcessWithTimeout -FileName 'pwsh' -Arguments '-NoProfile -Command "[Console]::Error.WriteLine(''bad thing''); exit 3"' -TimeoutSec 60 } | Should -Throw '*exited 3: bad thing*'
     }
   }
+  It 'with -PassThru returns the exit code and output instead of throwing' {
+    InModuleScope Watchdog {
+      $r = Invoke-ProcessWithTimeout -FileName 'pwsh' -Arguments '-NoProfile -Command "Write-Output partial; exit 3"' -TimeoutSec 60 -PassThru
+      $r.ExitCode | Should -Be 3
+      $r.Out.Trim() | Should -Be 'partial'
+    }
+  }
   It 'kills and throws when the process outlives the timeout' {
     InModuleScope Watchdog {
       { Invoke-ProcessWithTimeout -FileName 'pwsh' -Arguments '-NoProfile -Command "Start-Sleep -Seconds 30"' -TimeoutSec 2 } | Should -Throw '*timed out after 2 s*'

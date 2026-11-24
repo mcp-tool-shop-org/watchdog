@@ -45,16 +45,19 @@ the VM is idle, and a running container engine keeps it busy. With
 1. reads `vmmemWSL` and Windows memory from the Windows side (a stopped VM
    is never started);
 2. acts when `vmmemWSL >= WslCacheHighGB`, or when Windows used
-   `>= WslCacheWinHighPct` and `vmmemWSL >= WslCacheMinGB`;
+   `>= WslCacheWinHighPct` and `vmmemWSL >= WslCacheMinGB`, at most once
+   per `WslCacheCooldownSec`;
 3. skips, and logs a `skip` line, when `WslDistro` is not running. Another
    distro (a container engine's) can keep the VM up while yours is stopped,
-   and `wsl -d` would start it; listing the running distros starts nothing;
+   and `wsl -d` would start it; listing the running distros starts nothing,
+   and the listing has the same `WslCacheTimeoutSec` timeout as every other
+   `wsl.exe` call;
 4. drops the page cache in `WslDistro` (`sync; echo 1 > /proc/sys/vm/drop_caches`
-   as root) only if the Linux cache is `>= WslCacheMinCacheGB`, at most
-   once per `WslCacheCooldownSec`.
+   as root) only if the Linux cache is `>= WslCacheMinCacheGB`.
 
 It never kills a process, and a failure is logged, never thrown into the
-poll.
+poll. The poll checks the watchdog's heartbeat first and runs the release
+after it, so the release can never delay the report of a dead loop.
 
 | Field | Default | Meaning |
 |---|---|---|

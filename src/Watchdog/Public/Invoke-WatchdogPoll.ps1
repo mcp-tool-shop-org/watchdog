@@ -19,40 +19,36 @@ function Invoke-WatchdogPoll {
 
   $paths = Get-WatchdogPaths -Root $cfg.Root
 
-  # Opt-in and independent of liveness: it never throws, and it reads memory from the Windows side
-  # so it never wakes a stopped WSL VM.
+  $hb = Get-WatchdogHeartbeatState -Path $paths.Heartbeat -StaleSec $cfg.StaleSec
+  if ($hb.State -ne 'RUNNING') {
+    $tail = ''
+    if (Test-Path $paths.Console) {
+      $tail = ((Get-Content $paths.Console -Tail 20 -ErrorAction SilentlyContinue) -join ' | ')
+    }
+    if (Test-Path $paths.Crash) {
+      $crashTail = ((Get-Content $paths.Crash -Tail 10 -ErrorAction SilentlyContinue) -join ' | ')
+      $tail = "crash: $crashTail ; console: $tail"
+    }
+    $ageTxt = if ($null -eq $hb.AgeSec) { 'none' } else { Format-WatchdogAge $hb.AgeSec }
+    $ts = Get-WatchdogTimestamp
+    $why = "$ts  poller declared $($hb.State) — heartbeat age=$ageTxt — last=$($hb.Last) — $tail"
+
+    if (-not (Test-Path $paths.Dead)) {
+      Set-Content -Path $paths.Dead -Value $why
+    }
+    if (Test-Path $paths.Kill) {
+      Add-Content -Path $paths.Kill -Value $why
+    } else {
+      Set-Content -Path $paths.Kill -Value $why
+    }
+  }
+
+  # Opt-in, and only after the liveness check, so it can never delay or block the poller's main job. It never
+  # throws, reads memory from the Windows side (it never wakes a stopped WSL VM), and bounds every wsl.exe call.
   if ($cfg.WslCacheRelease) {
     [void](Invoke-WslCacheRelease -Cfg $cfg -Paths $paths)
   }
 
-  $hb = Get-WatchdogHeartbeatState -Path $paths.Heartbeat -StaleSec $cfg.StaleSec
-  if ($hb.State -eq 'RUNNING') {
-    $global:LASTEXITCODE = 0
-    return $hb
-  }
-
-  $tail = ''
-  if (Test-Path $paths.Console) {
-    $tail = ((Get-Content $paths.Console -Tail 20 -ErrorAction SilentlyContinue) -join ' | ')
-  }
-  if (Test-Path $paths.Crash) {
-    $crashTail = ((Get-Content $paths.Crash -Tail 10 -ErrorAction SilentlyContinue) -join ' | ')
-    $tail = "crash: $crashTail ; console: $tail"
-  }
-  $ageTxt = if ($null -eq $hb.AgeSec) { 'none' } else { Format-WatchdogAge $hb.AgeSec }
-  $ts = Get-WatchdogTimestamp
-  $why = "$ts  poller declared $($hb.State) — heartbeat age=$ageTxt — last=$($hb.Last) — $tail"
-
-  if (-not (Test-Path $paths.Dead)) {
-    Set-Content -Path $paths.Dead -Value $why
-  }
-  if (Test-Path $paths.Kill) {
-    Add-Content -Path $paths.Kill -Value $why
-  } else {
-    Set-Content -Path $paths.Kill -Value $why
-  }
-
-  $code = switch ($hb.State) { 'NOT_RUNNING' { 1 } default { 2 } }
-  $global:LASTEXITCODE = $code
+  $global:LASTEXITCODE = switch ($hb.State) { 'RUNNING' { 0 } 'NOT_RUNNING' { 1 } default { 2 } }
   return $hb
 }
