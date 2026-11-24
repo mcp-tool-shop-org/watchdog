@@ -20,8 +20,12 @@ Copy-Item src\Watchdog\config\watchdog.example.psd1 $HOME\.watchdog\config.psd1
 # edit Root, Targets, VramKillMiB / RamKillPct / TempKillC
 Import-Module .\src\Watchdog\Watchdog.psd1
 Start-Watchdog -AllowKill
-Register-WatchdogPoll   # detect-only, every PollIntervalSec; never restarts
+Register-WatchdogPoll   # every max(60, PollIntervalSec) s; detects death, never kills or restarts
 ```
+
+With `WslCacheRelease = $true` in the config, the same poll also drops the WSL
+page cache when the WSL VM crowds Windows memory. See the README's WSL
+file-cache section; it never kills a process.
 
 ## Warn
 
