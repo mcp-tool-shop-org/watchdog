@@ -187,6 +187,48 @@
       "translation": "114 个单元测试，未使用 GPU。解析器测试用例包括导致 2026-06-12 日循环中断的格式错误的 nvidia-smi 输出。硬件中止测试保持本地状态，不会在 CI 中进行绿色测试。",
       "pinnedAt": "2026-11-24T04:44:44.292Z"
     },
+    "a0e01595ce63be82:es": {
+      "lang": "es",
+      "source": "132 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "132 pruebas unitarias, sin GPU. Los elementos de prueba del analizador incluyen la salida incorrecta de nvidia-smi que interrumpió el ciclo el 12 de junio de 2026. La prueba de interrupción de hardware permanece local y no se incluye en la integración continua.",
+      "pinnedAt": "2026-11-24T06:08:43.012Z"
+    },
+    "a0e01595ce63be82:fr": {
+      "lang": "fr",
+      "source": "132 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "132 tests unitaires, pas de GPU. Les données de test du parseur incluent la sortie incorrecte de nvidia-smi qui a interrompu la boucle le 12 juin 2026. Le test d’arrêt matériel reste local et n’est pas intégré dans le processus d’intégration continue.",
+      "pinnedAt": "2026-11-24T06:08:43.126Z"
+    },
+    "a0e01595ce63be82:hi": {
+      "lang": "hi",
+      "source": "132 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "132 यूनिट परीक्षण, कोई जीपीयू नहीं। पार्सर फिक्स्चर में विकृत nvidia-smi आउटपुट शामिल है, जिसने 2026-06-12 को लूप को समाप्त कर दिया। हार्डवेयर एबॉर्ट परीक्षण स्थानीय रहता है और इसे सीआई में हरी नहीं किया जाता है।",
+      "pinnedAt": "2026-11-24T06:08:43.236Z"
+    },
+    "a0e01595ce63be82:it": {
+      "lang": "it",
+      "source": "132 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "132 test unitari, senza GPU. Le fixture del parser includono l’output nvidia-smi malformato che ha interrotto il ciclo il 2026-06-12. Il test di abort hardware resta locale e non viene eseguito in CI.",
+      "pinnedAt": "2026-11-24T06:08:43.351Z"
+    },
+    "a0e01595ce63be82:ja": {
+      "lang": "ja",
+      "source": "132 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "132個のユニットテスト、GPUは使用しません。パーサーのテストデータには、2026年6月12日にループを停止させた、不正なnvidia-smiの出力が含まれています。ハードウェア異常テストはローカルで実行され、CI環境ではグリーン化されません。",
+      "pinnedAt": "2026-11-24T06:08:42.776Z"
+    },
+    "a0e01595ce63be82:pt": {
+      "lang": "pt",
+      "source": "132 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "132 testes unitários, sem GPU. Os testes do analisador incluem a saída mal formatada do comando nvidia-smi, que interrompeu o ciclo em 12 de junho de 2026. O teste de interrupção de hardware permanece local e não é incluído nos testes de integração contínua.",
+      "pinnedAt": "2026-11-24T06:08:43.473Z"
+    },
+    "a0e01595ce63be82:zh": {
+      "lang": "zh",
+      "source": "132 unit tests, no GPU. Parser fixtures include the malformed nvidia-smi\noutput that killed the loop on 2026-06-12. The hardware abort test stays\nlocal and is not greened in CI.",
+      "translation": "132 个单元测试，未使用 GPU。解析器测试用例包括导致 2026-06-12 日循环中断的格式错误的 nvidia-smi 输出。硬件中止测试保持本地状态，不会在 CI 中进行绿色测试。",
+      "pinnedAt": "2026-11-24T06:08:42.895Z"
+    },
     "bd14a49231fa39e0:ja": {
       "lang": "ja",
       "source": "**v1 is Windows-only** (PowerShell 7, nvidia-smi, WDDM process-memory\ncounters, optional WSL `pkill` and WSL file-cache release). Linux is a\nlater version.",

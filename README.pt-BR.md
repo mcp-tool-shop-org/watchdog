@@ -101,7 +101,7 @@ Consentimento: `-AllowKill` (ou `AllowKill = $true` na configuração). O verifi
 pwsh -File .\verify.ps1
 ```
 
-129 testes unitários, sem GPU. Os testes do analisador incluem a saída mal formatada do comando nvidia-smi, que interrompeu o ciclo em 12 de junho de 2026. O teste de interrupção de hardware permanece local e não é incluído nos testes de integração contínua.
+132 testes unitários, sem GPU. Os testes do analisador incluem a saída mal formatada do comando nvidia-smi, que interrompeu o ciclo em 12 de junho de 2026. O teste de interrupção de hardware permanece local e não é incluído nos testes de integração contínua.
 
 `pwsh -File .\verify.ps1 -Coverage` adiciona a análise da cobertura de linhas do `src/Watchdog` e falha se o resultado for inferior a 90%. O sistema de integração contínua (CI) executa o teste dessa forma e envia o relatório para o Codecov, que exige uma cobertura de pelo menos 90% para todo o módulo e para cada alteração.
 

@@ -101,7 +101,7 @@ Consenso: `-AllowKill` (o `AllowKill = $true` nel file di configurazione). Il co
 pwsh -File .\verify.ps1
 ```
 
-129 test unitari, senza GPU. Le fixture del parser includono l’output nvidia-smi malformato che ha interrotto il ciclo il 2026-06-12. Il test di abort hardware resta locale e non viene eseguito in CI.
+132 test unitari, senza GPU. Le fixture del parser includono l’output nvidia-smi malformato che ha interrotto il ciclo il 2026-06-12. Il test di abort hardware resta locale e non viene eseguito in CI.
 
 `pwsh -File .\verify.ps1 -Coverage` aggiunge la copertura delle righe di `src/Watchdog` e fallisce sotto il 90%. La CI lo esegue in questo modo e carica il report su Codecov, che richiede almeno il 90% di copertura sull’intero modulo e su ogni modifica.
 
