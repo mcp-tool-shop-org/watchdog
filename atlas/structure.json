@@ -36,7 +36,7 @@
           "path": ".github/workflows/ci.yml"
         },
         {
-          "hash": "093f4ab76b2148bdf4ae9b5ce1f36617cfc4b218bdb8d8c6c967f8b43fa60a67",
+          "hash": "074c51c7eea5169fc57cf81d160704c5e90945cf379277de1d82f6e6e2b178af",
           "path": ".github/workflows/pages.yml"
         }
       ],
@@ -71,7 +71,7 @@
           "path": "docs/open-decisions.md"
         },
         {
-          "hash": "36f64e2557cadefc09be3d975a3dbeba48786376aee262c6a60f14a7a9056e8f",
+          "hash": "f7f6bbde6c55ac86147ead8b82687bc4aceea4cde5f315c6a4d61ef5df3cdb2e",
           "path": "docs/workflow-standards.md"
         }
       ],
@@ -141,11 +141,11 @@
           "path": ".gitignore"
         },
         {
-          "hash": "ff417e6ffcf405cf3e131199144469f8a84feb5d05ac68213fe948d1b4046861",
+          "hash": "312d80120b24cbbbfcd0f2c10eac53043b0597e1a2a6d53cdde37b445204960e",
           "path": ".polyglot-pins.json"
         },
         {
-          "hash": "6a7840400f501a32c779256f12a7839ecc36f957bca21310114cbde40e7d5306",
+          "hash": "64a76c43b16e75a3996e3a0dc142e8b4f4ccd40fd9c1e4c84dfe497846ba8dcd",
           "path": "CHANGELOG.md"
         },
         {
@@ -157,35 +157,35 @@
           "path": "LICENSE"
         },
         {
-          "hash": "c4ea515b22f3154866566670b1817e56abcc7114ae1ed23f19d984ba8aacbde1",
+          "hash": "078c94d6859dc849960fbba2e59200999f9eda5b06e1b13c9428b14ad28cc6ab",
           "path": "README.es.md"
         },
         {
-          "hash": "6698a7bf1403e03ddfb752de005493caf776cb20784ec825cb311b58e4085094",
+          "hash": "db8399a879ca783aba663187b3ae4e8cca1cd7dbdebc0e5b9d84f42b8578df7b",
           "path": "README.fr.md"
         },
         {
-          "hash": "6f221f441c27a15311ba23bbbac78b035035550d079f2f1ebce29f07d0f866ab",
+          "hash": "0a57a089e2b3a23cde36cf767e6392125165625d340f07655be39620a9ef5ace",
           "path": "README.hi.md"
         },
         {
-          "hash": "d1207a454c60953a2211f43ae4f3bfbd7cdcb8a447db057ac50046c7698bb950",
+          "hash": "a8ce45754150cb33628bac9aa33b7735b69bed9cd33695212774aba11320fb18",
           "path": "README.it.md"
         },
         {
-          "hash": "06cdc07c800a9049753aba8adbba267fdbbf8baaa70551d0d948ce18bbd4355a",
+          "hash": "1e1091e03aa39af238554b8d98c31bd9031e3d99eafcdd21c1cb4d586f97639c",
           "path": "README.ja.md"
         },
         {
-          "hash": "e480a8ea866378c6d6af772c0d05a597ff2e61b7e0d46c7eaec00ec69ff05362",
+          "hash": "4a3111c20537427f1c0a0cc1a07e99f947c851c8a4edabe6b3608fedbad9f4e8",
           "path": "README.md"
         },
         {
-          "hash": "751412a181f1290153d7aed3d92a61be36cbfc719597aaf27cb191657965be81",
+          "hash": "52c1fcff4cac8cc71b89da0ecea6f5676e77f5f0f67ee0964b9762c5c11203e9",
           "path": "README.pt-BR.md"
         },
         {
-          "hash": "a8454e42baf7c4d32ecb254ddedf0ab85ea3e8171db25a88b215dd7565f4ae42",
+          "hash": "9aae3234ca004d3eab6bc34e2a74ddf5e1ba80c803f4349b2c9950cfd98257f3",
           "path": "README.zh.md"
         },
         {
@@ -197,7 +197,7 @@
           "path": "SECURITY.md"
         },
         {
-          "hash": "d06cc53b9eb60fa4c7fb7af4633ece00110601575123cac7757c3654d297da20",
+          "hash": "5f383d198dfb08c4c72bd8a68eb30f4f18177ec41180a806885976ddceeaf7cd",
           "path": "SHIP_GATE.md"
         },
         {
@@ -253,11 +253,11 @@
           "path": "site/src/content.config.ts"
         },
         {
-          "hash": "1d11c175fb939324df13e772ba8544023a591f88ebae2ed125e2150aa67bf52c",
+          "hash": "833e60ae803e08463a2c233c44870798e704c70be02b6972c7fd8f4135a0d899",
           "path": "site/src/content/docs/handbook/configuration.md"
         },
         {
-          "hash": "9e7da8e02ddec5fce1ec2aceba4ef59489c3e16fd29fbed392add40727d3b0a0",
+          "hash": "729fe582335c552361f2dfa0b5aadc15c53257fe4c0d0dac63d790749a6725ec",
           "path": "site/src/content/docs/handbook/getting-started.md"
         },
         {
@@ -269,7 +269,7 @@
           "path": "site/src/content/docs/handbook/operations.md"
         },
         {
-          "hash": "a71c4f0ec9fa626bd37785cddfc3f803fdd672de07c56e7a2f1a95ee6b0600e9",
+          "hash": "f9ec397b29d7967f41cf8aea9cc10d222b5ec53886cefd0902e4a2fd85b36e2c",
           "path": "site/src/content/docs/handbook/reference.md"
         },
         {
@@ -294,7 +294,7 @@
         },
         {
           "constantOnly": true,
-          "hash": "1ecd1f2ed96163eb6f49ec8190400b17acf1f4dfaa8f6c73d7276c52e31ef453",
+          "hash": "03f429e7dd8c2d05b949a24e42398301e424096dea1dd5e15f4885aff4d8f6b8",
           "path": "site/src/site-config.ts"
         },
         {
@@ -337,7 +337,7 @@
           "path": "src/Watchdog/Private/Get-WatchdogHeartbeatState.ps1"
         },
         {
-          "hash": "f4bac995e9d2e83f19ef2c994bae8d620c73ffac2a64665ec2e1503ac74b9b3f",
+          "hash": "ca89846026e48f21dcb944072b32b60324c0ad0b415fcc6bcc2a4189e92dc615",
           "path": "src/Watchdog/Private/Get-WatchdogPaths.ps1"
         },
         {
@@ -369,6 +369,10 @@
           "path": "src/Watchdog/Private/Resolve-WatchdogConfig.ps1"
         },
         {
+          "hash": "c2f7f0045b1c4b920f812859c42c037e56474dfaab2d796957bf952a49eddc3b",
+          "path": "src/Watchdog/Private/Resolve-WatchdogPollLaunch.ps1"
+        },
+        {
           "hash": "c6954e974a1ac55a307db940e8bdb9ff965e50fe4642b9400d4965d35a2c33ab",
           "path": "src/Watchdog/Private/Test-WslRunning.ps1"
         },
@@ -389,11 +393,11 @@
           "path": "src/Watchdog/Public/Install-Watchdog.ps1"
         },
         {
-          "hash": "d4888f24aa5be83195742d65c2367a469510603a71bbfb220f33f50d6cfaf0bd",
+          "hash": "f43a9bcfd1c374a9c5b7f42222419578899f8b8655c7834e0ed8413933f09c9b",
           "path": "src/Watchdog/Public/Invoke-WatchdogPoll.ps1"
         },
         {
-          "hash": "9acebef865b743fa1a93f33b76516b4d6a5f3d46ba6aa3d155f37564617c710b",
+          "hash": "60ab50ab6e4b7c0b406fb91d4ce349c3a748eb87cbebff2ddbe072e04fff2567",
           "path": "src/Watchdog/Public/Register-WatchdogPoll.ps1"
         },
         {
@@ -405,7 +409,7 @@
           "path": "src/Watchdog/Public/Stop-Watchdog.ps1"
         },
         {
-          "hash": "dfd931b08bec68c4dd7d39353fa59c9a25b45f81004c7d4c8fdb0c33ba4117d0",
+          "hash": "127cebb604554ac740fbb50a7680a6d7336a5fd6afac0e7dc248e09160a4b86f",
           "path": "src/Watchdog/Watchdog.psd1"
         },
         {
@@ -444,7 +448,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "dfa9ec21b248be41e26104c5e41535cebe1aaf0de67da5cce063e3a0c98435b8",
+          "hash": "62c5e43c2dae177fa0cd02d26d75561da8f8663203a4408f3458e24cd94ead24",
           "path": "tests/Cli.Tests.ps1"
         },
         {
@@ -472,7 +476,7 @@
           "path": "tests/Hysteresis.Tests.ps1"
         },
         {
-          "hash": "b659ea5c6683f4f3b458cec61321c36a5e6a2271870f7b05ec51179f307e21c5",
+          "hash": "349ab1eb991288343832a1bc47565630b61fe02ad2fe0289859623ba302dd420",
           "path": "tests/Lifecycle.Tests.ps1"
         },
         {
@@ -488,7 +492,7 @@
           "path": "tests/Poller.Tests.ps1"
         },
         {
-          "hash": "d08e5c9bdfa76568a7c3fcdbcc08ac301d1347e2b41fa12c9cfac8e17a28024b",
+          "hash": "a350a94ea121f91611955b39c206d7398464f009ec9b2bbf95ed6b582e0075ac",
           "path": "tests/WslCacheRelease.Tests.ps1"
         },
         {
@@ -723,9 +727,7 @@
           "when": {
             "branches": [
               "main"
-            ],
-            "byHand": true,
-            "event": "push"
+            ]
           }
         }
       ],
@@ -806,9 +808,7 @@
           "when": {
             "branches": [
               "main"
-            ],
-            "byHand": true,
-            "event": "push"
+            ]
           }
         },
         {
@@ -821,9 +821,7 @@
           "when": {
             "branches": [
               "main"
-            ],
-            "byHand": true,
-            "event": "push"
+            ]
           }
         }
       ],
@@ -852,12 +850,6 @@
           ]
         },
         {
-          "event": "release",
-          "types": [
-            "published"
-          ]
-        },
-        {
           "event": "workflow_dispatch"
         }
       ],
@@ -873,8 +865,8 @@
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "4627e2c193b6256121d9e1002772c0cfc383e738",
-    "tracked": 89
+    "commit": "5ca556ac1e223f060b599a4f87beb3e8c8011376",
+    "tracked": 90
   },
   "landings": [
     {

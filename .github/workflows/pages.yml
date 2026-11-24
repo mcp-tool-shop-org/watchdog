@@ -9,8 +9,8 @@ on:
     paths:
       - 'site/**'
       - '.github/workflows/pages.yml'
-  release:
-    types: [published]
+  # No release trigger: the github-pages environment lets only main deploy, so a deploy from a release tag is
+  # refused (v1.1.0's release run, 2026-11-24). Site changes reach main in the release PR, which deploys them.
   workflow_dispatch:
 
 concurrency:
@@ -24,7 +24,7 @@ permissions:
 jobs:
   build:
     name: Build site and handbook (Pages artifact)
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -56,7 +56,7 @@ jobs:
 
   deploy:
     name: Deploy to GitHub Pages + verify 200
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20

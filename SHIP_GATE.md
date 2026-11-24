@@ -43,7 +43,7 @@
 ## D. Shipping Hygiene
 
 - [x] `[all]` `verify` script exists (test + build + smoke in one command) — `./verify.ps1` (2026-08-20)
-- [x] `[all]` Version in manifest matches git tag — `Watchdog.psd1` ModuleVersion 1.1.0, tag `v1.1.0` (2026-11-24)
+- [x] `[all]` Version in manifest matches git tag — `Watchdog.psd1` ModuleVersion 1.1.1, tag `v1.1.1` (2026-11-24)
 - [ ] `[all]` SKIP: no shipped package dependencies to scan; Pester is installed in CI from PSGallery and is not a runtime dep. Ecosystem-appropriate scan is "none".
 - [ ] `[all]` SKIP: automated dependency updates — org policy is no Dependabot unless requested; this module has no lockfile of runtime deps.
 - [ ] `[npm]` SKIP: not an npm package

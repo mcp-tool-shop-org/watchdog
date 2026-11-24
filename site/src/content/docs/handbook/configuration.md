@@ -33,7 +33,19 @@ Missing config is a hard refuse (`CONFIG_MISSING`). Relative `Root` or
 
 `Register-WatchdogPoll` registers the poller every
 `max(60, PollIntervalSec)` seconds: Windows scheduled-task repetition
-cannot go below one minute.
+cannot go below one minute. It registers the absolute path of `pwsh`
+(Task Scheduler cannot find a bare `pwsh` from a Microsoft Store install),
+started through `conhost --headless` so no window flashes on each poll.
+It then runs the task once and fails unless that run's poll writes a
+fresh `_watchdog_poll_last.json` under `Root` carrying a token unique to
+this registration, so a manual poll cannot stand in (conhost exits 0 even when
+`pwsh` never starts, so the exit code proves nothing). Registering before
+the loop runs makes that first poll report the loop as not running, which
+writes `_watchdog_DEAD`; `Start-Watchdog` clears it. It creates `Root`
+first, and refuses a `Root` that is not a folder. If
+Windows refuses to replace the task with "Access is denied", the task was
+first registered from an elevated shell: run `Unregister-WatchdogPoll`
+there once, then register again from a normal shell.
 
 ## WSL file-cache release (opt-in)
 

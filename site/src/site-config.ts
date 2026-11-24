@@ -71,7 +71,7 @@ export const config: SiteConfig = {
         },
         {
           title: 'Verify (no GPU)',
-          code: 'pwsh -File .\\verify.ps1 -Coverage\n# 114 unit tests, 90% coverage floor. The abort test stays local.',
+          code: 'pwsh -File .\\verify.ps1 -Coverage\n# 144 unit tests, 90% coverage floor. The abort test stays local.',
         },
       ],
     },

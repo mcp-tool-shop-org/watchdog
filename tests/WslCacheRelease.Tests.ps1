@@ -252,7 +252,7 @@ Describe 'WSL cache config' {
 
   It 'keeps the new files under Root' {
     $p = Get-WatchdogPaths -Root 'C:\watchdog-state'
-    foreach ($leaf in @($p.WslCacheLog, $p.WslCacheLast, $p.WslCacheHeartbeat)) {
+    foreach ($leaf in @($p.WslCacheLog, $p.WslCacheLast, $p.WslCacheHeartbeat, $p.PollStamp)) {
       Test-WatchdogPathUnderRoot -Root 'C:\watchdog-state' -Path $leaf | Should -BeTrue
     }
   }
@@ -280,13 +280,51 @@ Describe 'Invoke-WatchdogPoll with WSL cache release' {
     # No heartbeat file: the loop is not running, so this poll writes DEAD before the release runs.
     Mock -ModuleName Watchdog Invoke-WslCacheRelease {
       $global:WatchdogTestDeadBeforeRelease = Test-Path -LiteralPath $Paths.Dead
+      $global:WatchdogTestStampBeforeRelease = Test-Path -LiteralPath $Paths.PollStamp
       $global:LASTEXITCODE = 99
       [pscustomobject]@{ Action = 'error' }
     }
     [void](Invoke-WatchdogPoll -ConfigPath $cfgPath)
     $global:WatchdogTestDeadBeforeRelease | Should -BeTrue
+    $global:WatchdogTestStampBeforeRelease | Should -BeTrue
     $LASTEXITCODE | Should -Be 1
-    Remove-Variable -Name WatchdogTestDeadBeforeRelease -Scope Global
+    Remove-Variable -Name WatchdogTestDeadBeforeRelease, WatchdogTestStampBeforeRelease -Scope Global
+  }
+
+  It 'writes a fresh stamp with its state and exit code on every run' {
+    $root = Get-WatchdogTestDir 'poll-stamp'
+    $cfgPath = New-WatchdogTestConfig -Root $root
+    $paths = Get-WatchdogPaths -Root $root
+    $before = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+    [void](Invoke-WatchdogPoll -ConfigPath $cfgPath)
+    $after = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+    $doc = Get-Content -LiteralPath $paths.PollStamp -Raw | ConvertFrom-Json
+    $doc.state | Should -Be 'NOT_RUNNING'
+    $doc.exit | Should -Be 1
+    [int64]$doc.utc_ms | Should -BeGreaterOrEqual $before
+    [int64]$doc.utc_ms | Should -BeLessOrEqual $after
+    [int64]$doc.started_ms | Should -BeGreaterOrEqual $before
+    [int64]$doc.started_ms | Should -BeLessOrEqual ([int64]$doc.utc_ms)
+  }
+
+  It 'writes the registration token into the stamp only when the task passes one' {
+    $root = Get-WatchdogTestDir 'poll-stamp-token'
+    $cfgPath = New-WatchdogTestConfig -Root $root
+    $paths = Get-WatchdogPaths -Root $root
+    [void](Invoke-WatchdogPoll -ConfigPath $cfgPath -RegistrationToken '0123456789abcdef0123456789abcdef')
+    (Get-Content -LiteralPath $paths.PollStamp -Raw | ConvertFrom-Json).token | Should -BeExactly '0123456789abcdef0123456789abcdef'
+    [void](Invoke-WatchdogPoll -ConfigPath $cfgPath)
+    (Get-Content -LiteralPath $paths.PollStamp -Raw | ConvertFrom-Json).PSObject.Properties.Name | Should -Not -Contain 'token'
+  }
+
+  It 'still reports liveness when the stamp cannot be written' {
+    $root = Get-WatchdogTestDir 'poll-stamp-blocked'
+    $cfgPath = New-WatchdogTestConfig -Root $root
+    $paths = Get-WatchdogPaths -Root $root
+    New-Item -ItemType Directory -Path $paths.PollStamp -Force | Out-Null
+    Get-WatchdogTimestamp | Set-Content $paths.Heartbeat
+    { Invoke-WatchdogPoll -ConfigPath $cfgPath } | Should -Not -Throw
+    $LASTEXITCODE | Should -Be 0
   }
 
   It 'does not run the release check when disabled' {

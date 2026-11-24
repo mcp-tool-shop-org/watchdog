@@ -32,13 +32,15 @@ watchdog version
 `Invoke-WatchdogPoll`, `Register-WatchdogPoll`, `Unregister-WatchdogPoll`,
 `Get-WatchdogConfig`, `Install-Watchdog`, `Uninstall-Watchdog`
 
-PowerShell 7. Module version **1.1.0**. Manifest:
+PowerShell 7. Module version **1.1.1**. Manifest:
 `src/Watchdog/Watchdog.psd1`.
 
 ## Files under Root
 
 `_watchdog_HEARTBEAT`, `_watchdog_log.csv`, `_watchdog_KILL.log`,
-`_watchdog_console.log`, `_watchdog_crash.log`, the sentinels
+`_watchdog_console.log`, `_watchdog_crash.log`, `_watchdog_poll_last.json`
+(when the last poll began and wrote it, its state and exit code, and for the
+scheduled task's polls its registration token), the sentinels
 `_watchdog_DEAD`, `_watchdog_STOP`, `_watchdog_TRIPPED`,
 `_watchdog_NO_TARGET`, and with `WslCacheRelease` on,
 `_watchdog_wslcache.log` (rotated to `.1` at 1 MB), `_watchdog_wslcache.last`

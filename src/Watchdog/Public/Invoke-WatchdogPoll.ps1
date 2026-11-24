@@ -8,8 +8,14 @@ function Invoke-WatchdogPoll {
   #>
   [CmdletBinding()]
   param(
-    [string]$ConfigPath
+    [string]$ConfigPath,
+    # Set only by the scheduled task's action (Register-WatchdogPoll): it goes into the stamp, so the first-run check
+    # can tell this registration's polls from a manual poll or another registration's.
+    [string]$RegistrationToken
   )
+  # When this poll began, for its stamp: Register-WatchdogPoll's check counts only a poll that began after the check
+  # did, never one that was already running.
+  $pollStartedMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
   $cfg = Resolve-WatchdogConfig -Path $ConfigPath
   if (Test-WatchdogError $cfg) {
     Write-WatchdogError -ErrorObject $cfg
@@ -43,12 +49,23 @@ function Invoke-WatchdogPoll {
     }
   }
 
+  $code = switch ($hb.State) { 'RUNNING' { 0 } 'NOT_RUNNING' { 1 } default { 2 } }
+  # Proof that a poll ran, for Register-WatchdogPoll's first-run check (a task's exit code cannot show it: the
+  # action is conhost, which exits 0 even when pwsh never starts). Written right after the liveness work and before
+  # the opt-in release, so the proof never waits on WSL. Never allowed to break the poll.
+  try {
+    $now = [DateTimeOffset]::UtcNow
+    $doc = [ordered]@{ utc = $now.ToString('yyyy-MM-ddTHH:mm:ss.fffZ', [Globalization.CultureInfo]::InvariantCulture); utc_ms = $now.ToUnixTimeMilliseconds(); started_ms = $pollStartedMs; state = [string]$hb.State; exit = $code }
+    if ($RegistrationToken) { $doc.token = $RegistrationToken }
+    $doc | ConvertTo-Json -Compress | Set-Content -LiteralPath $paths.PollStamp -ErrorAction Stop
+  } catch { }
+
   # Opt-in, and only after the liveness check, so it can never delay or block the poller's main job. It never
   # throws, reads memory from the Windows side (it never wakes a stopped WSL VM), and bounds every wsl.exe call.
   if ($cfg.WslCacheRelease) {
     [void](Invoke-WslCacheRelease -Cfg $cfg -Paths $paths)
   }
 
-  $global:LASTEXITCODE = switch ($hb.State) { 'RUNNING' { 0 } 'NOT_RUNNING' { 1 } default { 2 } }
+  $global:LASTEXITCODE = $code
   return $hb
 }

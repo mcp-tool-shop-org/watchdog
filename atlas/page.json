@@ -10,21 +10,21 @@
   "changes": {
     "fileCounts": {
       "added": 0,
-      "changed": 2,
+      "changed": 19,
       "moved": 0,
-      "parts": 1,
+      "parts": 4,
       "removed": 0
     },
     "items": [
       {
         "kind": "counts",
-        "sentence": "Nothing structural changed since 2026-11-24; 2 files changed content.",
+        "sentence": "Nothing structural changed since 2026-11-24; 19 files changed content.",
         "subjects": []
       }
     ],
     "since": {
-      "commit": "a5c024deb4593af5c2644e183eb39583e502db2a",
-      "generatedAt": "2026-11-24T04:44:47.459Z"
+      "commit": "f60b0ba103edff5ff9b1da7bfaced61edfc929f9",
+      "generatedAt": "2026-11-24T06:24:19.735Z"
     },
     "unchanged": true
   },
@@ -33,9 +33,9 @@
     "Window: 180 days; a pair counts from 3 shared commits, since the window holds fewer than 30 qualifying commits."
   ],
   "changesTogetherWithTests": 0,
-  "commit": "4627e2c193b6256121d9e1002772c0cfc383e738",
+  "commit": "5ca556ac1e223f060b599a4f87beb3e8c8011376",
   "defaultBranch": "main",
-  "derived": "8 parts, mostly PowerShell (39 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it. It deploys a site to GitHub Pages.",
+  "derived": "8 parts, mostly PowerShell (40 files), CSS (2), TypeScript (2), Astro (1) and JavaScript (1). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it. It deploys a site to GitHub Pages.",
   "doors": [
     {
       "checks": [],
@@ -77,13 +77,13 @@
         {
           "checks": [],
           "checksMore": 0,
-          "lead": "on a push to main or by hand",
+          "lead": "on main",
           "runs": [
             "site/astro.config.mjs",
             "site/src/"
           ],
           "runsMore": 0,
-          "when": "on a push to main or by hand"
+          "when": "on main"
         }
       ],
       "id": ".github/workflows/pages.yml",
@@ -101,12 +101,11 @@
       "runsCount": 0,
       "runsMore": 0,
       "sends": [
-        "deploys the site on a push to main or by hand"
+        "deploys the site on main"
       ],
       "stages": [],
       "triggers": [
         "on a push to main touching 2 paths",
-        "when a release is published",
         "or by hand"
       ]
     }
@@ -117,7 +116,7 @@
   "edges": [],
   "engine": "1.26.0",
   "generated": [],
-  "generatedAt": "2026-11-24T04:55:31.934Z",
+  "generatedAt": "2026-11-24T06:44:40.297Z",
   "limits": [
     "Statistics confidence is low: fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions."
   ],
