@@ -32,7 +32,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "68a6717fa26f31f6e3ecb13e67c5672655c0f0ef2b06af310cbeef96a0ebf526",
+          "hash": "0f7243262fa7fa72b45f9f4eacc4e4710bc0539a9e6f5c510dd06bba886e8dda",
           "path": ".github/workflows/ci.yml"
         },
         {
@@ -145,7 +145,7 @@
           "path": ".polyglot-pins.json"
         },
         {
-          "hash": "c0918129419ba75d200cc9b6c8a8c365a3d6d1f0c6388ec6e11cb83b20a21d81",
+          "hash": "35935ab20e575ca7a7b706f3c33b72f24c17d681a6029f2e2641a4509c539ac4",
           "path": "CHANGELOG.md"
         },
         {
@@ -157,35 +157,35 @@
           "path": "LICENSE"
         },
         {
-          "hash": "80de12f8596eb50bc7f101bf2868c279fcda73db694276be918d47c26d5151dc",
+          "hash": "6a09edb6e4095181a4a372a19cf3dbd34810d474a36d0cc7be19165cce0d1357",
           "path": "README.es.md"
         },
         {
-          "hash": "de990297445629e524d4d661371bb8c6c5f08c69ceece3ee307ea1286a7781d7",
+          "hash": "582c03c4c86fd7a0af57e4ed97c697dea0bcbdbeb0c17ea062004dbef46f097a",
           "path": "README.fr.md"
         },
         {
-          "hash": "e31bd09c7f8ab059fdfa5f04d80296d5ba8dd44b3d93bc9e1ca61ba0543cad02",
+          "hash": "c5b232ed2548ab876926776a4019fbff6cedd176e0e09ea06f16987127d8b899",
           "path": "README.hi.md"
         },
         {
-          "hash": "49a846f4f3302a34349a178745357fb1f010f372c39e0dbe722752d0b8535f83",
+          "hash": "8a52fe55ad93a5bd7bfa91477e8f25682ca825ab8af464f9eca6d937c048753a",
           "path": "README.it.md"
         },
         {
-          "hash": "a738008b2fb0b648c9ea223cb8ee8068007438c4fe4e2839daea77ba773255c6",
+          "hash": "c4e73e9c5ee81497ad5278a11fc00610845be7e80f41ce4b4e8aac783e8b553a",
           "path": "README.ja.md"
         },
         {
-          "hash": "57fab043d3b12b80a73fc5738210cd79d8c62a562b180077b3028de024a23a88",
+          "hash": "6d087c47fa172837d1bf2cc678dd5a36d93e957d808db20d9c9ceabd100d83ec",
           "path": "README.md"
         },
         {
-          "hash": "f4374fd31d189c46146229a7b7d9b2656b17ac3971290305a9e554b1932604f6",
+          "hash": "a4dd0736ea944938cb06e897ff533d3d1faad9c9c2a2f382f4d8b2f039b553f9",
           "path": "README.pt-BR.md"
         },
         {
-          "hash": "2ec1cadd5fc06d01a64975e27338c91ec986e5514a3cbf440e4b2a5db12b5535",
+          "hash": "e5839190aa93817fda3dd882a8016ecfbc629635c8c675cbc6a3bb2b34e1e9ff",
           "path": "README.zh.md"
         },
         {
@@ -197,7 +197,7 @@
           "path": "SECURITY.md"
         },
         {
-          "hash": "5f383d198dfb08c4c72bd8a68eb30f4f18177ec41180a806885976ddceeaf7cd",
+          "hash": "517da6f07216aca68d9fa282da47b6c3b889ee77b6afa1c74470415955de1f5d",
           "path": "SHIP_GATE.md"
         },
         {
@@ -205,7 +205,7 @@
           "path": "codecov.yml"
         },
         {
-          "hash": "d5f7be5ce2cd9f0a78d5647fc2d5633de72480b842b382826c9fba97c02cee45",
+          "hash": "a8b28adf11bc876fb49a1a063faaaef8464e08acdb3ee7d30de1e85aaf6c70ae",
           "path": "verify.ps1"
         },
         {
@@ -253,11 +253,11 @@
           "path": "site/src/content.config.ts"
         },
         {
-          "hash": "35f24ef0854b62aae2e9eafc655fb688c7c4907fae4c65930621abc13c0b0c82",
+          "hash": "3bf0c52f4696e81098193e0aab14114bb61f145fd09102437e55c19e0a38ff43",
           "path": "site/src/content/docs/handbook/configuration.md"
         },
         {
-          "hash": "556669f123bab1334b4b4395534946c7c48149b5a847d54b10b0640d08c1b52d",
+          "hash": "c6c5bf746c68677bec93aef728ea879d7e430da2d89dd75af9ab2e9203cab26f",
           "path": "site/src/content/docs/handbook/getting-started.md"
         },
         {
@@ -294,7 +294,7 @@
         },
         {
           "constantOnly": true,
-          "hash": "61e280dc8135eb61aeec032ed8beb90585c7c94b755bbd44e39c650ffa3795cd",
+          "hash": "cf75334d5db5bd123ee95c7fa289f6c2a505d66e14842f52c4b17e3d0915dfb5",
           "path": "site/src/site-config.ts"
         },
         {
@@ -349,11 +349,11 @@
           "path": "src/Watchdog/Private/Initialize-WatchdogCsv.ps1"
         },
         {
-          "hash": "e6d44fd1314d1e89a6ba1a17eb3e77730a30ee8c7a22b56fcfd882d80989f11c",
+          "hash": "4575c378be5f44d190c146ae4d32d58870711db33f04336eca75f724926d9faa",
           "path": "src/Watchdog/Private/Invoke-WatchdogLoop.ps1"
         },
         {
-          "hash": "728c71df093b99d15803829981ec1519dcd6aefebc1aa07faa4eba8cdf0c7848",
+          "hash": "60d09362498e1da77fd0e0cc761b8e79273c03a50d7c1d7cfd13abb9b3560a13",
           "path": "src/Watchdog/Private/Invoke-WslCacheRelease.ps1"
         },
         {
@@ -365,7 +365,7 @@
           "path": "src/Watchdog/Private/Parse-GpuSample.ps1"
         },
         {
-          "hash": "3c323e09664ad3cf832209b425c7f5ab1f0ec0ef1d86bb0c4f9434f83cff6c37",
+          "hash": "763391338bac64fafe94ff9a6ab9a42991516501b7e83ac2f8dd872d0bd2040f",
           "path": "src/Watchdog/Private/Resolve-WatchdogConfig.ps1"
         },
         {
@@ -389,11 +389,11 @@
           "path": "src/Watchdog/Public/Install-Watchdog.ps1"
         },
         {
-          "hash": "549ac4fdadd9c0c2b1633cd9d2f4d55aac7f6eb4af3099e6cb24bdc83f414959",
+          "hash": "b423a3646ae451531c60b4b1fd71eea4f8ba599c0f1cfc3dbba9957b81f3e858",
           "path": "src/Watchdog/Public/Invoke-WatchdogPoll.ps1"
         },
         {
-          "hash": "74dc3017707420d9964f4b4222b996c589391dccebc4ec827612bdf5a2d322ce",
+          "hash": "045db5740bc05f84c7e6f4ebe4db80c60db0bfd57ed20d0a67285f32c6e52a65",
           "path": "src/Watchdog/Public/Register-WatchdogPoll.ps1"
         },
         {
@@ -413,7 +413,7 @@
           "path": "src/Watchdog/Watchdog.psm1"
         },
         {
-          "hash": "a9182596c75046e69800956313a5bac053ec129fe7bbbe269d1614553c63080e",
+          "hash": "e7994b86ee2407a944eb64f79364ea4e7875ba57569ebc796d538a46b30d76d1",
           "path": "src/Watchdog/config/watchdog.example.psd1"
         },
         {
@@ -448,7 +448,7 @@
           "path": "tests/Cli.Tests.ps1"
         },
         {
-          "hash": "91ff61fff7d7b786dc74193233382636e94ddd7fa7a2db57ddf184b33255f5d4",
+          "hash": "f27a4ff8532306711af3cdd8eacee2c389c103aaa01bd2bc4595f07beb623a3c",
           "path": "tests/Config.Tests.ps1"
         },
         {
@@ -460,7 +460,7 @@
           "path": "tests/HeartbeatAge.Tests.ps1"
         },
         {
-          "hash": "6c73fdf5b526b6568855491c2a160760b399d7814bdd157bd61b93808c8c87f8",
+          "hash": "486add80abb70df0c14bdf600032cd6dde9d4efe6db8b808cf80c4745ceb55c4",
           "path": "tests/Helpers.Tests.ps1"
         },
         {
@@ -472,11 +472,11 @@
           "path": "tests/Hysteresis.Tests.ps1"
         },
         {
-          "hash": "9a2e43bdaa70085d1f1afee48d7e8c979814d5f817b0109357249de58af26cb2",
+          "hash": "985df32aa7f68d81ef6aec7e2f96c20e33ed7ec3cd2642d96548a8cc3a0972fb",
           "path": "tests/Lifecycle.Tests.ps1"
         },
         {
-          "hash": "5c5f79bf2fe943b3e77e8b0d6063e3113d71f7b1495157f147cbc6187807e587",
+          "hash": "0082fad21f8795b86e25d2bfee550e059e1a0a438345d1fac99b67b6e15e2e64",
           "path": "tests/Loop.Tests.ps1"
         },
         {
@@ -484,11 +484,11 @@
           "path": "tests/ParseGpuSample.Tests.ps1"
         },
         {
-          "hash": "a75a63eda2981166b80297d194363f12a460071d90bbbdda4b9dc89597963b48",
+          "hash": "7ca6f816f4b0c5e5d09bbd45e5f6d4d915ab4001441f5992552d97e514ef640c",
           "path": "tests/Poller.Tests.ps1"
         },
         {
-          "hash": "9f9473e312d39b6b81666fd527067221b98d324e52167c767e589fac64010459",
+          "hash": "f92f659aceeb40d4ad493d6abfd4acf789cebb29961b6214996268772bb088ba",
           "path": "tests/WslCacheRelease.Tests.ps1"
         },
         {
@@ -863,7 +863,7 @@
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "769acc3fef3b45c4ad1b33d42079a14dd8829443",
+    "commit": "be6939b483c5420fb3606bbaaaac2dc2477db505",
     "tracked": 89
   },
   "landings": [

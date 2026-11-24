@@ -1,4 +1,4 @@
-﻿BeforeAll {
+BeforeAll {
   . (Join-Path $PSScriptRoot 'Helpers.ps1')
 }
 
@@ -85,11 +85,36 @@ Describe 'Resolve-WatchdogConfig' {
     }
   }
 
+  It 'accepts only real booleans for AllowKill (refusing quoted strings, integers, and null)' {
+    $root = Get-WatchdogTestDir 'cfg-allowkill'
+    $path = New-WatchdogTestConfig -Root $root
+    (Resolve-WatchdogConfig -Path $path -Override @{ AllowKill = $true }).AllowKill | Should -BeTrue
+    (Resolve-WatchdogConfig -Path $path -Override @{ AllowKill = $false }).AllowKill | Should -BeFalse
+    foreach ($bad in @('false', 'true', 0, 1, $null, 'sk-test-0123456789abcdef')) {
+      $r = Resolve-WatchdogConfig -Path $path -Override @{ AllowKill = $bad }
+      $r.code | Should -Be 'CONFIG_INVALID'
+      $r.message | Should -Be 'Config field ''AllowKill'' must be a boolean ($true or $false).'
+      $r.message | Should -Not -Match 'sk-test-0123456789abcdef'
+    }
+  }
+
+  It 'refuses booleans, null, and arrays on numeric config keys' {
+    $root = Get-WatchdogTestDir 'cfg-types'
+    $path = New-WatchdogTestConfig -Root $root
+    foreach ($key in @('IntervalSec', 'WslCacheHighGB')) {
+      foreach ($bad in @($true, $false, $null, @(1, 2))) {
+        $r = Resolve-WatchdogConfig -Path $path -Override @{ $key = $bad }
+        $r.code | Should -Be 'CONFIG_INVALID'
+        $r.message | Should -Match $key
+      }
+    }
+  }
+
   It 'never echoes input values in config refusal messages or error stderr output' {
     $root = Get-WatchdogTestDir 'cfg-noecho'
     $path = New-WatchdogTestConfig -Root $root
     $secret = 'sk-test-0123456789abcdef'
-    foreach ($key in @('VramKillMiB', 'IntervalSec', 'WslCacheHighGB', 'WslCacheCooldownSec', 'WslCacheRelease')) {
+    foreach ($key in @('VramKillMiB', 'IntervalSec', 'AllowKill', 'WslCacheHighGB', 'WslCacheCooldownSec', 'WslCacheRelease')) {
       $r = Resolve-WatchdogConfig -Path $path -Override @{ $key = $secret }
       $r.code | Should -Be 'CONFIG_INVALID'
       $r.message | Should -Match $key

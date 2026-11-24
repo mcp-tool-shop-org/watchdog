@@ -194,21 +194,43 @@ Describe 'Invoke-WslCacheRelease' {
     (Get-Content $script:paths.WslCacheLog -Raw) | Should -Match 'after rotation'
   }
 
-  It 'logs an error and still never throws when writing WslCacheHeartbeat fails' {
-    New-Item -ItemType Directory -Path $script:paths.WslCacheHeartbeat -Force | Out-Null
-    $run = New-WslRecorder -CacheGB 1
-    { $script:r = Invoke-WslCacheRelease -Cfg (New-CacheCfg) -Paths $script:paths -ReadHost (New-HostReader @((New-HostState 50 4))) -RunWsl $run } | Should -Not -Throw
-    $script:r.Action | Should -Be 'error'
-    Get-Content $script:paths.WslCacheLog -Raw | Should -Match 'ERROR '
+  It 'logs an error and still never throws when writing WslCacheHeartbeat fails under ErrorAction Continue' {
+    $prevEap = $ErrorActionPreference
+    $now = Get-Date '2026-11-24T12:00:00'
+    Set-Content -LiteralPath $script:paths.WslCacheHeartbeat -Value '2020010100'
+    [IO.File]::SetAttributes($script:paths.WslCacheHeartbeat, [IO.FileAttributes]::ReadOnly)
+    try {
+      $ErrorActionPreference = 'Continue'
+      $run = New-WslRecorder -CacheGB 1
+      { $script:r = Invoke-WslCacheRelease -Cfg (New-CacheCfg) -Paths $script:paths -ReadHost (New-HostReader @((New-HostState 50 4))) -RunWsl $run -Now $now } | Should -Not -Throw
+      $script:r.Action | Should -Be 'error'
+      Get-Content $script:paths.WslCacheLog -Raw | Should -Match 'ERROR '
+    } finally {
+      $ErrorActionPreference = $prevEap
+      [IO.File]::SetAttributes($script:paths.WslCacheHeartbeat, [IO.FileAttributes]::Normal)
+    }
   }
 
-  It 'logs an error and still never throws when writing WslCacheLast fails' {
-    New-Item -ItemType Directory -Path $script:paths.WslCacheLast -Force | Out-Null
-    $read = New-HostReader @((New-HostState 81 24.6), (New-HostState 52 6.4))
-    $run = New-WslRecorder -CacheGB 27
-    { $script:r = Invoke-WslCacheRelease -Cfg (New-CacheCfg) -Paths $script:paths -ReadHost $read -RunWsl $run -DistroRunning $script:distroUp } | Should -Not -Throw
-    $script:r.Action | Should -Be 'error'
-    Get-Content $script:paths.WslCacheLog -Raw | Should -Match 'ERROR '
+  It 'logs an error, preserves both WSL calls, and never throws when writing WslCacheLast fails under ErrorAction Continue' {
+    $prevEap = $ErrorActionPreference
+    $now = Get-Date '2026-11-24T12:00:00'
+    Set-Content -LiteralPath $script:paths.WslCacheHeartbeat -Value $now.ToString('yyyyMMddHH')
+    Set-Content -LiteralPath $script:paths.WslCacheLast -Value $now.AddHours(-2).ToString('o')
+    [IO.File]::SetAttributes($script:paths.WslCacheLast, [IO.FileAttributes]::ReadOnly)
+    try {
+      $ErrorActionPreference = 'Continue'
+      $read = New-HostReader @((New-HostState 81 24.6), (New-HostState 52 6.4))
+      $run = New-WslRecorder -CacheGB 27
+      { $script:r = Invoke-WslCacheRelease -Cfg (New-CacheCfg) -Paths $script:paths -ReadHost $read -RunWsl $run -DistroRunning $script:distroUp -Now $now } | Should -Not -Throw
+      $script:r.Action | Should -Be 'error'
+      $script:wslCalls.Count | Should -Be 2
+      $log = Get-Content $script:paths.WslCacheLog -Raw
+      $log | Should -Match 'ERROR '
+      $log | Should -Not -Match 'DROPPED'
+    } finally {
+      $ErrorActionPreference = $prevEap
+      [IO.File]::SetAttributes($script:paths.WslCacheLast, [IO.FileAttributes]::Normal)
+    }
   }
 }
 
@@ -219,16 +241,22 @@ Describe 'Test-WslDistroRunning' {
   }
 
   It 'finds the distro in the listing as wsl.exe prints it (read on the rig, NULs stripped)' {
-    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 0; Out = "Ubuntu`r`ndocker-desktop`r`n" } } -ParameterFilter { $FileName -eq 'wsl.exe' -and $Arguments -eq '-l --running -q' -and $PassThru }
+    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 0; Out = "Ubuntu`r`ndocker-desktop`r`n"; StreamsDrained = $true } } -ParameterFilter { $FileName -eq 'wsl.exe' -and $Arguments -eq '-l --running -q' -and $PassThru }
     Test-WslDistroRunning -Distro 'Ubuntu' -TimeoutSec 5 | Should -BeTrue
     Test-WslDistroRunning -Distro 'docker-desktop' -TimeoutSec 5 | Should -BeTrue
     Test-WslDistroRunning -Distro 'Debian' -TimeoutSec 5 | Should -BeFalse
-    Should -Invoke Invoke-ProcessWithTimeout -Times 3 -Exactly -ParameterFilter { $Arguments -eq '-l --running -q' -and $TimeoutSec -eq 5 }
+    Should -Invoke Invoke-ProcessWithTimeout -Times 3 -Exactly -ParameterFilter { $Arguments -eq '-l --running -q' -and $TimeoutSec -eq 5 -and $StreamDrainMs -eq 5000 }
   }
 
   It 'counts a non-zero exit as not running' {
-    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 1; Out = "Ubuntu`r`n" } } -ParameterFilter { $Arguments -eq '-l --running -q' }
+    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 1; Out = "Ubuntu`r`n"; StreamsDrained = $true } } -ParameterFilter { $Arguments -eq '-l --running -q' }
     Test-WslDistroRunning -Distro 'Ubuntu' | Should -BeFalse
+  }
+
+  It 'counts an undrained listing as not running and forwards -StreamDrainMs' {
+    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 0; Out = "Ubuntu`r`n"; StreamsDrained = $false } } -ParameterFilter { $Arguments -eq '-l --running -q' }
+    Test-WslDistroRunning -Distro 'Ubuntu' -TimeoutSec 4 -StreamDrainMs 1000 | Should -BeFalse
+    Should -Invoke Invoke-ProcessWithTimeout -Times 1 -Exactly -ParameterFilter { $TimeoutSec -eq 4 -and $StreamDrainMs -eq 1000 }
   }
 
   It 'lets a timeout through, so the release logs it as an error' {

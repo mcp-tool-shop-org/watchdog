@@ -76,8 +76,10 @@ function Resolve-WatchdogConfig {
     }
   }
 
-  if ($raw.ContainsKey('WslCacheRelease') -and $raw.WslCacheRelease -isnot [bool]) {
-    return New-WatchdogError -Code 'CONFIG_INVALID' -Message 'Config field ''WslCacheRelease'' must be a boolean ($true or $false).' -Hint 'Use $true or $false without quotes in the config file.' -Retryable $true -ExitCode 1
+  foreach ($boolKey in @('AllowKill', 'WslCacheRelease')) {
+    if ($raw.ContainsKey($boolKey) -and $raw[$boolKey] -isnot [bool]) {
+      return New-WatchdogError -Code 'CONFIG_INVALID' -Message "Config field '$boolKey' must be a boolean (`$true or `$false)." -Hint 'Use $true or $false without quotes in the config file.' -Retryable $true -ExitCode 1
+    }
   }
 
   $intSpecs = [ordered]@{
@@ -98,16 +100,11 @@ function Resolve-WatchdogConfig {
     $value = if ($raw.ContainsKey($key)) { $raw[$key] } else { $spec.Default }
     $number = 0.0
     if (-not (ConvertTo-WatchdogFiniteDouble -RawValue $value -OutDouble ([ref]$number)) -or
-        $number -lt 0 -or $number -gt [int]::MaxValue) {
+        $number -lt 0 -or $number -gt [int]::MaxValue -or [int]$number -lt $spec.Min) {
       $rule = if ($spec.Min -eq 0) { 'must be a finite non-negative number.' } else { 'must be a finite number that rounds to an integer of at least 1.' }
       return New-WatchdogError -Code 'CONFIG_INVALID' -Message "Config field '$key' $rule" -Hint $spec.Hint -Retryable $true -ExitCode 1
     }
-    $intVal = [int]$number
-    if ($intVal -lt $spec.Min) {
-      $rule = if ($spec.Min -eq 0) { 'must be a finite non-negative number.' } else { 'must be a finite number that rounds to an integer of at least 1.' }
-      return New-WatchdogError -Code 'CONFIG_INVALID' -Message "Config field '$key' $rule" -Hint $spec.Hint -Retryable $true -ExitCode 1
-    }
-    $ints[$key] = $intVal
+    $ints[$key] = [int]$number
   }
 
   # WSL file-cache release (opt-in). Defaults are the 2026-11-23 rig values; every field must be a
@@ -145,9 +142,9 @@ function Resolve-WatchdogConfig {
     StaleSec        = $ints.StaleSec
     WslDistro       = [string]$(if ($raw.ContainsKey('WslDistro')) { $raw.WslDistro } else { 'Ubuntu' })
     WslKillPattern  = [string]$(if ($raw.ContainsKey('WslKillPattern')) { $raw.WslKillPattern } else { '' })
-    AllowKill       = [bool]$(if ($raw.ContainsKey('AllowKill')) { $raw.AllowKill } else { $false })
+    AllowKill       = ($raw.ContainsKey('AllowKill') -and $raw.AllowKill)
     PollIntervalSec = $ints.PollIntervalSec
-    WslCacheRelease     = $(if ($raw.ContainsKey('WslCacheRelease')) { $raw.WslCacheRelease } else { $false })
+    WslCacheRelease     = ($raw.ContainsKey('WslCacheRelease') -and $raw.WslCacheRelease)
     WslCacheHighGB      = $wslCache.WslCacheHighGB
     WslCacheMinGB       = $wslCache.WslCacheMinGB
     WslCacheWinHighPct  = $wslCache.WslCacheWinHighPct

@@ -34,8 +34,9 @@ function Register-WatchdogPoll {
     Set-Content -LiteralPath $probeFile -Value '' -NoNewline -ErrorAction Stop
     Remove-Item -LiteralPath $probeFile -Force -ErrorAction Stop
   } catch {
+    throw "Root is not writable or the probe file could not be removed, so no poll could write there: $($_.Exception.Message)"
+  } finally {
     Remove-Item -LiteralPath $probeFile -Force -ErrorAction SilentlyContinue
-    throw "Root is not writable, so no poll could write there: $($_.Exception.Message)"
   }
   $mod = Join-Path $script:WatchdogModuleRoot 'Watchdog.psd1'
   $interval = [Math]::Max(60, [int]$cfg.PollIntervalSec)
@@ -87,7 +88,18 @@ function Unregister-WatchdogPoll {
   #>
   [CmdletBinding()]
   param()
-  $existing = Get-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -TaskPath '\' -ErrorAction SilentlyContinue
+  $existing = $null
+  try {
+    $existing = Get-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -TaskPath '\' -ErrorAction Stop
+  } catch {
+    $rec = if ($_.Exception -is [System.Management.Automation.ActionPreferenceStopException] -and $_.Exception.ErrorRecord) { $_.Exception.ErrorRecord } else { $_ }
+    $isNotFound = $rec.CategoryInfo.Category -eq [System.Management.Automation.ErrorCategory]::ObjectNotFound -or
+                  $rec.FullyQualifiedErrorId -like 'CmdletizationQuery_NotFound*'
+    if (-not $isNotFound) {
+      $msg = $rec.Exception.Message
+      throw ("Task Scheduler refused to query MCPToolShop.Watchdog.Poll: {0} A task first registered from an elevated shell may only be inspected or removed from one: run Unregister-WatchdogPoll there once." -f $msg)
+    }
+  }
   if (-not $existing) {
     Write-Output 'no scheduled task MCPToolShop.Watchdog.Poll to remove.'
     return
@@ -95,7 +107,8 @@ function Unregister-WatchdogPoll {
   try {
     Unregister-ScheduledTask -TaskName 'MCPToolShop.Watchdog.Poll' -TaskPath '\' -Confirm:$false -ErrorAction Stop
   } catch {
-    throw ("Task Scheduler refused to unregister MCPToolShop.Watchdog.Poll: {0} A task first registered from an elevated shell can only be removed from one: run Unregister-WatchdogPoll there once." -f $_.Exception.Message)
+    $rec = if ($_.Exception -is [System.Management.Automation.ActionPreferenceStopException] -and $_.Exception.ErrorRecord) { $_.Exception.ErrorRecord } else { $_ }
+    throw ("Task Scheduler refused to unregister MCPToolShop.Watchdog.Poll: {0} A task first registered from an elevated shell can only be removed from one: run Unregister-WatchdogPoll there once." -f $rec.Exception.Message)
   }
   Write-Output 'unregistered scheduled task MCPToolShop.Watchdog.Poll.'
 }

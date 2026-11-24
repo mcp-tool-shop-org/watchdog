@@ -90,6 +90,7 @@ Describe 'Invoke-WatchdogPoll (W-03)' {
     $r.code | Should -Be 'RUNTIME_ROOT_UNUSABLE'
     $r.message | Should -Match 'Root'
     $r.message | Should -Not -Match 'not-a-dir'
+    $r.cause | Should -Be 'System.IO.IOException'
     $LASTEXITCODE | Should -Be 1
   }
 }

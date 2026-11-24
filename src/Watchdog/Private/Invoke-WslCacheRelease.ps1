@@ -107,13 +107,14 @@ function Invoke-ProcessWithTimeout {
 
 function Test-WslDistroRunning {
   # True when Distro is in `wsl -l --running -q`, a listing that starts nothing. Bounded like every other wsl.exe
-  # call here: a hang throws after TimeoutSec. A non-zero exit counts as not running, so nothing is dropped.
+  # call here: a hang throws after TimeoutSec. A non-zero exit or undrained streams count as not running, so nothing is dropped.
   param(
     [Parameter(Mandatory)][string]$Distro,
-    [int]$TimeoutSec = 90
+    [int]$TimeoutSec = 90,
+    [int]$StreamDrainMs = 5000
   )
-  $r = Invoke-ProcessWithTimeout -FileName 'wsl.exe' -Arguments '-l --running -q' -TimeoutSec $TimeoutSec -PassThru
-  if ($r.ExitCode -ne 0) { return $false }
+  $r = Invoke-ProcessWithTimeout -FileName 'wsl.exe' -Arguments '-l --running -q' -TimeoutSec $TimeoutSec -StreamDrainMs $StreamDrainMs -PassThru
+  if ($r.ExitCode -ne 0 -or -not $r.StreamsDrained) { return $false }
   $names = @($r.Out -split "`r?`n" | ForEach-Object { $_.Trim([char]0xFEFF, ' ', "`t") } | Where-Object { $_ })
   return ($names -contains $Distro)
 }

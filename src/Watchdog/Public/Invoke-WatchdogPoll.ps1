@@ -1,4 +1,4 @@
-﻿function Invoke-WatchdogPoll {
+function Invoke-WatchdogPoll {
   <#
   .SYNOPSIS
     One-shot liveness poll. Writes _watchdog_DEAD from the outside when the heartbeat is stale.
@@ -28,7 +28,7 @@
   try {
     [void][IO.Directory]::CreateDirectory([string]$cfg.Root)
   } catch {
-    $err = New-WatchdogError -Code 'RUNTIME_ROOT_UNUSABLE' -Message 'Config Root directory could not be created.' -Hint 'Set Root to an existing or creatable writable directory.' -Cause $_.Exception.GetType().FullName -Retryable $false -ExitCode 1
+    $err = New-WatchdogError -Code 'RUNTIME_ROOT_UNUSABLE' -Message 'Config Root directory could not be created.' -Hint 'Set Root to an existing or creatable writable directory.' -Cause $_.Exception.GetBaseException().GetType().FullName -Retryable $false -ExitCode 1
     Write-WatchdogError -ErrorObject $err
     $global:LASTEXITCODE = $err.exitCode
     return $err

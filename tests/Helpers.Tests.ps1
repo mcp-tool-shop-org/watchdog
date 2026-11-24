@@ -201,16 +201,16 @@ Describe 'WSL cache helpers' {
       { Invoke-ProcessWithTimeout -FileName 'fake' -StreamDrainMs 100 -Launcher $launcher } | Should -Throw '*fake exited 2: stderr stream was not drained*'
     }
   }
-  It 'passes each -ArgumentList element untouched, including spaces and quotes' {
+  It 'passes each -ArgumentList element untouched, including spaces, pipes, semicolons, and quotes' {
     $dir = Get-WatchdogTestDir ('arglist-' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $dir -Force | Out-Null
     $scriptPath = Join-Path $dir 'echo-args.ps1'
     '[Environment]::GetCommandLineArgs() | ConvertTo-Json -Compress' | Set-Content -LiteralPath $scriptPath
     InModuleScope Watchdog -Parameters @{ Script = $scriptPath } {
       param($Script)
-      $pattern = 'python "my train.py" --tag=''a b'''
+      $pattern = 'python "my train.py" | tee out; --tag=''a b'''
       $r = Invoke-ProcessWithTimeout -FileName 'pwsh' -ArgumentList @(
-        '-NoProfile', '-File', $Script, '-d', 'Ubuntu', '--', 'pkill', '-9', '-f', $pattern
+        '-NoProfile', '-File', $Script, '-d', 'Ubuntu', '--exec', 'pkill', '-9', '-f', $pattern
       ) -TimeoutSec 30 -PassThru
       $r.ExitCode | Should -Be 0
       $r.StreamsDrained | Should -BeTrue
@@ -221,7 +221,7 @@ Describe 'WSL cache helpers' {
       $got.Count | Should -Be 7
       $got[0] | Should -Be '-d'
       $got[1] | Should -Be 'Ubuntu'
-      $got[2] | Should -Be '--'
+      $got[2] | Should -Be '--exec'
       $got[3] | Should -Be 'pkill'
       $got[4] | Should -Be '-9'
       $got[5] | Should -Be '-f'

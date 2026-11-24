@@ -1,4 +1,4 @@
-﻿BeforeAll {
+BeforeAll {
   . (Join-Path $PSScriptRoot 'Helpers.ps1')
   Import-Module (Join-Path $script:WatchdogModule 'Watchdog.psd1') -Force
 }
@@ -404,17 +404,58 @@ Describe 'Register-WatchdogPoll / Unregister-WatchdogPoll' {
     }
   }
 
-  It 'refuses a non-writable Root before registering anything' {
+  It 'refuses a non-writable Root on non-terminating probe write failure and runs finally cleanup' {
     InModuleScope Watchdog -Parameters @{ Cfg = $script:rCfg } {
       param($Cfg)
-      Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
-      Mock Set-Content { throw [System.UnauthorizedAccessException]::new('Access to the path is denied.') }
-      Mock New-ScheduledTaskAction { 'action' }
-      Mock Register-ScheduledTask { } -RemoveParameterType 'Action', 'Trigger', 'Settings', 'Principal'
-      { Register-WatchdogPoll -ConfigPath $Cfg } | Should -Throw '*Root is not writable*Access to the path is denied.*'
-      Should -Invoke New-ScheduledTaskAction -Times 0 -Exactly
-      Should -Invoke Register-ScheduledTask -Times 0 -Exactly
+      $prevEap = $ErrorActionPreference
+      try {
+        $ErrorActionPreference = 'Continue'
+        Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
+        Mock Set-Content { Write-Error 'Access to the path is denied.' -Category PermissionDenied } -ParameterFilter { "$LiteralPath" -like '*_watchdog_write_probe_*' }
+        Mock Remove-Item { } -ParameterFilter { "$LiteralPath" -like '*_watchdog_write_probe_*' }
+        Mock New-ScheduledTaskAction { 'action' }
+        Mock Register-ScheduledTask { } -RemoveParameterType 'Action', 'Trigger', 'Settings', 'Principal'
+        { Register-WatchdogPoll -ConfigPath $Cfg } | Should -Throw '*Root is not writable or the probe file could not be removed*Access to the path is denied.*'
+        Should -Invoke Remove-Item -Times 1 -Exactly -ParameterFilter { "$LiteralPath" -like '*_watchdog_write_probe_*' }
+        Should -Invoke New-ScheduledTaskAction -Times 0 -Exactly
+        Should -Invoke Register-ScheduledTask -Times 0 -Exactly
+      } finally {
+        $ErrorActionPreference = $prevEap
+      }
     }
+  }
+
+  It 'refuses registration when deleting the write probe hits a non-terminating error and cleans up in finally' {
+    $parent = Get-WatchdogTestDir ('reg-probe-del-' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    $probeRoot = Join-Path $parent 'state'
+    $cfgCopy = Join-Path $parent 'watchdog.config.psd1'
+    (Get-Content -LiteralPath $script:rCfg -Raw) -replace "Root = '[^']*'", ("Root = '" + $probeRoot.Replace('\', '\\') + "'") | Set-Content -LiteralPath $cfgCopy
+    InModuleScope Watchdog -Parameters @{ Cfg = $cfgCopy } {
+      param($Cfg)
+      $prevEap = $ErrorActionPreference
+      $script:probeDelCalls = 0
+      try {
+        $ErrorActionPreference = 'Continue'
+        Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
+        Mock New-ScheduledTaskAction { 'action' }
+        Mock Register-ScheduledTask { } -RemoveParameterType 'Action', 'Trigger', 'Settings', 'Principal'
+        Mock Remove-Item {
+          $script:probeDelCalls++
+          if ($script:probeDelCalls -eq 1) {
+            Write-Error 'Cannot delete probe file.' -Category WriteError
+          } else {
+            [System.IO.File]::Delete($LiteralPath)
+          }
+        } -ParameterFilter { "$LiteralPath" -like '*_watchdog_write_probe_*' }
+        { Register-WatchdogPoll -ConfigPath $Cfg } | Should -Throw '*Root is not writable or the probe file could not be removed*Cannot delete probe file.*'
+        $script:probeDelCalls | Should -Be 2
+        Should -Invoke Register-ScheduledTask -Times 0 -Exactly
+      } finally {
+        $ErrorActionPreference = $prevEap
+      }
+    }
+    @(Get-ChildItem -LiteralPath $probeRoot -Filter '_watchdog_write_probe_*').Count | Should -Be 0
   }
 
   It 'probes and cleans up under a Root containing brackets' {
@@ -482,11 +523,49 @@ Describe 'Register-WatchdogPoll / Unregister-WatchdogPoll' {
     }
   }
 
-  It 'throws with the elevation hint when Task Scheduler refuses to unregister' {
+  It 'treats an ObjectNotFound / CmdletizationQuery_NotFound query error as no task to remove under ErrorAction Continue' {
     InModuleScope Watchdog {
-      Mock Get-ScheduledTask { [pscustomobject]@{ TaskName = 'MCPToolShop.Watchdog.Poll' } }
-      Mock Unregister-ScheduledTask { throw 'Access is denied.' }
-      { Unregister-WatchdogPoll } | Should -Throw '*refused to unregister MCPToolShop.Watchdog.Poll: Access is denied.*elevated shell*'
+      $prevEap = $ErrorActionPreference
+      try {
+        $ErrorActionPreference = 'Continue'
+        Mock Get-ScheduledTask {
+          Write-Error -Message 'No MSFT_ScheduledTask objects found.' -Category ObjectNotFound -ErrorId 'CmdletizationQuery_NotFound,Get-ScheduledTask'
+        }
+        Mock Unregister-ScheduledTask { }
+        (Unregister-WatchdogPoll) | Should -Match 'no scheduled task MCPToolShop.Watchdog.Poll to remove'
+        Should -Invoke Unregister-ScheduledTask -Times 0 -Exactly
+      } finally {
+        $ErrorActionPreference = $prevEap
+      }
+    }
+  }
+
+  It 'throws with the elevation hint when querying Task Scheduler fails or is refused' {
+    InModuleScope Watchdog {
+      $prevEap = $ErrorActionPreference
+      try {
+        $ErrorActionPreference = 'Continue'
+        Mock Get-ScheduledTask { Write-Error 'Access is denied.' -Category PermissionDenied }
+        Mock Unregister-ScheduledTask { }
+        { Unregister-WatchdogPoll } | Should -Throw '*refused to query MCPToolShop.Watchdog.Poll: Access is denied.*elevated shell*'
+        Should -Invoke Unregister-ScheduledTask -Times 0 -Exactly
+      } finally {
+        $ErrorActionPreference = $prevEap
+      }
+    }
+  }
+
+  It 'throws with the elevation hint on non-terminating Task Scheduler unregister refusal' {
+    InModuleScope Watchdog {
+      $prevEap = $ErrorActionPreference
+      try {
+        $ErrorActionPreference = 'Continue'
+        Mock Get-ScheduledTask { [pscustomobject]@{ TaskName = 'MCPToolShop.Watchdog.Poll' } }
+        Mock Unregister-ScheduledTask { Write-Error 'Access is denied.' -Category PermissionDenied }
+        { Unregister-WatchdogPoll } | Should -Throw '*refused to unregister MCPToolShop.Watchdog.Poll: Access is denied.*elevated shell*'
+      } finally {
+        $ErrorActionPreference = $prevEap
+      }
     }
   }
 }
@@ -701,6 +780,16 @@ Describe 'Install-Watchdog / Uninstall-Watchdog' {
       Mock Test-Path { $false } -ParameterFilter { "$Path" -like '*PowerShell\Modules\Watchdog' }
       Mock Remove-Item { }
       ((Uninstall-Watchdog) -join "`n") | Should -Match 'no CurrentUser module copy'
+      Should -Invoke Remove-Item -Times 0 -Exactly
+    }
+  }
+
+  It 'stops without deleting the module copy when Unregister-WatchdogPoll is refused' {
+    InModuleScope Watchdog {
+      Mock Unregister-WatchdogPoll { throw 'Task Scheduler refused to unregister MCPToolShop.Watchdog.Poll: Access is denied.' }
+      Mock Test-Path { $true } -ParameterFilter { "$Path" -like '*PowerShell\Modules\Watchdog' }
+      Mock Remove-Item { }
+      { Uninstall-Watchdog } | Should -Throw '*refused to unregister MCPToolShop.Watchdog.Poll*'
       Should -Invoke Remove-Item -Times 0 -Exactly
     }
   }

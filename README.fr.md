@@ -101,7 +101,7 @@ Consentement : `-AllowKill` (ou `AllowKill = $true` dans la configuration). Le 
 pwsh -File .\verify.ps1
 ```
 
-166 tests unitaires, pas de GPU. Les données de test du parseur incluent la sortie incorrecte de nvidia-smi qui a interrompu la boucle le 12 juin 2026. Le test d’arrêt matériel reste local et n’est pas intégré dans le processus d’intégration continue.
+175 tests unitaires, pas de GPU. Les données de test du parseur incluent la sortie incorrecte de nvidia-smi qui a interrompu la boucle le 12 juin 2026. Le test d’arrêt matériel reste local et n’est pas intégré dans le processus d’intégration continue.
 
 `pwsh -File .\verify.ps1 -Coverage` ajoute la couverture de lignes de `src/Watchdog` et échoue en dessous de 90 %. La CI l’exécute ainsi et envoie le rapport à Codecov, qui exige au moins 90 % de couverture sur l’ensemble du module et sur chaque modification.
 

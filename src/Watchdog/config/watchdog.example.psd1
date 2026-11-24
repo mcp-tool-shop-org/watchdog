@@ -1,4 +1,4 @@
-﻿@{
+@{
   # Directory for heartbeat, CSV, kill log, console log, and sentinels.
   # Must be absolute. The module will not write outside this directory.
   Root = 'C:\watchdog-state'

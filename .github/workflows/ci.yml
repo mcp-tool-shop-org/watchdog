@@ -48,7 +48,7 @@ jobs:
       - name: Atlas check
         shell: bash
         run: npx --yes @dogfood-lab/atlas@1.26.0 check
-      # Unit tests plus line coverage of src/Watchdog/Private and src/Watchdog/Public. verify.ps1 fails the step below 90%.
+      # Unit tests plus line coverage of src/Watchdog/Private and src/Watchdog/Public only. verify.ps1 fails the step below 90%.
       - name: Pester (no GPU) with coverage
         shell: pwsh
         run: |

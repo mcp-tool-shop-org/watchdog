@@ -1,4 +1,4 @@
-﻿BeforeAll {
+BeforeAll {
   . (Join-Path $PSScriptRoot 'Helpers.ps1')
   Import-Module (Join-Path $script:WatchdogModule 'Watchdog.psd1') -Force
 }
@@ -71,13 +71,75 @@ Describe 'Invoke-WatchdogLoop' {
       Mock Start-Sleep { New-Item -ItemType File -Path $script:T.Stop -Force | Out-Null }
       $cfg = [pscustomobject]@{ Root = $Root; Targets = @('C:\t\python.exe'); IntervalSec = 2; RamKillPct = 90; VramKillMiB = 31200; TempKillC = 87; BreachSamples = 1; WslDistro = 'Ubuntu'; WslKillPattern = 'train.py' }
       Invoke-WatchdogLoop -Config $cfg
-      Should -Invoke Test-WslDistroRunning -Times 1 -Exactly -ParameterFilter { $Distro -eq 'Ubuntu' -and $TimeoutSec -eq 10 }
+      Should -Invoke Test-WslDistroRunning -Times 1 -Exactly -ParameterFilter { $Distro -eq 'Ubuntu' -and $TimeoutSec -eq 4 -and $StreamDrainMs -eq 1000 }
       Should -Invoke Invoke-ProcessWithTimeout -Times 1 -Exactly -ParameterFilter {
-        $FileName -eq 'wsl.exe' -and $TimeoutSec -eq 15 -and $PassThru -and ($ArgumentList -join '|') -eq '-d|Ubuntu|--|pkill|-9|-f|train.py'
+        $FileName -eq 'wsl.exe' -and $TimeoutSec -eq 5 -and $StreamDrainMs -eq 1000 -and $PassThru -and ($ArgumentList -join '|') -eq '-d|Ubuntu|--exec|pkill|-9|-f|train.py'
       }
       $log = Get-Content $script:T.Kill -Raw
       $log | Should -Match 'ABORT — TEMP 90C>=87C — wsl pkill exit=0'
       Test-Path $script:T.NoTarget | Should -BeFalse
+    }
+  }
+
+  It 'passes a WslKillPattern with pipes, semicolons, spaces, and quotes directly via --exec as a single argument' {
+    InModuleScope Watchdog -Parameters @{ Root = $script:loopRoot } {
+      param($Root)
+      $script:T = Get-WatchdogPaths -Root $Root
+      $pattern = 'python "my train.py" | tee out; --tag=''a b'''
+      function script:nvidia-smi { '90, 300.0, 1000' }
+      Mock Get-CimInstance { [pscustomobject]@{ TotalVisibleMemorySize = 67108864; FreePhysicalMemory = 33554432 } }
+      Mock Get-Process { @() }
+      Mock Get-VramHolders { 'holders: none reported >0' }
+      Mock Test-WslDistroRunning { $true }
+      Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 0; Out = ''; StreamsDrained = $true } }
+      Mock Start-Sleep { New-Item -ItemType File -Path $script:T.Stop -Force | Out-Null }
+      $cfg = [pscustomobject]@{ Root = $Root; Targets = @('C:\t\python.exe'); IntervalSec = 2; RamKillPct = 90; VramKillMiB = 31200; TempKillC = 87; BreachSamples = 1; WslDistro = 'Ubuntu'; WslKillPattern = $pattern }
+      Invoke-WatchdogLoop -Config $cfg
+      Should -Invoke Invoke-ProcessWithTimeout -Times 1 -Exactly -ParameterFilter {
+        $FileName -eq 'wsl.exe' -and $TimeoutSec -eq 5 -and $StreamDrainMs -eq 1000 -and $PassThru -and
+        $ArgumentList.Count -eq 7 -and $ArgumentList[0] -eq '-d' -and $ArgumentList[1] -eq 'Ubuntu' -and
+        $ArgumentList[2] -eq '--exec' -and $ArgumentList[3] -eq 'pkill' -and $ArgumentList[4] -eq '-9' -and
+        $ArgumentList[5] -eq '-f' -and $ArgumentList[6] -ceq 'python "my train.py" | tee out; --tag=''a b'''
+      }
+    }
+  }
+
+  It 'refreshes the heartbeat around slow WSL calls so heartbeat age stays below StaleSec' {
+    InModuleScope Watchdog -Parameters @{ Root = $script:loopRoot } {
+      param($Root)
+      $script:T = Get-WatchdogPaths -Root $Root
+      $script:testClock = [DateTimeOffset]::Parse('2026-11-24T12:00:00.000Z')
+      $script:hbStates = [System.Collections.Generic.List[object]]::new()
+      function script:nvidia-smi { '90, 300.0, 1000' }
+      Mock Get-WatchdogTimestamp { $script:testClock.ToString('yyyy-MM-ddTHH:mm:ss.fffZ') }
+      Mock Get-CimInstance { [pscustomobject]@{ TotalVisibleMemorySize = 67108864; FreePhysicalMemory = 33554432 } }
+      Mock Get-Process { @() }
+      Mock Get-VramHolders {
+        $script:testClock = $script:testClock.AddSeconds(8)
+        'holders: none reported >0'
+      }
+      Mock Test-WslDistroRunning {
+        $script:testClock = $script:testClock.AddSeconds(9)
+        $script:hbStates.Add((Get-WatchdogHeartbeatState -Path $script:T.Heartbeat -StaleSec 15 -Now $script:testClock))
+        $true
+      }
+      Mock Invoke-ProcessWithTimeout {
+        $script:testClock = $script:testClock.AddSeconds(9)
+        $script:hbStates.Add((Get-WatchdogHeartbeatState -Path $script:T.Heartbeat -StaleSec 15 -Now $script:testClock))
+        [pscustomobject]@{ ExitCode = 0; Out = ''; StreamsDrained = $true }
+      }
+      Mock Start-Sleep {
+        $script:hbStates.Add((Get-WatchdogHeartbeatState -Path $script:T.Heartbeat -StaleSec 15 -Now $script:testClock))
+        New-Item -ItemType File -Path $script:T.Stop -Force | Out-Null
+      }
+      $cfg = [pscustomobject]@{ Root = $Root; Targets = @('C:\t\python.exe'); IntervalSec = 2; RamKillPct = 90; VramKillMiB = 31200; TempKillC = 87; BreachSamples = 1; WslDistro = 'Ubuntu'; WslKillPattern = 'train.py' }
+      Invoke-WatchdogLoop -Config $cfg
+      ($script:testClock - [DateTimeOffset]::Parse('2026-11-24T12:00:00.000Z')).TotalSeconds | Should -Be 26
+      $script:hbStates.Count | Should -Be 3
+      foreach ($st in $script:hbStates) {
+        $st.State | Should -Be 'RUNNING'
+        $st.AgeSec | Should -BeLessOrEqual 15
+      }
     }
   }
 
