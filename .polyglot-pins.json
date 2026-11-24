@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "pins": {
+    "d3f043d75710e34d:ja": {
+      "lang": "ja",
+      "source": "With `WslCacheRelease = $true`, each poll checks the WSL VM's memory from\nthe Windows side (it never wakes a stopped VM). When `vmmemWSL` is large,\nor Windows memory is under pressure and `vmmemWSL` is mid-sized, the poller\ndrops the Linux page cache in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches`\nas root, with a timeout and a cooldown). WSL's own `autoMemoryReclaim` only\nfires when the VM is idle, and a running container engine keeps it busy, so\nlarge image pulls can leave tens of GB of cache held against Windows.",
+      "translation": "`WslCacheRelease = $true`を使用すると、各ポーリング時にWSL VMのメモリをWindows側からチェックします（停止中のVMを起動することはありません）。`vmmemWSL`が大きい場合、またはWindowsのメモリに負荷がかかり、`vmmemWSL`が中程度のサイズの場合、ポーラーはLinuxのページキャッシュを`WslDistro`（`echo 1 > /proc/sys/vm/drop_caches`、root権限で、タイムアウトとクールダウンを設定）で削除します。WSL自体の`autoMemoryReclaim`は、VMがアイドル状態の場合にのみトリガーされ、実行中のコンテナエンジンはVMを稼働状態に保つため、大きなイメージのダウンロードによって、数十GBのキャッシュがWindows上に保持されることがあります。",
+      "pinnedAt": "2026-11-24T04:17:39.521Z"
+    },
+    "ea7cc90b6dcc8dbb:es": {
+      "lang": "es",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "Nunca finaliza un proceso y nunca inicia una distribución que se ha detenido: cuando otra distribución mantiene la máquina virtual en funcionamiento mientras `WslDistro` está detenida, omite la liberación y registra la omisión. Su registro, `Root\\_watchdog_wslcache.log`, anota una señal de actividad cada hora; cada liberación de la caché, con la memoria antes y después; una línea por cada racha de omisiones; y un `ALERT` que indica los procesos principales si Windows sigue por encima de `WslCacheAlertPct` después de una liberación. Los umbrales se encuentran en la configuración de ejemplo.",
+      "pinnedAt": "2026-11-24T04:17:39.751Z"
+    },
+    "ea7cc90b6dcc8dbb:fr": {
+      "lang": "fr",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "Il ne tue jamais un processus et ne démarre jamais une distribution arrêtée : lorsqu’une autre distribution maintient la machine virtuelle en marche alors que `WslDistro` est arrêtée, il ne libère pas le cache et consigne ce saut. Son journal, `Root\\_watchdog_wslcache.log`, enregistre un signal d’activité toutes les heures ; chaque libération du cache, avec la mémoire avant et après ; une ligne par série de sauts ; et un `ALERT` indiquant les processus les plus gourmands en ressources si Windows est toujours au-dessus de `WslCacheAlertPct` après une libération. Les seuils sont définis dans le fichier de configuration d’exemple.",
+      "pinnedAt": "2026-11-24T04:17:39.877Z"
+    },
+    "ea7cc90b6dcc8dbb:hi": {
+      "lang": "hi",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "यह कभी भी किसी प्रक्रिया को समाप्त नहीं करता है, और न ही किसी बंद वितरण को शुरू करता है: जब कोई अन्य वितरण वीएम को चालू रखता है, जबकि `WslDistro` बंद है, तो यह कैश रिलीज़ को छोड़ देता है और इसे लॉग करता है। इसका लॉग, `Root\\_watchdog_wslcache.log`, प्रति घंटा एक संकेत रिकॉर्ड करता है; प्रत्येक कैश रिलीज़, जिसमें उससे पहले और बाद में मेमोरी होती है; लगातार स्किप की हर शृंखला के लिए एक पंक्ति; और एक `ALERT` जो शीर्ष प्रक्रियाओं का नाम देता है यदि रिलीज़ के बाद भी विंडोज `WslCacheAlertPct` से ऊपर है। सीमाएँ उदाहरण कॉन्फ़िगरेशन में दी गई हैं।",
+      "pinnedAt": "2026-11-24T04:17:39.986Z"
+    },
+    "ea7cc90b6dcc8dbb:it": {
+      "lang": "it",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "Non interrompe mai un processo e non avvia mai una distribuzione che è già stata interrotta: quando un’altra distribuzione mantiene attiva la macchina virtuale mentre `WslDistro` è inattiva, salta l’operazione di rilascio e registra l’omissione. Il suo registro, `Root\\_watchdog_wslcache.log`, registra un segnale di attività ogni ora; ogni operazione di rilascio della cache, con i dati relativi alla memoria prima e dopo; una riga per ogni serie di omissioni; e un `ALERT` che indica i processi principali se Windows è ancora al di sopra di `WslCacheAlertPct` dopo un’operazione di rilascio. Le soglie sono indicate nella configurazione di esempio.",
+      "pinnedAt": "2026-11-24T04:17:40.117Z"
+    },
+    "ea7cc90b6dcc8dbb:ja": {
+      "lang": "ja",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "このツールは、プロセスを強制終了したり、停止したディストリビューションを起動したりすることはありません。別のディストリビューションが、`WslDistro`が停止している間に仮想マシンを稼働させている場合、このツールはリリース処理をスキップし、その旨をログに記録します。ログファイル`Root\\_watchdog_wslcache.log`には、1時間ごとのハートビート、各キャッシュリリースの前後のメモリ使用量、一連のスキップにつき1行、そしてリリースの後にWindowsがまだ`WslCacheAlertPct`を超えている場合に上位のプロセス名を示す`ALERT`が記録されます。閾値は、サンプル設定ファイルに記載されています。",
+      "pinnedAt": "2026-11-24T04:17:39.522Z"
+    },
+    "ea7cc90b6dcc8dbb:pt": {
+      "lang": "pt",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "Nunca encerra um processo e nunca inicia uma distribuição que já foi interrompida: quando outra distribuição mantém a máquina virtual em execução enquanto `WslDistro` está interrompida, o watchdog não libera o cache e registra essa omissão. O arquivo de registro, `Root\\_watchdog_wslcache.log`, registra um sinal de atividade a cada hora; cada operação de liberação de cache, com a quantidade de memória antes e depois; uma linha para cada sequência de omissões; e um `ALERT` que identifica os processos que consomem mais recursos, caso o Windows ainda esteja acima de `WslCacheAlertPct` após uma liberação. Os limites estão definidos no arquivo de configuração de exemplo.",
+      "pinnedAt": "2026-11-24T04:17:40.228Z"
+    },
+    "ea7cc90b6dcc8dbb:zh": {
+      "lang": "zh",
+      "source": "It never kills a process, and it never starts a stopped distro: when another\ndistro keeps the VM up while `WslDistro` is stopped, it skips the release and\nlogs the skip. Its log, `Root\\_watchdog_wslcache.log`, records an hourly\nheartbeat; each cache release, with memory before and after it; one line for\neach run of skips; and an `ALERT` naming the top processes if Windows is still\nabove `WslCacheAlertPct` after a release. Thresholds are in the example config.",
+      "translation": "它不会终止任何进程，也不会启动已停止的发行版：当另一个发行版保持虚拟机运行，而`WslDistro`停止时，它会跳过缓存释放并记录这次跳过。它的日志文件`Root\\_watchdog_wslcache.log`会记录每小时的心跳信息；每次缓存释放及其前后的内存；每一段连续跳过记录一行；如果释放后 Windows 仍然高于`WslCacheAlertPct`，还会记录一个`ALERT`，其中包含占用资源最多的进程的名称。阈值设置请参考示例配置文件。",
+      "pinnedAt": "2026-11-24T04:17:39.634Z"
+    }
+  }
+}

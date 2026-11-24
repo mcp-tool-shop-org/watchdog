@@ -64,7 +64,7 @@ Champs obligatoires : `Root`, `Targets`, `VramKillMiB`, `RamKillPct`, `TempKill
 
 Avec `WslCacheRelease = $true`, chaque contrôle vérifie la mémoire de la machine virtuelle WSL à partir du côté Windows (il ne réveille jamais une machine virtuelle arrêtée). Lorsque `vmmemWSL` est important, ou que la mémoire Windows est sous forte pression et que `vmmemWSL` est de taille moyenne, le contrôleur supprime la mémoire cache des pages Linux dans `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` en tant que root, avec un délai d’attente et un temps de refroidissement). Le propre `autoMemoryReclaim` de WSL ne se déclenche que lorsque la machine virtuelle est inactive, et un moteur de conteneurs en cours d’exécution l’empêche de s’arrêter, de sorte que le chargement d’images volumineuses peut laisser des dizaines de Go de mémoire cache conservée par Windows.
 
-Il ne tue jamais un processus. Il enregistre les données dans `Root\_watchdog_wslcache.log` : un signal d’activité horaire, chaque suppression avec la mémoire avant et après, et un `ALERT` qui nomme les processus les plus gourmands en ressources si Windows est toujours au-dessus de `WslCacheAlertPct` par la suite. Les seuils sont définis dans le fichier de configuration d’exemple.
+Il ne tue jamais un processus et ne démarre jamais une distribution arrêtée : lorsqu’une autre distribution maintient la machine virtuelle en marche alors que `WslDistro` est arrêtée, il ne libère pas le cache et consigne ce saut. Son journal, `Root\_watchdog_wslcache.log`, enregistre un signal d’activité toutes les heures ; chaque libération du cache, avec la mémoire avant et après ; une ligne par série de sauts ; et un `ALERT` indiquant les processus les plus gourmands en ressources si Windows est toujours au-dessus de `WslCacheAlertPct` après une libération. Les seuils sont définis dans le fichier de configuration d’exemple.
 
 ## Commandes
 
@@ -101,7 +101,7 @@ Consentement : `-AllowKill` (ou `AllowKill = $true` dans la configuration). Le 
 pwsh -File .\verify.ps1
 ```
 
-106 tests unitaires, sans GPU. Les éléments de test incluent la sortie nvidia-smi malformée qui a interrompu la boucle le 12 juin 2026. Le test d’arrêt matériel reste local et n’est pas activé dans l’intégration continue.
+108 tests unitaires, pas de GPU. Les données de test du parseur incluent la sortie incorrecte de nvidia-smi qui a interrompu la boucle le 12 juin 2026. Le test d’arrêt matériel reste local et n’est pas intégré dans le processus d’intégration continue.
 
 `pwsh -File .\verify.ps1 -Coverage` ajoute une analyse de la couverture des lignes du code `src/Watchdog` et signale les échecs lorsque la couverture est inférieure à 90 %. L’intégration continue exécute le code de cette manière et télécharge le rapport sur Codecov, qui exige une couverture d’au moins 90 % pour l’ensemble du module et pour chaque modification.
 

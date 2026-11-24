@@ -64,7 +64,7 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 
 `WslCacheRelease = $true`を使用すると、各ポーリング時にWSL VMのメモリをWindows側からチェックします（停止中のVMを起動することはありません）。`vmmemWSL`が大きい場合、またはWindowsのメモリに負荷がかかり、`vmmemWSL`が中程度のサイズの場合、ポーラーはLinuxのページキャッシュを`WslDistro`（`echo 1 > /proc/sys/vm/drop_caches`、root権限で、タイムアウトとクールダウンを設定）で削除します。WSL自体の`autoMemoryReclaim`は、VMがアイドル状態の場合にのみトリガーされ、実行中のコンテナエンジンはVMを稼働状態に保つため、大きなイメージのダウンロードによって、数十GBのキャッシュがWindows上に保持されることがあります。
 
-プロセスを強制終了することはありません。ログは`Root\_watchdog_wslcache.log`に記録されます。1時間ごとのハートビート、各削除時のメモリ使用量（削除前と削除後）、およびWindowsのメモリ使用量が`WslCacheAlertPct`を超えている場合に上位のプロセスを特定する`ALERT`です。閾値はサンプル設定ファイルに記載されています。
+このツールは、プロセスを強制終了したり、停止したディストリビューションを起動したりすることはありません。別のディストリビューションが、`WslDistro`が停止している間に仮想マシンを稼働させている場合、このツールはリリース処理をスキップし、その旨をログに記録します。ログファイル`Root\_watchdog_wslcache.log`には、1時間ごとのハートビート、各キャッシュリリースの前後のメモリ使用量、一連のスキップにつき1行、そしてリリースの後にWindowsがまだ`WslCacheAlertPct`を超えている場合に上位のプロセス名を示す`ALERT`が記録されます。閾値は、サンプル設定ファイルに記載されています。
 
 ## コマンド
 
@@ -101,7 +101,7 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 pwsh -File .\verify.ps1
 ```
 
-106個のユニットテスト（GPUは不要）。パーサーのフィクスチャには、2026年6月12日にループを停止させた不正なnvidia-smi出力が含まれています。ハードウェアの異常終了テストはローカルで実行され、CIではグリーン化されません。
+108個のユニットテスト、GPUは使用しません。パーサーのテストデータには、2026年6月12日にループを停止させた、不正なnvidia-smiの出力が含まれています。ハードウェア異常テストはローカルで実行され、CI環境ではグリーン化されません。
 
 `pwsh -File .\verify.ps1 -Coverage`により、`src/Watchdog`の行カバレッジが追加され、90%未満の場合にはテストが失敗します。CI（継続的インテグレーション）システムでは、このテストが実行され、その結果がCodecovにアップロードされます。Codecovでは、モジュール全体および各変更に対して、少なくとも90%のカバレッジが必要です。
 

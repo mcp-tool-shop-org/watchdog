@@ -64,7 +64,7 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 
 使用 `WslCacheRelease = $true`，每个轮询都会从 Windows 侧检查 WSL 虚拟机的内存（它不会唤醒已停止的虚拟机）。当 `vmmemWSL` 很大时，或者 Windows 内存压力较大且 `vmmemWSL` 为中等大小时，轮询器会在 `WslDistro` 中清除 Linux 页面缓存（以 `echo 1 > /proc/sys/vm/drop_caches` 作为 root 用户，设置超时时间和冷却时间）。WSL 自身的 `autoMemoryReclaim` 仅在虚拟机处于空闲状态时触发，而正在运行的容器引擎会使其保持繁忙状态，因此，大型镜像的拉取可能会导致数十 GB 的缓存保留在 Windows 中。
 
-它不会终止任何进程。它会将日志记录到 `Root\_watchdog_wslcache.log`：每小时一次的心跳、每次删除操作之前和之后的内存使用情况，以及一个 `ALERT`，其中包含 Windows 内存使用量在删除操作后是否仍然高于 `WslCacheAlertPct` 的顶部进程的名称。阈值在示例配置文件中。
+它不会终止任何进程，也不会启动已停止的发行版：当另一个发行版保持虚拟机运行，而`WslDistro`停止时，它会跳过缓存释放并记录这次跳过。它的日志文件`Root\_watchdog_wslcache.log`会记录每小时的心跳信息；每次缓存释放及其前后的内存；每一段连续跳过记录一行；如果释放后 Windows 仍然高于`WslCacheAlertPct`，还会记录一个`ALERT`，其中包含占用资源最多的进程的名称。阈值设置请参考示例配置文件。
 
 ## 命令
 
@@ -101,7 +101,7 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 pwsh -File .\verify.ps1
 ```
 
-106 个单元测试，没有 GPU。解析器测试用例包括导致 2026-06-12 循环停止的格式错误的 nvidia-smi 输出。硬件中止测试保持在本地，并且不在 CI 中进行绿色标记。
+108 个单元测试，未使用 GPU。解析器测试用例包括导致 2026-06-12 日循环中断的格式错误的 nvidia-smi 输出。硬件中止测试保持本地状态，不会在 CI 中进行绿色测试。
 
 `pwsh -File .\verify.ps1 -Coverage` 添加了对 `src/Watchdog` 的行覆盖率测试，并且当覆盖率低于 90% 时，测试会失败。持续集成（CI）系统会以这种方式运行测试，并将报告上传到 Codecov，Codecov 要求整个模块以及每次更改的覆盖率都至少达到 90%。
 

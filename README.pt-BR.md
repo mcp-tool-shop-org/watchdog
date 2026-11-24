@@ -64,7 +64,7 @@ Campos obrigatórios: `Root`, `Targets`, `VramKillMiB`, `RamKillPct`, `TempKillC
 
 Com `WslCacheRelease = $true`, cada leitura verifica a memória da VM WSL a partir do lado do Windows (nunca ativa uma VM parada). Quando `vmmemWSL` é grande ou a memória do Windows está sob pressão e `vmmemWSL` é de tamanho médio, o verificador libera o cache de páginas do Linux em `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` como root, com um tempo limite e um período de espera). O próprio `autoMemoryReclaim` do WSL só é acionado quando a VM está inativa, e um mecanismo de contêiner em execução a mantém ativa, portanto, o download de imagens grandes pode deixar dezenas de GB de cache armazenados no Windows.
 
-Ele nunca encerra um processo. Ele registra em `Root\_watchdog_wslcache.log`: um "heartbeat" por hora, cada liberação com a memória antes e depois, e um `ALERT` que lista os principais processos se o Windows ainda estiver acima de `WslCacheAlertPct` depois. Os limites estão no arquivo de configuração de exemplo.
+Nunca encerra um processo e nunca inicia uma distribuição que já foi interrompida: quando outra distribuição mantém a máquina virtual em execução enquanto `WslDistro` está interrompida, o watchdog não libera o cache e registra essa omissão. O arquivo de registro, `Root\_watchdog_wslcache.log`, registra um sinal de atividade a cada hora; cada operação de liberação de cache, com a quantidade de memória antes e depois; uma linha para cada sequência de omissões; e um `ALERT` que identifica os processos que consomem mais recursos, caso o Windows ainda esteja acima de `WslCacheAlertPct` após uma liberação. Os limites estão definidos no arquivo de configuração de exemplo.
 
 ## Comandos
 
@@ -101,7 +101,7 @@ Consentimento: `-AllowKill` (ou `AllowKill = $true` na configuração). O verifi
 pwsh -File .\verify.ps1
 ```
 
-106 testes unitários, sem GPU. Os casos de teste do analisador incluem a saída malformada do nvidia-smi que interrompeu o loop em 12 de junho de 2026. O teste de aborto de hardware permanece local e não é executado no CI.
+108 testes unitários, sem GPU. Os testes do analisador incluem a saída mal formatada do comando nvidia-smi, que interrompeu o ciclo em 12 de junho de 2026. O teste de interrupção de hardware permanece local e não é incluído nos testes de integração contínua.
 
 `pwsh -File .\verify.ps1 -Coverage` adiciona a análise da cobertura de linhas do `src/Watchdog` e falha se o resultado for inferior a 90%. O sistema de integração contínua (CI) executa o teste dessa forma e envia o relatório para o Codecov, que exige uma cobertura de pelo menos 90% para todo o módulo e para cada alteração.
 

@@ -64,7 +64,7 @@ Campos obligatorios: `Root`, `Targets`, `VramKillMiB`, `RamKillPct`, `TempKillC`
 
 Con `WslCacheRelease = $true`, cada sondeo comprueba la memoria de la máquina virtual WSL desde el lado de Windows (nunca activa una máquina virtual detenida). Cuando `vmmemWSL` es grande, o la memoria de Windows está bajo presión y `vmmemWSL` es de tamaño medio, el sondeo elimina la caché de páginas de Linux en `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` como root, con un tiempo de espera y un período de enfriamiento). El propio `autoMemoryReclaim` de WSL solo se activa cuando la máquina virtual está inactiva, y un motor de contenedor en ejecución la mantiene ocupada, por lo que las descargas de imágenes grandes pueden dejar decenas de GB de caché almacenados en Windows.
 
-Nunca finaliza un proceso. Registra en `Root\_watchdog_wslcache.log`: un "latido" por hora, cada eliminación con la memoria antes y después, y un `ALERT` que identifica los procesos principales si Windows sigue estando por encima de `WslCacheAlertPct`. Los umbrales se encuentran en el archivo de configuración de ejemplo.
+Nunca finaliza un proceso y nunca inicia una distribución que se ha detenido: cuando otra distribución mantiene la máquina virtual en funcionamiento mientras `WslDistro` está detenida, omite la liberación y registra la omisión. Su registro, `Root\_watchdog_wslcache.log`, anota una señal de actividad cada hora; cada liberación de la caché, con la memoria antes y después; una línea por cada racha de omisiones; y un `ALERT` que indica los procesos principales si Windows sigue por encima de `WslCacheAlertPct` después de una liberación. Los umbrales se encuentran en la configuración de ejemplo.
 
 ## Comandos
 
@@ -101,7 +101,7 @@ Consentimiento: `-AllowKill` (o `AllowKill = $true` en la configuración). El so
 pwsh -File .\verify.ps1
 ```
 
-106 pruebas unitarias, sin GPU. Los casos de prueba del analizador incluyen la salida incorrecta de nvidia-smi que interrumpió el ciclo el 12 de junio de 2026. La prueba de aborto de hardware permanece local y no se incluye en CI.
+108 pruebas unitarias, sin GPU. Los elementos de prueba del analizador incluyen la salida incorrecta de nvidia-smi que interrumpió el ciclo el 12 de junio de 2026. La prueba de interrupción de hardware permanece local y no se incluye en la integración continua.
 
 `pwsh -File .\verify.ps1 -Coverage` añade la medición de cobertura de líneas de `src/Watchdog` y falla si el resultado es inferior al 90 %. El sistema de integración continua (CI) lo ejecuta de esta manera y sube el informe a Codecov, que exige una cobertura de al menos el 90 % para todo el módulo y para cada cambio.
 
