@@ -32,11 +32,11 @@
       "externals": 0,
       "files": [
         {
-          "hash": "868b3a4efc5edcabe1f369a07bad1464e2526c517c459fb68a35d1669dcdbf43",
+          "hash": "68a6717fa26f31f6e3ecb13e67c5672655c0f0ef2b06af310cbeef96a0ebf526",
           "path": ".github/workflows/ci.yml"
         },
         {
-          "hash": "074c51c7eea5169fc57cf81d160704c5e90945cf379277de1d82f6e6e2b178af",
+          "hash": "d6dadc5456701eafd85287b59e8e20e36349fe7da9f65ddcabfb1d308502eec0",
           "path": ".github/workflows/pages.yml"
         }
       ],
@@ -71,7 +71,7 @@
           "path": "docs/open-decisions.md"
         },
         {
-          "hash": "f7f6bbde6c55ac86147ead8b82687bc4aceea4cde5f315c6a4d61ef5df3cdb2e",
+          "hash": "bc5e1d44f95d4a61b3e2529fc8e49d5f9c60c3fde86e5b1d8e254b6f1758ffa3",
           "path": "docs/workflow-standards.md"
         }
       ],
@@ -145,7 +145,7 @@
           "path": ".polyglot-pins.json"
         },
         {
-          "hash": "64a76c43b16e75a3996e3a0dc142e8b4f4ccd40fd9c1e4c84dfe497846ba8dcd",
+          "hash": "c0918129419ba75d200cc9b6c8a8c365a3d6d1f0c6388ec6e11cb83b20a21d81",
           "path": "CHANGELOG.md"
         },
         {
@@ -157,35 +157,35 @@
           "path": "LICENSE"
         },
         {
-          "hash": "078c94d6859dc849960fbba2e59200999f9eda5b06e1b13c9428b14ad28cc6ab",
+          "hash": "80de12f8596eb50bc7f101bf2868c279fcda73db694276be918d47c26d5151dc",
           "path": "README.es.md"
         },
         {
-          "hash": "db8399a879ca783aba663187b3ae4e8cca1cd7dbdebc0e5b9d84f42b8578df7b",
+          "hash": "de990297445629e524d4d661371bb8c6c5f08c69ceece3ee307ea1286a7781d7",
           "path": "README.fr.md"
         },
         {
-          "hash": "0a57a089e2b3a23cde36cf767e6392125165625d340f07655be39620a9ef5ace",
+          "hash": "e31bd09c7f8ab059fdfa5f04d80296d5ba8dd44b3d93bc9e1ca61ba0543cad02",
           "path": "README.hi.md"
         },
         {
-          "hash": "a8ce45754150cb33628bac9aa33b7735b69bed9cd33695212774aba11320fb18",
+          "hash": "49a846f4f3302a34349a178745357fb1f010f372c39e0dbe722752d0b8535f83",
           "path": "README.it.md"
         },
         {
-          "hash": "1e1091e03aa39af238554b8d98c31bd9031e3d99eafcdd21c1cb4d586f97639c",
+          "hash": "a738008b2fb0b648c9ea223cb8ee8068007438c4fe4e2839daea77ba773255c6",
           "path": "README.ja.md"
         },
         {
-          "hash": "4a3111c20537427f1c0a0cc1a07e99f947c851c8a4edabe6b3608fedbad9f4e8",
+          "hash": "57fab043d3b12b80a73fc5738210cd79d8c62a562b180077b3028de024a23a88",
           "path": "README.md"
         },
         {
-          "hash": "52c1fcff4cac8cc71b89da0ecea6f5676e77f5f0f67ee0964b9762c5c11203e9",
+          "hash": "f4374fd31d189c46146229a7b7d9b2656b17ac3971290305a9e554b1932604f6",
           "path": "README.pt-BR.md"
         },
         {
-          "hash": "9aae3234ca004d3eab6bc34e2a74ddf5e1ba80c803f4349b2c9950cfd98257f3",
+          "hash": "2ec1cadd5fc06d01a64975e27338c91ec986e5514a3cbf440e4b2a5db12b5535",
           "path": "README.zh.md"
         },
         {
@@ -201,11 +201,11 @@
           "path": "SHIP_GATE.md"
         },
         {
-          "hash": "dd12df889f24092cb7a0aef085bd9256a3dc6f97c3234c0b48f311884f8c96c4",
+          "hash": "f34c7f39adccbf9f8c9ca047171d5a2ce4bfd1beae5007c9b226ff9794a1e2fe",
           "path": "codecov.yml"
         },
         {
-          "hash": "34b9486d52b79fefd533b464b6f5fc0e9a6b3437f2e788372e27fd17d8037f5d",
+          "hash": "d5f7be5ce2cd9f0a78d5647fc2d5633de72480b842b382826c9fba97c02cee45",
           "path": "verify.ps1"
         },
         {
@@ -253,11 +253,11 @@
           "path": "site/src/content.config.ts"
         },
         {
-          "hash": "833e60ae803e08463a2c233c44870798e704c70be02b6972c7fd8f4135a0d899",
+          "hash": "35f24ef0854b62aae2e9eafc655fb688c7c4907fae4c65930621abc13c0b0c82",
           "path": "site/src/content/docs/handbook/configuration.md"
         },
         {
-          "hash": "729fe582335c552361f2dfa0b5aadc15c53257fe4c0d0dac63d790749a6725ec",
+          "hash": "556669f123bab1334b4b4395534946c7c48149b5a847d54b10b0640d08c1b52d",
           "path": "site/src/content/docs/handbook/getting-started.md"
         },
         {
@@ -269,7 +269,7 @@
           "path": "site/src/content/docs/handbook/operations.md"
         },
         {
-          "hash": "f9ec397b29d7967f41cf8aea9cc10d222b5ec53886cefd0902e4a2fd85b36e2c",
+          "hash": "6a21a3f3a79e2113808b7101f10d24c166c8579b5bebd71bcf69724714c686ae",
           "path": "site/src/content/docs/handbook/reference.md"
         },
         {
@@ -294,7 +294,7 @@
         },
         {
           "constantOnly": true,
-          "hash": "03f429e7dd8c2d05b949a24e42398301e424096dea1dd5e15f4885aff4d8f6b8",
+          "hash": "61e280dc8135eb61aeec032ed8beb90585c7c94b755bbd44e39c650ffa3795cd",
           "path": "site/src/site-config.ts"
         },
         {
@@ -349,11 +349,11 @@
           "path": "src/Watchdog/Private/Initialize-WatchdogCsv.ps1"
         },
         {
-          "hash": "9a8c9e39cfc6a494f6b98bed3826993573cf8f52bd0c8ebbab69dc1e4392b9f7",
+          "hash": "e6d44fd1314d1e89a6ba1a17eb3e77730a30ee8c7a22b56fcfd882d80989f11c",
           "path": "src/Watchdog/Private/Invoke-WatchdogLoop.ps1"
         },
         {
-          "hash": "e7bc51bb95d3a996049b6bcfa08a181c25957f35a4449cea0d36d48ce5c59051",
+          "hash": "728c71df093b99d15803829981ec1519dcd6aefebc1aa07faa4eba8cdf0c7848",
           "path": "src/Watchdog/Private/Invoke-WslCacheRelease.ps1"
         },
         {
@@ -365,16 +365,12 @@
           "path": "src/Watchdog/Private/Parse-GpuSample.ps1"
         },
         {
-          "hash": "bc0ed6f41868ef985750cd5b4cd967fb5ec91e8ae37d744a046a683bd7407978",
+          "hash": "3c323e09664ad3cf832209b425c7f5ab1f0ec0ef1d86bb0c4f9434f83cff6c37",
           "path": "src/Watchdog/Private/Resolve-WatchdogConfig.ps1"
         },
         {
-          "hash": "c2f7f0045b1c4b920f812859c42c037e56474dfaab2d796957bf952a49eddc3b",
+          "hash": "b896c226a1f3cc7366706c18b371924b8035e209033c3299de975af9f7945c94",
           "path": "src/Watchdog/Private/Resolve-WatchdogPollLaunch.ps1"
-        },
-        {
-          "hash": "c6954e974a1ac55a307db940e8bdb9ff965e50fe4642b9400d4965d35a2c33ab",
-          "path": "src/Watchdog/Private/Test-WslRunning.ps1"
         },
         {
           "hash": "6ae4a6e7cc72bb8973877bb376555cffb48d20bd923454cc9f80283371dea453",
@@ -393,11 +389,11 @@
           "path": "src/Watchdog/Public/Install-Watchdog.ps1"
         },
         {
-          "hash": "f43a9bcfd1c374a9c5b7f42222419578899f8b8655c7834e0ed8413933f09c9b",
+          "hash": "549ac4fdadd9c0c2b1633cd9d2f4d55aac7f6eb4af3099e6cb24bdc83f414959",
           "path": "src/Watchdog/Public/Invoke-WatchdogPoll.ps1"
         },
         {
-          "hash": "60ab50ab6e4b7c0b406fb91d4ce349c3a748eb87cbebff2ddbe072e04fff2567",
+          "hash": "74dc3017707420d9964f4b4222b996c589391dccebc4ec827612bdf5a2d322ce",
           "path": "src/Watchdog/Public/Register-WatchdogPoll.ps1"
         },
         {
@@ -409,7 +405,7 @@
           "path": "src/Watchdog/Public/Stop-Watchdog.ps1"
         },
         {
-          "hash": "127cebb604554ac740fbb50a7680a6d7336a5fd6afac0e7dc248e09160a4b86f",
+          "hash": "e16a3613584c7ac7dcd6b1c291f4b237797a336cb88a5e89ccdcb47c1488ea26",
           "path": "src/Watchdog/Watchdog.psd1"
         },
         {
@@ -417,7 +413,7 @@
           "path": "src/Watchdog/Watchdog.psm1"
         },
         {
-          "hash": "04ec926a2f7adf2f9d0f72008af88d2c9cbb2bb4e9f17cd780ada1c47e013a4f",
+          "hash": "a9182596c75046e69800956313a5bac053ec129fe7bbbe269d1614553c63080e",
           "path": "src/Watchdog/config/watchdog.example.psd1"
         },
         {
@@ -448,11 +444,11 @@
       "externals": 0,
       "files": [
         {
-          "hash": "62c5e43c2dae177fa0cd02d26d75561da8f8663203a4408f3458e24cd94ead24",
+          "hash": "2270d2fa90822a2fd76530cef7b24120e552f3d067cd62c86621017202b736b4",
           "path": "tests/Cli.Tests.ps1"
         },
         {
-          "hash": "0f1a519b5685aa7f4c1e1dcda1f65ba3b1b09948dc9791dddb97a36200027eab",
+          "hash": "91ff61fff7d7b786dc74193233382636e94ddd7fa7a2db57ddf184b33255f5d4",
           "path": "tests/Config.Tests.ps1"
         },
         {
@@ -464,7 +460,7 @@
           "path": "tests/HeartbeatAge.Tests.ps1"
         },
         {
-          "hash": "1d5ff19b76877e2c519a09e7aee0bfb55efd052148bd751692e9fec6e497309c",
+          "hash": "6c73fdf5b526b6568855491c2a160760b399d7814bdd157bd61b93808c8c87f8",
           "path": "tests/Helpers.Tests.ps1"
         },
         {
@@ -476,11 +472,11 @@
           "path": "tests/Hysteresis.Tests.ps1"
         },
         {
-          "hash": "349ab1eb991288343832a1bc47565630b61fe02ad2fe0289859623ba302dd420",
+          "hash": "9a2e43bdaa70085d1f1afee48d7e8c979814d5f817b0109357249de58af26cb2",
           "path": "tests/Lifecycle.Tests.ps1"
         },
         {
-          "hash": "3c4dab8d5e9bd9fc48ba854a8f6ff362733657c9da7a36aea71d7468f852ec08",
+          "hash": "13f831a16d4094e33d88241de8d9af565625a8b4536858ce37a369395d6d85d3",
           "path": "tests/Loop.Tests.ps1"
         },
         {
@@ -488,11 +484,11 @@
           "path": "tests/ParseGpuSample.Tests.ps1"
         },
         {
-          "hash": "06f6f386794a9033c590541a57091c75b7252edfe3ed61f9aa9d400456a926b4",
+          "hash": "a75a63eda2981166b80297d194363f12a460071d90bbbdda4b9dc89597963b48",
           "path": "tests/Poller.Tests.ps1"
         },
         {
-          "hash": "a350a94ea121f91611955b39c206d7398464f009ec9b2bbf95ed6b582e0075ac",
+          "hash": "18a03b08d30cf154142923f9a0ad3b16d881263dcd97ca3d0e77d60e4f4fee5c",
           "path": "tests/WslCacheRelease.Tests.ps1"
         },
         {
@@ -636,6 +632,7 @@
           "paths": [
             ".github/workflows/**",
             "atlas/**",
+            "codecov.yml",
             "site/astro.config.mjs",
             "site/package-lock.json",
             "site/package.json",
@@ -650,6 +647,7 @@
           "paths": [
             ".github/workflows/**",
             "atlas/**",
+            "codecov.yml",
             "site/astro.config.mjs",
             "site/package-lock.json",
             "site/package.json",
@@ -865,8 +863,8 @@
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "5ca556ac1e223f060b599a4f87beb3e8c8011376",
-    "tracked": 90
+    "commit": "ed32ced68e7272cfb524450d56c4e222f93ea28c",
+    "tracked": 89
   },
   "landings": [
     {
