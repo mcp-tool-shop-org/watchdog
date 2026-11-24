@@ -71,7 +71,7 @@
           "path": "docs/open-decisions.md"
         },
         {
-          "hash": "01bb415d26bd0267fa13ac6fdaedc1bc10f27541a93801405af66fc5ac6be70b",
+          "hash": "36f64e2557cadefc09be3d975a3dbeba48786376aee262c6a60f14a7a9056e8f",
           "path": "docs/workflow-standards.md"
         }
       ],
@@ -141,6 +141,10 @@
           "path": ".gitignore"
         },
         {
+          "hash": "f042eae23ec2bab2106333b0ef2b9caac84c3ea588df5619ced63ecab0ae7f16",
+          "path": ".polyglot-pins.json"
+        },
+        {
           "hash": "d6709e2e547d6d6027bd6b35f7fbc9556482a024554a66057a6a24a1604d27ab",
           "path": "CHANGELOG.md"
         },
@@ -153,35 +157,35 @@
           "path": "LICENSE"
         },
         {
-          "hash": "e0d5005cfd70aa29526f404b411278cb66a68d89b200f563e5715a7f76ba52cf",
+          "hash": "33ecd7dee626c0c7f9b051916c8bc838d1ee9bf17a0a3f907036480ceed69f9c",
           "path": "README.es.md"
         },
         {
-          "hash": "e450d32c98271e703ef0f4586dd7d92dae58e7384d92280184eb9ac24da57b9c",
+          "hash": "40efd4c3bc598846b7f2f465c7eb05282edb6c50c2948e7bbe2ee53a23c0d3f1",
           "path": "README.fr.md"
         },
         {
-          "hash": "4a7211fc2b1fa77ea617fcdcde160314642856eb66ec9053a96b23becbd5b1a9",
+          "hash": "a10a21834138fcd1726d13263a83ebde11c2e3a962742d47fbee3bf9621ef22a",
           "path": "README.hi.md"
         },
         {
-          "hash": "f3756d9f55147cecde4c6cd5616afe41aba6ffda25aa4e6636a62db506a43417",
+          "hash": "1872d3f7a7e0d801bd417a898c8801aa097c7952abc36a215268dc8e8f46b0af",
           "path": "README.it.md"
         },
         {
-          "hash": "26c080ae8e8d73f6202a6556e5c35d5fee90362ab9cbfcccf747206f9d5dc31f",
+          "hash": "0f7bd1091cdf88a1c0b626e4b4cebc99755f041aaa5493bdc48ef45034181e05",
           "path": "README.ja.md"
         },
         {
-          "hash": "763c11d465588f2dbb2dc71e8e17a4700e3b48b7bffb69819042e72e381e2ad3",
+          "hash": "5e9dbd0a2b5496740c3be797efec9f68deb628388c491885666ccbc7e8ea9808",
           "path": "README.md"
         },
         {
-          "hash": "421a68b76bf672cdafab5e95a2d77bf7de1f46a70072e58192cb9138c97a73ee",
+          "hash": "069abdd249ae04e5679f799862187723c07e214e98c3d9c65cae7527788d3c55",
           "path": "README.pt-BR.md"
         },
         {
-          "hash": "097d876745e677f8942812941ebd72c187af0943b579f8b776fb1c0df2d6234d",
+          "hash": "70bae2c9d44d64bb1a348cafafe4f82864b016b58025a1a231295f4a819755fc",
           "path": "README.zh.md"
         },
         {
@@ -269,7 +273,7 @@
           "path": "site/src/content/docs/handbook/reference.md"
         },
         {
-          "hash": "55a503a8d9fbffd564964fb1eb0f2cca51dc7ea55cac69d11e9106532517fb55",
+          "hash": "767c91f71bc3a9263811abee63e5a8b9918e1237a351b8e5eecb77e3cf811ace",
           "path": "site/src/content/docs/handbook/security.md"
         },
         {
@@ -869,8 +873,8 @@
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "157f6d4c0b8278e2529fa5c92cc74b2fbd650bff",
-    "tracked": 88
+    "commit": "f4fbeb0796991e156ead1c6e27cdb237643718f6",
+    "tracked": 89
   },
   "landings": [
     {
