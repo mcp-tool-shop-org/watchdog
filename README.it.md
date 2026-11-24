@@ -8,7 +8,9 @@
 
 <p align="center">
   <a href="https://github.com/mcp-tool-shop-org/watchdog/actions/workflows/ci.yml"><img src="https://github.com/mcp-tool-shop-org/watchdog/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://codecov.io/gh/mcp-tool-shop-org/watchdog"><img src="https://codecov.io/gh/mcp-tool-shop-org/watchdog/graph/badge.svg" alt="Coverage"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
+  <a href="https://mcp-tool-shop-org.github.io/watchdog/"><img src="https://img.shields.io/badge/Landing_Page-live-blue" alt="Landing Page"></a>
 </p>
 
 # watchdog
@@ -21,13 +23,13 @@ watchdog start -AllowKill
 watchdog stop
 ```
 
-Non implementare manualmente un controllo dell'attività (heartbeat). Non effettuare il confronto dei processi in base a `_watchdog`. Questi due errori sono ciò che fa sembrare identici un watchdog funzionante e uno non funzionante.
+Non implementare manualmente un controllo dell'attività. Non effettuare il confronto dei processi in base a `_watchdog`. Questi due errori sono ciò che fa sembrare identici un watchdog non funzionante e uno funzionante.
 
-**La versione 1 è disponibile solo per Windows** (PowerShell 7, nvidia-smi, contatori di memoria dei processi WDDM, WSL `pkill` opzionale). Linux sarà disponibile in una versione successiva.
+**v1 è disponibile solo per Windows** (PowerShell 7, nvidia-smi, contatori di memoria dei processi WDDM, WSL `pkill` e rilascio della cache dei file WSL opzionali). Linux è una versione successiva.
 
 ## Installazione
 
-PowerShell 7.1 o superiore. Clona, copia il file di configurazione di esempio, modificalo e avvia:
+PowerShell 7.1+. Clona, copia il file di configurazione di esempio, modificalo, avvia:
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git
@@ -48,45 +50,50 @@ Get-WatchdogStatus
 Register-WatchdogPoll   # scheduled task: detect death, never restart
 ```
 
-`Install-Watchdog` copia il modulo nella directory dei moduli CurrentUser.
+`Install-Watchdog` copia il modulo nel percorso del modulo CurrentUser.
 
 ## Configurazione
 
-**Non sono presenti impostazioni predefinite per la directory principale né per l'elenco di processi da terminare.** Il modulo si rifiuta di avviarsi senza un file di configurazione. Ordine di ricerca: `-ConfigPath`, `$env:WATCHDOG_CONFIG`, `./watchdog.config.psd1`, `~/.watchdog/config.psd1`.
+Non sono presenti impostazioni predefinite per la directory principale né per la lista dei processi da terminare. Il modulo si rifiuta di avviarsi senza un file di configurazione. Ordine di ricerca: `-ConfigPath`, `$env:WATCHDOG_CONFIG`, `./watchdog.config.psd1`, `~/.watchdog/config.psd1`.
 
-Campi obbligatori: `Root`, `Targets`, `VramKillMiB`, `RamKillPct`, `TempKillC`. I percorsi relativi non sono accettati. Le scritture rimangono al di sotto di `Root`.
+Campi obbligatori: `Root`, `Targets`, `VramKillMiB`, `RamKillPct`, `TempKillC`. I percorsi relativi non sono accettati. Le scritture avvengono all'interno di `Root`.
 
-`VramKillMiB = 31200` è il limite documentato per una scheda da 32 GB (~1,4 GB inferiore al limite WDDM di 32607 MiB). **Non** aumentarlo per evitare che ComfyUI si blocchi; limita invece ComfyUI (`--reserve-vram`).
+`VramKillMiB = 31200` è il limite documentato per una scheda da 32 GB (~1,4 GB inferiore al limite WDDM di 32607 MiB). Non aumentarlo per evitare che si verifichino troppe interruzioni (ComfyUI); limita invece ComfyUI (`--reserve-vram`).
+
+### Rilascio della cache dei file WSL (opzionale)
+
+Con `WslCacheRelease = $true`, ogni controllo verifica la memoria della VM WSL dal lato Windows (non attiva mai una VM arrestata). Quando `vmmemWSL` è elevato o la memoria di Windows è sotto pressione e `vmmemWSL` è di dimensioni medie, il controllo elimina la cache delle pagine Linux in `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` come root, con un timeout e un periodo di attesa). Il `autoMemoryReclaim` di WSL stesso viene attivato solo quando la VM è inattiva e un motore di container in esecuzione la mantiene occupata, quindi il caricamento di immagini di grandi dimensioni può lasciare decine di GB di cache memorizzati su Windows.
+
+Non termina mai un processo. Registra i dati in `Root\_watchdog_wslcache.log`: un controllo dell'attività orario, ogni eliminazione con la memoria prima e dopo e un `ALERT` che indica i processi principali se Windows è ancora al di sopra di `WslCacheAlertPct`. Le soglie sono nel file di configurazione di esempio.
 
 ## Comandi
 
-| Comando | Funzione |
+| Comando | Cosa fa |
 |---|---|
 | `watchdog status` | Controllo dell'attività. L'unico controllo corretto. |
-| `watchdog start -AllowKill` | Arresto del sentinel, attesa, cancellazione, avvio in background, verifica dell'attività. |
-| `watchdog stop` | ARRESTO del sentinel, attesa. Non effettuare mai il confronto dei processi. |
-| `watchdog poll` | Esecuzione singola: se l'attività è scaduta, scrivi `_watchdog_DEAD` dall'esterno. |
+| `watchdog start -AllowKill` | Arresto del sentinella, attesa, cancellazione, avvio in background, verifica del controllo dell'attività |
+| `watchdog stop` | ARRESTO del sentinella, attesa. Non effettuare mai il confronto dei processi. |
+| `watchdog poll` | Esecuzione singola: se il controllo dell'attività è obsoleto, scrivi `_watchdog_DEAD` dall'esterno |
 | `watchdog help` | Flag e codici di uscita |
-| `watchdog version` | `1.0.0` |
+| `watchdog version` | `1.1.0` |
 
-Codici di uscita `status` / `poll`: **0** in esecuzione · **1** nessuna attività · **2** scaduta. `start` utilizza anche **3** (VRAM già oltre il limite), **4** (il ciclo precedente non si è arrestato), **5** (nessuna attività dopo l'avvio).
+Codici di uscita `status` / `poll`: **0** in esecuzione · **1** nessun controllo dell'attività · **2** obsoleto. `start` utilizza anche **3** (VRAM già al di sopra del limite), **4** (il ciclo precedente non si è arrestato), **5** (nessun controllo dell'attività dopo l'avvio).
 
-`-Hook` on status emits Claude Code SessionStart JSON and always exits 0
-so a dead watchdog cannot break session start.
+`-Hook` sullo stato emette il JSON di Claude Code SessionStart ed esce sempre con 0, in modo che un watchdog non funzionante non possa interrompere l'avvio della sessione.
 
-## Processi terminati
+## Cosa termina
 
-Solo i processi `python` il cui `Path` è presente in `Targets`, più un pattern WSL `pkill -f` opzionale (vuoto = disabilitato). Gli altri processi Python vengono risparmiati. Una violazione che non corrisponde a nulla scrive `_watchdog_NO_TARGET`: si tratta di una **lacuna** nella protezione, non di un successo.
+Solo i processi `python` il cui `Path` è in `Targets`, più un pattern WSL `pkill -f` opzionale (vuoto = disabilitato). Gli altri processi Python vengono risparmiati. Un'interruzione che non corrisponde a nulla scrive `_watchdog_NO_TARGET`: si tratta di una **lacuna** nella protezione, non di un successo.
 
-Consenso: `-AllowKill` (o `AllowKill = $true` nel file di configurazione). Il processo di polling non termina mai i processi né li riavvia automaticamente; il riavvio automatico può interrompere un lavoro in corso.
+Consenso: `-AllowKill` (o `AllowKill = $true` nel file di configurazione). Il controllo non termina mai i processi né li riavvia automaticamente; il riavvio automatico può interrompere un lavoro in corso.
 
-## Modello delle minacce
+## Modello di minaccia
 
-- **Accesso:** ai file presenti in `Root` (attività, CSV, log di terminazione/console/crash, sentinel); elenco dei processi; contatori GPU; pkill WSL locale opzionale.
-- **Non accessibile:** al codice sorgente, ai checkpoint, alle credenziali, alla rete.
-- **Autorizzazioni:** l'utente che lo avvia può terminare i processi configurati. Non è presente alcun account di servizio aggiuntivo.
+- **Accesso:** file in `Root` (controllo dell'attività, CSV, log di terminazione/console/crash, sentinelle); elenco dei processi; contatori della GPU; pkill WSL locale opzionale; eliminazione opzionale della cache delle pagine WSL (opzionale, non causa mai l'interruzione di un processo).
+- **Non accessibile:** l'albero di origine, i checkpoint, le credenziali, la rete.
+- **Autorizzazioni:** l'utente che lo avvia può terminare gli interpreti configurati. Non è presente alcun account di servizio aggiuntivo.
 - **Nessun telemetria** lascia la macchina. Nessun segreto nei log.
-- **Azione irreversibile:** ARRESTO. Vedi [docs/compensators.md](docs/compensators.md).
+- **Azione irreversibile:** ABORT. Vedi [docs/compensators.md](docs/compensators.md).
 
 ## Test
 
@@ -94,11 +101,13 @@ Consenso: `-AllowKill` (o `AllowKill = $true` nel file di configurazione). Il pr
 pwsh -File .\verify.ps1
 ```
 
-32 test unitari, senza GPU. Gli elementi di test del parser includono l'output nvidia-smi non valido che ha causato l'interruzione del ciclo il 12 giugno 2026. Il test di interruzione hardware rimane locale e non viene eseguito in CI.
+106 test unitari, senza GPU. I test includono l'output nvidia-smi non valido che ha causato l'interruzione del ciclo il 12-06-2026. Il test di interruzione hardware rimane locale e non viene eseguito in CI.
+
+`pwsh -File .\verify.ps1 -Coverage` aggiunge la misurazione della copertura del codice per `src/Watchdog` e segnala errori se la copertura è inferiore al 90%. Il sistema di integrazione continua (CI) esegue il test in questo modo e carica il report su Codecov, che richiede una copertura di almeno il 90% per l’intero modulo e per ogni modifica.
 
 ## Origine
 
-Questo è un estratto di un watchdog che era già in esecuzione su una scheda 5090. Gli script pre-estrazione sono stati salvati in [`origin/`](origin/) con hash SHA-256. Gli incidenti datati (errore di analisi, lacuna di cinque settimane, ai-toolkit non protetto, 153 arresti vuoti, interruzione dopo un solo campione) sono disponibili in [docs/incidents.md](docs/incidents.md).
+Questo è un estratto di un watchdog che è già stato eseguito su una 5090. Gli script pre-estrazione sono stati congelati in [`origin/`](origin/) con SHA-256 pin. Gli incidenti datati (crash dell'analisi, vuoto di cinque settimane, ai-toolkit non protetto, 153 ABORT vuoti, morte con un solo campione) sono in [docs/incidents.md](docs/incidents.md).
 
 ## Licenza
 

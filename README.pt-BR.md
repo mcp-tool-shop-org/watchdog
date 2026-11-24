@@ -8,12 +8,14 @@
 
 <p align="center">
   <a href="https://github.com/mcp-tool-shop-org/watchdog/actions/workflows/ci.yml"><img src="https://github.com/mcp-tool-shop-org/watchdog/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://codecov.io/gh/mcp-tool-shop-org/watchdog"><img src="https://codecov.io/gh/mcp-tool-shop-org/watchdog/graph/badge.svg" alt="Coverage"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
+  <a href="https://mcp-tool-shop-org.github.io/watchdog/"><img src="https://img.shields.io/badge/Landing_Page-live-blue" alt="Landing Page"></a>
 </p>
 
 # sentinela
 
-Sentinela de VRAM/RAM/temperatura do Windows para GPUs NVIDIA. Ele faz uma amostragem a cada 2 segundos. Após 3 violações consecutivas, ele encerra **apenas** os interpretadores que você listou — e informa isso quando uma violação não causa nenhum efeito.
+Sentinela VRAM/RAM/temperatura para GPUs NVIDIA no Windows. Ele faz uma leitura a cada 2 segundos. Após 3 violações consecutivas, ele encerra **apenas** os processos que você listou — e informa isso quando uma violação não causa nenhum efeito.
 
 ```powershell
 watchdog status    # exit 0 running · 1 no heartbeat · 2 stale (died hard)
@@ -21,9 +23,9 @@ watchdog start -AllowKill
 watchdog stop
 ```
 
-Não crie manualmente uma verificação de "heartbeat". Não faça correspondência de processos com `_watchdog`. Esses dois erros são o que fazem com que uma sentinela inativa e uma sentinela ativa pareçam idênticas.
+Não crie manualmente uma verificação de "heartbeat". Não use correspondência de processos em `_watchdog`. Esses dois erros são o que fazem com que uma sentinela inativa e uma sentinela ativa pareçam idênticas.
 
-**A versão 1 é apenas para Windows** (PowerShell 7, nvidia-smi, contadores de memória de processo WDDM, WSL `pkill` opcional). O Linux é uma versão posterior.
+**v1 é exclusivo para Windows** (PowerShell 7, nvidia-smi, contadores de memória de processo WDDM, WSL `pkill` e liberação do cache de arquivos WSL opcionais). O Linux é uma versão posterior.
 
 ## Instalação
 
@@ -52,40 +54,46 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 
 ## Configuração
 
-Não há configuração padrão e nem lista de processos a serem encerrados por padrão. O módulo se recusa a iniciar sem uma configuração. Ordem de pesquisa: `-ConfigPath`, `$env:WATCHDOG_CONFIG`, `./watchdog.config.psd1`, `~/.watchdog/config.psd1`.
+Não há diretório raiz padrão nem lista de processos a serem encerrados por padrão. O módulo se recusa a iniciar sem uma configuração. Ordem de pesquisa: `-ConfigPath`, `$env:WATCHDOG_CONFIG`, `./watchdog.config.psd1`, `~/.watchdog/config.psd1`.
 
 Campos obrigatórios: `Root`, `Targets`, `VramKillMiB`, `RamKillPct`, `TempKillC`. Caminhos relativos são rejeitados. As gravações permanecem abaixo de `Root`.
 
-`VramKillMiB = 31200` é o limite documentado para uma placa de 32 GB (~1,4 GB abaixo do limite WDDM de 32607 MiB). Não aumente esse valor para interromper as execuções do ComfyUI — em vez disso, defina um limite para o ComfyUI (`--reserve-vram`).
+`VramKillMiB = 31200` é o limite documentado para uma placa de 32 GB (~1,4 GB abaixo do limite de 32607 MiB WDDM). Não aumente esse valor para evitar que ComfyUI cause problemas — limite ComfyUI (`--reserve-vram`) em vez disso.
+
+### Liberação do cache de arquivos WSL (opcional)
+
+Com `WslCacheRelease = $true`, cada leitura verifica a memória da VM WSL a partir do lado do Windows (nunca ativa uma VM parada). Quando `vmmemWSL` é grande ou a memória do Windows está sob pressão e `vmmemWSL` é de tamanho médio, o verificador libera o cache de páginas do Linux em `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` como root, com um tempo limite e um período de espera). O próprio `autoMemoryReclaim` do WSL só é acionado quando a VM está inativa, e um mecanismo de contêiner em execução a mantém ativa, portanto, o download de imagens grandes pode deixar dezenas de GB de cache armazenados no Windows.
+
+Ele nunca encerra um processo. Ele registra em `Root\_watchdog_wslcache.log`: um "heartbeat" por hora, cada liberação com a memória antes e depois, e um `ALERT` que lista os principais processos se o Windows ainda estiver acima de `WslCacheAlertPct` depois. Os limites estão no arquivo de configuração de exemplo.
 
 ## Comandos
 
 | Comando | O que ele faz |
 |---|---|
 | `watchdog status` | Verificação de atividade. A única verificação correta. |
-| `watchdog start -AllowKill` | Parada do sentinela, espera, limpeza, lançamento independente, verificação do "heartbeat". |
-| `watchdog stop` | PARE o sentinela, espere. Nunca faça correspondência de processos. |
+| `watchdog start -AllowKill` | Parada da sentinela, espera, limpeza, lançamento independente, verificação do "heartbeat". |
+| `watchdog stop` | PARE a sentinela, espere. Nunca use correspondência de processos. |
 | `watchdog poll` | Execução única: se o "heartbeat" estiver desatualizado, grave `_watchdog_DEAD` externamente. |
-| `watchdog help` | Flags e códigos de saída |
-| `watchdog version` | `1.0.0` |
+| `watchdog help` | Sinais e códigos de saída |
+| `watchdog version` | `1.1.0` |
 
 Códigos de saída `status` / `poll`: **0** em execução · **1** sem "heartbeat" · **2** desatualizado. `start` também usa **3** (VRAM já acima do limite), **4** (o loop anterior não parou), **5** (sem "heartbeat" após o lançamento).
 
-Em caso de status, `-Hook` emite JSON da Sessão Claude Code e sempre sai com código 0, para que uma sentinela inativa não interrompa o início da sessão.
+`-Hook` no status emite o JSON do Claude Code SessionStart e sempre sai com 0, para que uma sentinela inativa não interrompa o início da sessão.
 
 ## O que ele encerra
 
-Apenas processos `python` cujo `Path` está em `Targets`, mais um padrão WSL `pkill -f` opcional (vazio = desativado). Outros programas Python são preservados. Uma violação que não corresponde a nada grava `_watchdog_NO_TARGET` — isso é uma **lacuna** de proteção, e não sucesso.
+Apenas os processos `python` cujo `Path` está em `Targets`, mais um padrão WSL `pkill -f` opcional (vazio = desativado). Outros processos Python são preservados. Uma violação que não corresponde a nada grava `_watchdog_NO_TARGET` — isso é uma **lacuna** de proteção, não um sucesso.
 
-Consentimento: `-AllowKill` (ou `AllowKill = $true` na configuração). O verificador nunca encerra processos e nunca reinicia automaticamente; o reinício automático pode abortar um trabalho em andamento.
+Consentimento: `-AllowKill` (ou `AllowKill = $true` na configuração). O verificador nunca encerra processos e nunca os reinicia automaticamente; o reinício automático pode abortar um trabalho em andamento.
 
 ## Modelo de ameaças
 
-- **Acessado:** arquivos em `Root` (heartbeat, CSV, logs de encerramento/console/travamento, sentinelas); lista de processos; contadores da GPU; pkill local WSL opcional.
-- **Não acessado:** sua árvore de código-fonte, checkpoints, credenciais, a rede.
-- **Permissões:** o usuário que o inicia pode encerrar os interpretadores configurados. Não há conta de serviço extra.
+- **Acessado:** arquivos em `Root` ("heartbeat", CSV, logs de encerramento/console/travamento, sentinelas); lista de processos; contadores da GPU; pkill local WSL opcional; liberação opcional do cache de páginas WSL (opcional, nunca um encerramento).
+- **Não acessado:** sua árvore de código-fonte, pontos de verificação, credenciais, a rede.
+- **Permissões:** o usuário que o inicia pode encerrar os processos configurados. Não há conta de serviço extra.
 - **Nenhuma telemetria** sai da máquina. Sem segredos nos logs.
-- **Ação irreversível:** ABORTAR. Consulte [docs/compensators.md](docs/compensators.md).
+- **Ação irreversível:** ABORT. Consulte [docs/compensators.md](docs/compensators.md).
 
 ## Testes
 
@@ -93,11 +101,13 @@ Consentimento: `-AllowKill` (ou `AllowKill = $true` na configuração). O verifi
 pwsh -File .\verify.ps1
 ```
 
-32 testes unitários, sem GPU. Os casos de teste do analisador incluem a saída malformada do nvidia-smi que interrompeu o loop em 12 de junho de 2026. O teste de aborto de hardware permanece local e não é incluído nos testes automatizados (CI).
+106 testes unitários, sem GPU. Os casos de teste do analisador incluem a saída malformada do nvidia-smi que interrompeu o loop em 12 de junho de 2026. O teste de aborto de hardware permanece local e não é executado no CI.
+
+`pwsh -File .\verify.ps1 -Coverage` adiciona a análise da cobertura de linhas do `src/Watchdog` e falha se o resultado for inferior a 90%. O sistema de integração contínua (CI) executa o teste dessa forma e envia o relatório para o Codecov, que exige uma cobertura de pelo menos 90% para todo o módulo e para cada alteração.
 
 ## Origem
 
-Este é um trecho de uma sentinela que já estava em execução em uma 5090. Os scripts pré-extração estão congelados em [`origin/`](origin/) com hashes SHA-256. Incidentes datados (análise de travamento, lacuna de cinco semanas, ai-toolkit não protegido, 153 ABORTs vazios, morte em uma amostra) estão em [docs/incidents.md](docs/incidents.md).
+Este é um trecho de uma sentinela que já estava em execução em uma 5090. Os scripts de pré-extração estão congelados em [`origin/`](origin/) com SHA-256 fixações. Incidentes datados (travamento do analisador, lacuna de cinco semanas, ai-toolkit não protegido, 153 ABORTs vazios, morte em uma amostra) estão em [docs/incidents.md](docs/incidents.md).
 
 ## Licença
 
