@@ -29,7 +29,7 @@ Include:
 
 Watchdog is a **local Windows** PowerShell module. It samples NVIDIA GPU temp/power/VRAM and system RAM, and on a sustained breach it **kills configured interpreter processes**.
 
-- **Data touched:** files under the configured `Root` (heartbeat, CSV telemetry, kill log, console/crash logs, STOP/TRIPPED/DEAD/NO_TARGET sentinels); process list and GPU counters; optional WSL `pkill` of a configured pattern.
+- **Data touched:** files under the configured `Root` (heartbeat, CSV telemetry, kill log, console/crash logs, STOP/TRIPPED/DEAD/NO_TARGET sentinels); process list and GPU counters; optional WSL `pkill` of a configured pattern; optional WSL page-cache drop (`WslCacheRelease`, off by default): `sync` and `echo 1 > /proc/sys/vm/drop_caches` as root in `WslDistro`, only while that distro is already running. The drop never kills a process and never starts a stopped VM or distro.
 - **Data NOT touched:** source trees, model weights, training checkpoints, credentials, cloud APIs.
 - **No network egress.** nvidia-smi and WDDM counters are local. WSL interop is local.
 - **No secrets handling.** Config is a PowerShell data file of paths and integers.
