@@ -34,6 +34,10 @@
         {
           "hash": "868b3a4efc5edcabe1f369a07bad1464e2526c517c459fb68a35d1669dcdbf43",
           "path": ".github/workflows/ci.yml"
+        },
+        {
+          "hash": "093f4ab76b2148bdf4ae9b5ce1f36617cfc4b218bdb8d8c6c967f8b43fa60a67",
+          "path": ".github/workflows/pages.yml"
         }
       ],
       "globs": [
@@ -137,10 +141,6 @@
           "path": ".gitignore"
         },
         {
-          "hash": "8b015f9a359a1c04fc50eb651211777046f3595addc07f9a7a7ae585c92d341d",
-          "path": "CHANGELOG.md"
-        },
-        {
           "hash": "af6c396dd794b80a1d3d3f529ced3ece1f6fdf2225a67c4a6e453ac2cabee3a5",
           "path": "HANDBOOK.md"
         },
@@ -167,10 +167,6 @@
         {
           "hash": "26c080ae8e8d73f6202a6556e5c35d5fee90362ab9cbfcccf747206f9d5dc31f",
           "path": "README.ja.md"
-        },
-        {
-          "hash": "dcff3c14c6714b4f74e6799f1c870014d461afbb1fdacc55c50ff0c62275bb58",
-          "path": "README.md"
         },
         {
           "hash": "421a68b76bf672cdafab5e95a2d77bf7de1f46a70072e58192cb9138c97a73ee",
@@ -659,13 +655,214 @@
         "codecov/codecov-action"
       ],
       "usesWorkflowToken": false
+    },
+    {
+      "checksCount": 0,
+      "commands": [
+        {
+          "dir": "site",
+          "job": "build",
+          "programs": [
+            "npm"
+          ],
+          "step": "Install site dependencies"
+        },
+        {
+          "dir": "site",
+          "job": "build",
+          "programs": [
+            "npm"
+          ],
+          "step": "Dependency audit"
+        },
+        {
+          "dir": "site",
+          "job": "build",
+          "programs": [
+            "npm"
+          ],
+          "step": "Build site"
+        },
+        {
+          "dir": "",
+          "job": "deploy",
+          "programs": [
+            "curl",
+            "echo",
+            "probe",
+            "sleep"
+          ],
+          "step": "Verify landing page and handbook return 200"
+        }
+      ],
+      "elsewhere": [],
+      "file": ".github/workflows/pages.yml",
+      "gated": [
+        {
+          "jobs": [
+            "build",
+            "deploy"
+          ],
+          "pushes": false,
+          "sends": [
+            "deploysPages"
+          ],
+          "stages": [],
+          "when": {
+            "branches": [
+              "main"
+            ],
+            "byHand": true,
+            "event": "push"
+          }
+        }
+      ],
+      "jobs": [
+        {
+          "basis": "declared",
+          "name": "build",
+          "runsOn": [
+            {
+              "labels": [
+                "ubuntu-latest"
+              ],
+              "platform": {
+                "cpu": "x64",
+                "libc": "glibc",
+                "os": "linux"
+              }
+            }
+          ],
+          "setup": [
+            {
+              "ranges": [
+                {
+                  "from": "24",
+                  "range": ">=24.0.0 <25.0.0-0"
+                }
+              ],
+              "step": "1",
+              "uses": "actions/setup-node",
+              "version": "24"
+            }
+          ]
+        },
+        {
+          "basis": "declared",
+          "environment": {
+            "name": "github-pages"
+          },
+          "name": "deploy",
+          "runsOn": [
+            {
+              "labels": [
+                "ubuntu-latest"
+              ],
+              "platform": {
+                "cpu": "x64",
+                "libc": "glibc",
+                "os": "linux"
+              }
+            }
+          ]
+        }
+      ],
+      "landings": [],
+      "mentions": [],
+      "name": "Deploy site to GitHub Pages",
+      "permissions": [
+        "contents:read",
+        "id-token:write",
+        "pages:write"
+      ],
+      "pushes": false,
+      "reach": [
+        {
+          "boundary": "site",
+          "depth": 0,
+          "files": 5
+        }
+      ],
+      "readers": [],
+      "runs": [
+        {
+          "job": "build",
+          "matched": true,
+          "path": "site/astro.config.mjs",
+          "runKind": "executes",
+          "via": "astro build",
+          "when": {
+            "branches": [
+              "main"
+            ],
+            "byHand": true,
+            "event": "push"
+          }
+        },
+        {
+          "directory": true,
+          "job": "build",
+          "matched": true,
+          "path": "site/src/",
+          "runKind": "executes",
+          "via": "astro build",
+          "when": {
+            "branches": [
+              "main"
+            ],
+            "byHand": true,
+            "event": "push"
+          }
+        }
+      ],
+      "runsCount": 2,
+      "secrets": [],
+      "sends": {
+        "deploysPages": false,
+        "dispatchesTo": [],
+        "opensIssues": false,
+        "opensIssuesOnFailure": false,
+        "opensPullRequests": false,
+        "publishes": false,
+        "publishesTo": [],
+        "releases": false
+      },
+      "stages": [],
+      "triggers": [
+        {
+          "branches": [
+            "main"
+          ],
+          "event": "push",
+          "paths": [
+            ".github/workflows/pages.yml",
+            "site/**"
+          ]
+        },
+        {
+          "event": "release",
+          "types": [
+            "published"
+          ]
+        },
+        {
+          "event": "workflow_dispatch"
+        }
+      ],
+      "uses": [
+        "actions/checkout",
+        "actions/deploy-pages",
+        "actions/setup-node",
+        "actions/upload-pages-artifact"
+      ],
+      "usesWorkflowToken": false
     }
   ],
   "edges": [],
   "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "6e018c7b585039035c3ec0dd1dfd6d7126c28e17",
-    "tracked": 87
+    "commit": "b61a16fbdf05c482b702e2b12cb9f10f777327f2",
+    "tracked": 86
   },
   "landings": [
     {
