@@ -3,18 +3,18 @@ BeforeAll {
   Import-Module (Join-Path $script:WatchdogModule 'Watchdog.psd1') -Force
 }
 
-AfterAll {
-  InModuleScope Watchdog {
-    Remove-Item function:script:nvidia-smi -ErrorAction SilentlyContinue
-  }
-}
-
 # Start-Process, Start-Sleep, Get-Date, the scheduled-task cmdlets, Copy-Item and Remove-Item are mocked inside
 # the module for every test that reaches them. No loop is launched, no task is registered, no module is copied.
 Describe 'Get-WatchdogStatus' {
   BeforeEach {
     $script:stRoot = Get-WatchdogTestDir ('status-' + [guid]::NewGuid().ToString('N'))
     $script:stCfg = New-WatchdogTestConfig -Root $script:stRoot
+  }
+
+  AfterEach {
+    InModuleScope Watchdog {
+      Remove-Item function:script:nvidia-smi -ErrorAction SilentlyContinue
+    }
   }
 
   It 'reports a live watchdog with exit 0 and one line when -Brief' {
@@ -93,6 +93,12 @@ Describe 'Start-Watchdog' {
     $script:sCfg = New-WatchdogTestConfig -Root $script:sRoot -AllowKill $true
   }
 
+  AfterEach {
+    InModuleScope Watchdog {
+      Remove-Item function:script:nvidia-smi -ErrorAction SilentlyContinue
+    }
+  }
+
   It 'launches detached and verifies the heartbeat' {
     InModuleScope Watchdog -Parameters @{ Root = $script:sRoot; Cfg = $script:sCfg } {
       param($Root, $Cfg)
@@ -104,7 +110,25 @@ Describe 'Start-Watchdog' {
       $LASTEXITCODE | Should -Be 0
       $out | Should -Match 'no watchdog running'
       $out | Should -Match 'watchdog UP — kill@ VRAM 31200 MiB'
-      Should -Invoke Start-Process -Times 1 -Exactly -ParameterFilter { $FilePath -eq 'pwsh' -and $WindowStyle -eq 'Hidden' }
+      Should -Invoke Start-Process -Times 1 -Exactly -ParameterFilter { $FilePath -eq 'pwsh' -and $WindowStyle -eq 'Hidden' -and ($ArgumentList -contains '-AllowKill') }
+    }
+  }
+
+  It 'forwards -AllowKill to watchdog-loop.ps1 when started with -AllowKill and AllowKill = $false in config' {
+    $noKillRoot = Get-WatchdogTestDir ('start-flagkill-' + [guid]::NewGuid().ToString('N'))
+    $noKillCfg = New-WatchdogTestConfig -Root $noKillRoot -AllowKill $false
+    InModuleScope Watchdog -Parameters @{ Root = $noKillRoot; Cfg = $noKillCfg } {
+      param($Root, $Cfg)
+      $script:T = Get-WatchdogPaths -Root $Root
+      function script:nvidia-smi { '1000' }
+      Mock Start-Process { Get-WatchdogTimestamp | Set-Content $script:T.Heartbeat }
+      Mock Start-Sleep { }
+      $out = (Start-Watchdog -ConfigPath $Cfg -AllowKill) -join "`n"
+      $LASTEXITCODE | Should -Be 0
+      $out | Should -Match 'watchdog UP'
+      Should -Invoke Start-Process -Times 1 -Exactly -ParameterFilter {
+        $FilePath -eq 'pwsh' -and $WindowStyle -eq 'Hidden' -and ($ArgumentList -contains '-AllowKill')
+      }
     }
   }
 
@@ -114,10 +138,15 @@ Describe 'Start-Watchdog' {
       $script:T = Get-WatchdogPaths -Root $Root
       function script:nvidia-smi { '1000' }
       Get-WatchdogTimestamp | Set-Content $script:T.Heartbeat
-      Mock Start-Sleep { Remove-Item $script:T.Heartbeat -ErrorAction SilentlyContinue }
+      $script:sawStopInSleep = $false
+      Mock Start-Sleep {
+        $script:sawStopInSleep = Test-Path -LiteralPath $script:T.Stop
+        Remove-Item $script:T.Heartbeat -ErrorAction SilentlyContinue
+      }
       Mock Start-Process { Get-WatchdogTimestamp | Set-Content $script:T.Heartbeat }
       $out = (Start-Watchdog -ConfigPath $Cfg) -join "`n"
       $LASTEXITCODE | Should -Be 0
+      $script:sawStopInSleep | Should -BeTrue
       $out | Should -Match 'requesting stop via sentinel'
       $out | Should -Match 'old watchdog stopped'
       Test-Path $script:T.Stop | Should -BeFalse
@@ -149,6 +178,14 @@ Describe 'Start-Watchdog' {
       Start-Watchdog -ConfigPath $Cfg 2>$null
       $LASTEXITCODE | Should -Be 3
       Should -Invoke Start-Process -Times 0 -Exactly
+
+      $script:T = Get-WatchdogPaths -Root $Root
+      Mock Start-Sleep { }
+      Mock Start-Process { Get-WatchdogTimestamp | Set-Content $script:T.Heartbeat }
+      $out = (Start-Watchdog -ConfigPath $Cfg -Force) -join "`n"
+      $LASTEXITCODE | Should -Be 0
+      $out | Should -Match 'watchdog UP — kill@ VRAM 31200 MiB'
+      Should -Invoke Start-Process -Times 1 -Exactly
     }
   }
 
@@ -249,7 +286,8 @@ Describe 'Register-WatchdogPoll / Unregister-WatchdogPoll' {
       Mock Invoke-WatchdogPollTaskProbe { [pscustomobject]@{ State = 'RUNNING'; Exit = 0; LastTaskResult = 0 } }
       (Register-WatchdogPoll -ConfigPath $Cfg) | Should -Match 'every 60s \(detects death, never kills or restarts\); its first run polled and saw RUNNING'
       Should -Invoke New-ScheduledTaskTrigger -Times 1 -Exactly -ParameterFilter { $RepetitionInterval.TotalSeconds -eq 60 -and $RepetitionDuration.TotalDays -eq 3650 }
-      Should -Invoke Register-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' }
+      Should -Invoke Register-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' -and $TaskPath -eq '\' }
+      Should -Invoke Get-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' -and $TaskPath -eq '\' }
       Should -Invoke New-ScheduledTaskAction -Times 1 -Exactly -ParameterFilter {
         $Execute -like '*\System32\conhost.exe' -and
         $Argument -like '--headless "C:\Program Files\PowerShell\7\pwsh.exe" -NoProfile -ExecutionPolicy Bypass -Command "Import-Module -Force *Watchdog.psd1''; Invoke-WatchdogPoll -ConfigPath *"'
@@ -384,6 +422,82 @@ Describe 'Register-WatchdogPoll / Unregister-WatchdogPoll' {
     }
   }
 
+  It 'refuses a non-writable Root on non-terminating probe write failure and runs finally cleanup' {
+    InModuleScope Watchdog -Parameters @{ Cfg = $script:rCfg } {
+      param($Cfg)
+      $prevEap = $ErrorActionPreference
+      try {
+        $ErrorActionPreference = 'Continue'
+        Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
+        Mock Set-Content { Write-Error 'Access to the path is denied.' -Category PermissionDenied } -ParameterFilter { "$LiteralPath" -like '*_watchdog_write_probe_*' }
+        Mock Remove-Item { } -ParameterFilter { "$LiteralPath" -like '*_watchdog_write_probe_*' }
+        Mock New-ScheduledTaskAction { 'action' }
+        Mock Register-ScheduledTask { } -RemoveParameterType 'Action', 'Trigger', 'Settings', 'Principal'
+        { Register-WatchdogPoll -ConfigPath $Cfg } | Should -Throw '*Root is not writable or the probe file could not be removed*Access to the path is denied.*'
+        Should -Invoke Remove-Item -Times 1 -Exactly -ParameterFilter { "$LiteralPath" -like '*_watchdog_write_probe_*' }
+        Should -Invoke New-ScheduledTaskAction -Times 0 -Exactly
+        Should -Invoke Register-ScheduledTask -Times 0 -Exactly
+      } finally {
+        $ErrorActionPreference = $prevEap
+      }
+    }
+  }
+
+  It 'refuses registration when deleting the write probe hits a non-terminating error and cleans up in finally' {
+    $parent = Get-WatchdogTestDir ('reg-probe-del-' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    $probeRoot = Join-Path $parent 'state'
+    $cfgCopy = Join-Path $parent 'watchdog.config.psd1'
+    (Get-Content -LiteralPath $script:rCfg -Raw) -replace "Root = '[^']*'", ("Root = '" + $probeRoot.Replace('\', '\\') + "'") | Set-Content -LiteralPath $cfgCopy
+    InModuleScope Watchdog -Parameters @{ Cfg = $cfgCopy } {
+      param($Cfg)
+      $prevEap = $ErrorActionPreference
+      $script:probeDelCalls = 0
+      try {
+        $ErrorActionPreference = 'Continue'
+        Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
+        Mock New-ScheduledTaskAction { 'action' }
+        Mock Register-ScheduledTask { } -RemoveParameterType 'Action', 'Trigger', 'Settings', 'Principal'
+        Mock Remove-Item {
+          $script:probeDelCalls++
+          if ($script:probeDelCalls -eq 1) {
+            Write-Error 'Cannot delete probe file.' -Category WriteError
+          } else {
+            [System.IO.File]::Delete($LiteralPath)
+          }
+        } -ParameterFilter { "$LiteralPath" -like '*_watchdog_write_probe_*' }
+        { Register-WatchdogPoll -ConfigPath $Cfg } | Should -Throw '*Root is not writable or the probe file could not be removed*Cannot delete probe file.*'
+        $script:probeDelCalls | Should -Be 2
+        Should -Invoke Register-ScheduledTask -Times 0 -Exactly
+      } finally {
+        $ErrorActionPreference = $prevEap
+      }
+    }
+    @(Get-ChildItem -LiteralPath $probeRoot -Filter '_watchdog_write_probe_*').Count | Should -Be 0
+  }
+
+  It 'probes and cleans up under a Root containing brackets' {
+    $parent = Get-WatchdogTestDir ('reg-brackets-' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    $bracketRoot = Join-Path $parent 'slot[1]'
+    $cfgCopy = Join-Path $parent 'watchdog.config.psd1'
+    (Get-Content -LiteralPath $script:rCfg -Raw) -replace "Root = '[^']*'", ("Root = '" + $bracketRoot.Replace('\', '\\') + "'") | Set-Content -LiteralPath $cfgCopy
+    InModuleScope Watchdog -Parameters @{ Cfg = $cfgCopy } {
+      param($Cfg)
+      Mock Resolve-WatchdogPwshPath { 'C:\Program Files\PowerShell\7\pwsh.exe' }
+      Mock New-ScheduledTaskAction { $script:regExecute = $Execute; $script:regArgument = $Argument; 'action' }
+      Mock New-ScheduledTaskTrigger { 'trigger' }
+      Mock New-ScheduledTaskSettingsSet { 'settings' }
+      Mock New-ScheduledTaskPrincipal { 'principal' }
+      Mock Register-ScheduledTask { } -RemoveParameterType 'Action', 'Trigger', 'Settings', 'Principal'
+      Mock Get-ScheduledTask { [pscustomobject]@{ TaskName = 'MCPToolShop.Watchdog.Poll'; Actions = @([pscustomobject]@{ Execute = $script:regExecute; Arguments = $script:regArgument }) } }
+      Mock Invoke-WatchdogPollTaskProbe { [pscustomobject]@{ State = 'NOT_RUNNING'; Exit = 1; LastTaskResult = 0 } }
+      (Register-WatchdogPoll -ConfigPath $Cfg) | Should -Match 'registered scheduled task'
+    }
+    Test-Path -LiteralPath $bracketRoot -PathType Container | Should -BeTrue
+    @(Get-ChildItem -LiteralPath $bracketRoot -Filter '_watchdog_write_probe_*').Count | Should -Be 0
+  }
+
   It 'throws instead of printing success when the task did not appear' {
     InModuleScope Watchdog -Parameters @{ Cfg = $script:rCfg } {
       param($Cfg)
@@ -409,9 +523,67 @@ Describe 'Register-WatchdogPoll / Unregister-WatchdogPoll' {
 
   It 'unregisters the task by name' {
     InModuleScope Watchdog {
+      Mock Get-ScheduledTask { [pscustomobject]@{ TaskName = 'MCPToolShop.Watchdog.Poll' } }
       Mock Unregister-ScheduledTask { }
       (Unregister-WatchdogPoll) | Should -Match 'unregistered scheduled task MCPToolShop.Watchdog.Poll'
-      Should -Invoke Unregister-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' }
+      Should -Invoke Get-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' -and $TaskPath -eq '\' }
+      Should -Invoke Unregister-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' -and $TaskPath -eq '\' }
+    }
+  }
+
+  It 'reports when there is no scheduled task to remove' {
+    InModuleScope Watchdog {
+      Mock Get-ScheduledTask { $null }
+      Mock Unregister-ScheduledTask { }
+      (Unregister-WatchdogPoll) | Should -Match 'no scheduled task MCPToolShop.Watchdog.Poll to remove'
+      Should -Invoke Get-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' -and $TaskPath -eq '\' }
+      Should -Invoke Unregister-ScheduledTask -Times 0 -Exactly
+    }
+  }
+
+  It 'treats an ObjectNotFound / CmdletizationQuery_NotFound query error as no task to remove under ErrorAction Continue' {
+    InModuleScope Watchdog {
+      $prevEap = $ErrorActionPreference
+      try {
+        $ErrorActionPreference = 'Continue'
+        Mock Get-ScheduledTask {
+          Write-Error -Message 'No MSFT_ScheduledTask objects found.' -Category ObjectNotFound -ErrorId 'CmdletizationQuery_NotFound,Get-ScheduledTask'
+        }
+        Mock Unregister-ScheduledTask { }
+        (Unregister-WatchdogPoll) | Should -Match 'no scheduled task MCPToolShop.Watchdog.Poll to remove'
+        Should -Invoke Unregister-ScheduledTask -Times 0 -Exactly
+      } finally {
+        $ErrorActionPreference = $prevEap
+      }
+    }
+  }
+
+  It 'throws with the elevation hint when querying Task Scheduler fails or is refused' {
+    InModuleScope Watchdog {
+      $prevEap = $ErrorActionPreference
+      try {
+        $ErrorActionPreference = 'Continue'
+        Mock Get-ScheduledTask { Write-Error 'Access is denied.' -Category PermissionDenied }
+        Mock Unregister-ScheduledTask { }
+        { Unregister-WatchdogPoll } | Should -Throw '*refused to query MCPToolShop.Watchdog.Poll: Access is denied.*elevated shell*'
+        Should -Invoke Unregister-ScheduledTask -Times 0 -Exactly
+      } finally {
+        $ErrorActionPreference = $prevEap
+      }
+    }
+  }
+
+  It 'throws with the elevation hint on non-terminating Task Scheduler unregister refusal' {
+    InModuleScope Watchdog {
+      $prevEap = $ErrorActionPreference
+      try {
+        $ErrorActionPreference = 'Continue'
+        Mock Get-ScheduledTask { [pscustomobject]@{ TaskName = 'MCPToolShop.Watchdog.Poll' } }
+        Mock Unregister-ScheduledTask { Write-Error 'Access is denied.' -Category PermissionDenied }
+        { Unregister-WatchdogPoll } | Should -Throw '*refused to unregister MCPToolShop.Watchdog.Poll: Access is denied.*elevated shell*'
+      } finally {
+        $ErrorActionPreference = $prevEap
+      }
     }
   }
 }
@@ -465,7 +637,8 @@ Describe 'Poll task launch helpers' {
       $r.State | Should -Be 'NOT_RUNNING'
       $r.Exit | Should -Be 1
       $global:WdProbeOldGone | Should -BeTrue
-      Should -Invoke Start-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' }
+      Should -Invoke Start-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' -and $TaskPath -eq '\' }
+      Should -Invoke Get-ScheduledTaskInfo -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MCPToolShop.Watchdog.Poll' -and $TaskPath -eq '\' }
     }
     Remove-Variable -Name WdProbeStamp, WdProbeOldGone -Scope Global
   }
@@ -615,6 +788,7 @@ Describe 'Install-Watchdog / Uninstall-Watchdog' {
       $out | Should -Match 'removed .*PowerShell\\Modules\\Watchdog'
       $out | Should -Match 'user config and Root telemetry were not deleted'
       Should -Invoke Unregister-WatchdogPoll -Times 1 -Exactly
+      Should -Invoke Remove-Item -Times 1 -Exactly -ParameterFilter { "$Path" -like '*PowerShell\Modules\Watchdog' -and $Recurse -and $Force }
     }
   }
 
@@ -624,6 +798,16 @@ Describe 'Install-Watchdog / Uninstall-Watchdog' {
       Mock Test-Path { $false } -ParameterFilter { "$Path" -like '*PowerShell\Modules\Watchdog' }
       Mock Remove-Item { }
       ((Uninstall-Watchdog) -join "`n") | Should -Match 'no CurrentUser module copy'
+      Should -Invoke Remove-Item -Times 0 -Exactly
+    }
+  }
+
+  It 'stops without deleting the module copy when Unregister-WatchdogPoll is refused' {
+    InModuleScope Watchdog {
+      Mock Unregister-WatchdogPoll { throw 'Task Scheduler refused to unregister MCPToolShop.Watchdog.Poll: Access is denied.' }
+      Mock Test-Path { $true } -ParameterFilter { "$Path" -like '*PowerShell\Modules\Watchdog' }
+      Mock Remove-Item { }
+      { Uninstall-Watchdog } | Should -Throw '*refused to unregister MCPToolShop.Watchdog.Poll*'
       Should -Invoke Remove-Item -Times 0 -Exactly
     }
   }

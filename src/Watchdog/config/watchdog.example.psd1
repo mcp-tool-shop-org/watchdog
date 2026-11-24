@@ -30,7 +30,7 @@
   AllowKill = $false
 
   # External poller interval (scheduled task). Detects death; never restarts.
-  PollIntervalSec = 30
+  PollIntervalSec = 60
 
   # WSL file-cache release (opt-in). On each poll, if the WSL VM (vmmemWSL) is large, the poller drops the
   # Linux page cache (`echo 1 > /proc/sys/vm/drop_caches`, as root in WslDistro). It never kills a process

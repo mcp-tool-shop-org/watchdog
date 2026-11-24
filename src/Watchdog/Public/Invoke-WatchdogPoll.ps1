@@ -25,27 +25,36 @@ function Invoke-WatchdogPoll {
 
   $paths = Get-WatchdogPaths -Root $cfg.Root
 
+  try {
+    [void][IO.Directory]::CreateDirectory([string]$cfg.Root)
+  } catch {
+    $err = New-WatchdogError -Code 'RUNTIME_ROOT_UNUSABLE' -Message 'Config Root directory could not be created.' -Hint 'Set Root to an existing or creatable writable directory.' -Cause $_.Exception.GetBaseException().GetType().FullName -Retryable $false -ExitCode 1
+    Write-WatchdogError -ErrorObject $err
+    $global:LASTEXITCODE = $err.exitCode
+    return $err
+  }
+
   $hb = Get-WatchdogHeartbeatState -Path $paths.Heartbeat -StaleSec $cfg.StaleSec
   if ($hb.State -ne 'RUNNING') {
     $tail = ''
-    if (Test-Path $paths.Console) {
-      $tail = ((Get-Content $paths.Console -Tail 20 -ErrorAction SilentlyContinue) -join ' | ')
+    if (Test-Path -LiteralPath $paths.Console) {
+      $tail = ((Get-Content -LiteralPath $paths.Console -Tail 20 -ErrorAction SilentlyContinue) -join ' | ')
     }
-    if (Test-Path $paths.Crash) {
-      $crashTail = ((Get-Content $paths.Crash -Tail 10 -ErrorAction SilentlyContinue) -join ' | ')
+    if (Test-Path -LiteralPath $paths.Crash) {
+      $crashTail = ((Get-Content -LiteralPath $paths.Crash -Tail 10 -ErrorAction SilentlyContinue) -join ' | ')
       $tail = "crash: $crashTail ; console: $tail"
     }
     $ageTxt = if ($null -eq $hb.AgeSec) { 'none' } else { Format-WatchdogAge $hb.AgeSec }
     $ts = Get-WatchdogTimestamp
     $why = "$ts  poller declared $($hb.State) — heartbeat age=$ageTxt — last=$($hb.Last) — $tail"
 
-    if (-not (Test-Path $paths.Dead)) {
-      Set-Content -Path $paths.Dead -Value $why
+    if (-not (Test-Path -LiteralPath $paths.Dead)) {
+      Set-Content -LiteralPath $paths.Dead -Value $why
     }
-    if (Test-Path $paths.Kill) {
-      Add-Content -Path $paths.Kill -Value $why
+    if (Test-Path -LiteralPath $paths.Kill) {
+      Add-Content -LiteralPath $paths.Kill -Value $why
     } else {
-      Set-Content -Path $paths.Kill -Value $why
+      Set-Content -LiteralPath $paths.Kill -Value $why
     }
   }
 

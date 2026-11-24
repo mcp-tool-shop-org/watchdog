@@ -193,6 +193,43 @@ Describe 'Invoke-WslCacheRelease' {
     Test-Path ($script:paths.WslCacheLog + '.1') | Should -BeTrue
     (Get-Content $script:paths.WslCacheLog -Raw) | Should -Match 'after rotation'
   }
+
+  It 'logs an error and still never throws when writing WslCacheHeartbeat fails under ErrorAction Continue' {
+    $prevEap = $ErrorActionPreference
+    $now = Get-Date '2026-11-24T12:00:00'
+    Set-Content -LiteralPath $script:paths.WslCacheHeartbeat -Value '2020010100'
+    try {
+      $ErrorActionPreference = 'Continue'
+      Mock Set-Content { Write-Error 'disk full' -Category WriteError } -ParameterFilter { $LiteralPath -eq $script:paths.WslCacheHeartbeat }
+      $run = New-WslRecorder -CacheGB 1
+      { $script:r = Invoke-WslCacheRelease -Cfg (New-CacheCfg) -Paths $script:paths -ReadHost (New-HostReader @((New-HostState 50 4))) -RunWsl $run -Now $now } | Should -Not -Throw
+      $script:r.Action | Should -Be 'error'
+      Get-Content $script:paths.WslCacheLog -Raw | Should -Match 'ERROR .*disk full'
+    } finally {
+      $ErrorActionPreference = $prevEap
+    }
+  }
+
+  It 'logs an error, preserves both WSL calls, and never throws when writing WslCacheLast fails under ErrorAction Continue' {
+    $prevEap = $ErrorActionPreference
+    $now = Get-Date '2026-11-24T12:00:00'
+    Set-Content -LiteralPath $script:paths.WslCacheHeartbeat -Value $now.ToString('yyyyMMddHH')
+    Set-Content -LiteralPath $script:paths.WslCacheLast -Value $now.AddHours(-2).ToString('o')
+    try {
+      $ErrorActionPreference = 'Continue'
+      Mock Set-Content { Write-Error 'disk full' -Category WriteError } -ParameterFilter { $LiteralPath -eq $script:paths.WslCacheLast }
+      $read = New-HostReader @((New-HostState 81 24.6), (New-HostState 52 6.4))
+      $run = New-WslRecorder -CacheGB 27
+      { $script:r = Invoke-WslCacheRelease -Cfg (New-CacheCfg) -Paths $script:paths -ReadHost $read -RunWsl $run -DistroRunning $script:distroUp -Now $now } | Should -Not -Throw
+      $script:r.Action | Should -Be 'error'
+      $script:wslCalls.Count | Should -Be 2
+      $log = Get-Content $script:paths.WslCacheLog -Raw
+      $log | Should -Match 'ERROR .*disk full'
+      $log | Should -Not -Match 'DROPPED'
+    } finally {
+      $ErrorActionPreference = $prevEap
+    }
+  }
 }
 
 Describe 'Test-WslDistroRunning' {
@@ -202,16 +239,22 @@ Describe 'Test-WslDistroRunning' {
   }
 
   It 'finds the distro in the listing as wsl.exe prints it (read on the rig, NULs stripped)' {
-    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 0; Out = "Ubuntu`r`ndocker-desktop`r`n" } } -ParameterFilter { $FileName -eq 'wsl.exe' -and $Arguments -eq '-l --running -q' -and $PassThru }
+    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 0; Out = "Ubuntu`r`ndocker-desktop`r`n"; StreamsDrained = $true } } -ParameterFilter { $FileName -eq 'wsl.exe' -and $Arguments -eq '-l --running -q' -and $PassThru }
     Test-WslDistroRunning -Distro 'Ubuntu' -TimeoutSec 5 | Should -BeTrue
     Test-WslDistroRunning -Distro 'docker-desktop' -TimeoutSec 5 | Should -BeTrue
     Test-WslDistroRunning -Distro 'Debian' -TimeoutSec 5 | Should -BeFalse
-    Should -Invoke Invoke-ProcessWithTimeout -Times 3 -Exactly -ParameterFilter { $Arguments -eq '-l --running -q' -and $TimeoutSec -eq 5 }
+    Should -Invoke Invoke-ProcessWithTimeout -Times 3 -Exactly -ParameterFilter { $Arguments -eq '-l --running -q' -and $TimeoutSec -eq 5 -and $StreamDrainMs -eq 5000 }
   }
 
   It 'counts a non-zero exit as not running' {
-    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 1; Out = "Ubuntu`r`n" } } -ParameterFilter { $Arguments -eq '-l --running -q' }
+    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 1; Out = "Ubuntu`r`n"; StreamsDrained = $true } } -ParameterFilter { $Arguments -eq '-l --running -q' }
     Test-WslDistroRunning -Distro 'Ubuntu' | Should -BeFalse
+  }
+
+  It 'counts an undrained listing as not running and forwards -StreamDrainMs' {
+    Mock Invoke-ProcessWithTimeout { [pscustomobject]@{ ExitCode = 0; Out = "Ubuntu`r`n"; StreamsDrained = $false } } -ParameterFilter { $Arguments -eq '-l --running -q' }
+    Test-WslDistroRunning -Distro 'Ubuntu' -TimeoutSec 4 -StreamDrainMs 1000 | Should -BeFalse
+    Should -Invoke Invoke-ProcessWithTimeout -Times 1 -Exactly -ParameterFilter { $TimeoutSec -eq 4 -and $StreamDrainMs -eq 1000 }
   }
 
   It 'lets a timeout through, so the release logs it as an error' {
@@ -248,6 +291,49 @@ Describe 'WSL cache config' {
     $root = Get-WatchdogTestDir 'wslcache-pct'
     $r = Resolve-WatchdogConfig -Path (New-WatchdogTestConfig -Root $root) -Override @{ WslCacheAlertPct = 150 }
     $r.code | Should -Be 'CONFIG_INVALID'
+  }
+
+  It 'accepts only real booleans for WslCacheRelease (rejecting quoted strings like false)' {
+    $root = Get-WatchdogTestDir 'wslcache-bool'
+    $path = New-WatchdogTestConfig -Root $root
+    (Resolve-WatchdogConfig -Path $path -Override @{ WslCacheRelease = $true }).WslCacheRelease | Should -BeTrue
+    (Resolve-WatchdogConfig -Path $path -Override @{ WslCacheRelease = $false }).WslCacheRelease | Should -BeFalse
+    foreach ($bad in @('false', 'true', 1, 'sk-test-0123456789abcdef')) {
+      $r = Resolve-WatchdogConfig -Path $path -Override @{ WslCacheRelease = $bad }
+      $r.code | Should -Be 'CONFIG_INVALID'
+      $r.message | Should -Be 'Config field ''WslCacheRelease'' must be a boolean ($true or $false).'
+      $r.message | Should -Not -Match 'sk-test-0123456789abcdef'
+    }
+  }
+
+  It 'refuses NaN and Infinity for numeric WSL cache keys' {
+    $root = Get-WatchdogTestDir 'wslcache-nan'
+    $path = New-WatchdogTestConfig -Root $root
+    foreach ($key in @('WslCacheHighGB', 'WslCacheCooldownSec', 'WslCacheSettleSec')) {
+      foreach ($bad in @([double]::NaN, [double]::PositiveInfinity, [double]::NegativeInfinity, 'NaN', 'Infinity', '-Infinity')) {
+        $r = Resolve-WatchdogConfig -Path $path -Override @{ $key = $bad }
+        $r.code | Should -Be 'CONFIG_INVALID'
+        $r.message | Should -Match $key
+      }
+    }
+  }
+
+  It 'refuses sub-1 values that round to zero on integer WSL cache keys while allowing WslCacheSettleSec 0' {
+    $root = Get-WatchdogTestDir 'wslcache-round0'
+    $path = New-WatchdogTestConfig -Root $root
+    foreach ($key in @('WslCacheCooldownSec', 'WslCacheTimeoutSec')) {
+      foreach ($bad in @(0.4, 0.5)) {
+        $r = Resolve-WatchdogConfig -Path $path -Override @{ $key = $bad }
+        $r.code | Should -Be 'CONFIG_INVALID'
+        $r.message | Should -Match $key
+      }
+    }
+    (Resolve-WatchdogConfig -Path $path -Override @{ WslCacheSettleSec = 0 }).WslCacheSettleSec | Should -Be 0
+    foreach ($bad in @(-1, -0.4)) {
+      $r = Resolve-WatchdogConfig -Path $path -Override @{ WslCacheSettleSec = $bad }
+      $r.code | Should -Be 'CONFIG_INVALID'
+      $r.message | Should -Match 'WslCacheSettleSec'
+    }
   }
 
   It 'keeps the new files under Root' {

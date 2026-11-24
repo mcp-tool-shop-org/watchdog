@@ -68,7 +68,7 @@ function Invoke-WatchdogPollTaskProbe {
       throw "Could not clear the previous poll stamp ($StampPath), so the first run could not be proven: $($_.Exception.Message)"
     }
   }
-  Start-ScheduledTask -TaskName $TaskName
+  Start-ScheduledTask -TaskName $TaskName -TaskPath '\'
   $clock = [Diagnostics.Stopwatch]::StartNew()
   while ($clock.Elapsed.TotalSeconds -lt $TimeoutSec) {
     Start-Sleep -Milliseconds $StepMs
@@ -79,7 +79,7 @@ function Invoke-WatchdogPollTaskProbe {
         $stamp.Token -ceq $Token -and
         $stamp.StartedMs -ge $startedMs -and
         $stamp.UtcMs -ge $stamp.StartedMs) {
-      $info = Get-ScheduledTaskInfo -TaskName $TaskName
+      $info = Get-ScheduledTaskInfo -TaskName $TaskName -TaskPath '\'
       return [pscustomobject]@{ State = $stamp.State; Exit = $stamp.Exit; LastTaskResult = [int64]$info.LastTaskResult }
     }
   }

@@ -18,9 +18,34 @@
 #                          and never named the holder. Cleared on next launch.
 # Sample errors (nvidia-smi hiccups, multi-line output, driver resets) are logged to the KILL log AND as a
 # state=sample_error row in the CSV; they never kill the loop.
+function Write-LoopHeartbeat {
+  # A locked heartbeat must not kill the loop. status/Get-Content racing this
+  # write is how we got five silent deaths in one sitting (2026-08-25).
+  param(
+    [Parameter(Mandatory)][string]$HeartbeatPath,
+    [Parameter(Mandatory)][string]$KillLogPath
+  )
+  $hbOk = $false
+  $hbErr = ''
+  foreach ($i in 1..3) {
+    try {
+      Get-WatchdogTimestamp | Set-Content $HeartbeatPath -ErrorAction Stop
+      $hbOk = $true
+      break
+    } catch {
+      $hbErr = ($_.Exception.Message -split "`r?`n")[0].Trim()
+      Start-Sleep -Milliseconds 40
+    }
+  }
+  if (-not $hbOk) {
+    "$(Get-WatchdogTimestamp)  heartbeat write skipped ($hbErr) — loop continues" | Add-Content $KillLogPath
+  }
+}
+
 function Invoke-WatchdogLoop {
   param(
-    [Parameter(Mandatory)]$Config
+    [Parameter(Mandatory)]$Config,
+    [switch]$AllowKill
   )
   $ErrorActionPreference = 'Continue'
   $root = $Config.Root
@@ -32,6 +57,7 @@ function Invoke-WatchdogLoop {
   $BreachSamples = [int]$Config.BreachSamples
   $WslDistro = [string]$Config.WslDistro
   $WslKillPattern = [string]$Config.WslKillPattern
+  $canKill = [bool]$AllowKill -or ($Config.AllowKill -is [bool] -and $Config.AllowKill)
 
   $paths = Get-WatchdogPaths -Root $root
   if (-not (Test-Path $root)) {
@@ -58,21 +84,7 @@ function Invoke-WatchdogLoop {
   $exitReason = $null
   try {
     while (-not (Test-Path $stop)) {
-      # A locked heartbeat must not kill the loop. status/Get-Content racing this
-      # write is how we got five silent deaths in one sitting (2026-08-25).
-      $hbOk = $false
-      foreach ($i in 1..3) {
-        try {
-          Get-WatchdogTimestamp | Set-Content $hb -ErrorAction Stop
-          $hbOk = $true
-          break
-        } catch {
-          Start-Sleep -Milliseconds 40
-        }
-      }
-      if (-not $hbOk) {
-        "$(Get-WatchdogTimestamp)  heartbeat write skipped (file locked) — loop continues" | Add-Content $kill
-      }
+      Write-LoopHeartbeat -HeartbeatPath $hb -KillLogPath $kill
       try {
         $g = Parse-GpuSample (& nvidia-smi --query-gpu=temperature.gpu,power.draw,memory.used --format=csv,noheader,nounits 2>&1)
         $temp = $g.Temp; $pwr = $g.Power; $vram = $g.Vram
@@ -92,20 +104,48 @@ function Invoke-WatchdogLoop {
           "$ts  $state $($reasons -join '; ') — $(Get-VramHolders)" | Add-Content $kill
           if ($step.ShouldAbort) {
             $acts = @(); $killedAny = $false
-            if ($pids.Count -gt 0) {
-              foreach ($pp in $pids) { Stop-Process -Id $pp -Force -EA SilentlyContinue }
-              $acts += "killed win python PID(s): $($pids -join ',')"; $killedAny = $true
+            if (-not $canKill) {
+              $acts += 'kill skipped: no consent'
+            } else {
+              if ($pids.Count -gt 0) {
+                foreach ($pp in $pids) { Stop-Process -Id $pp -Force -EA SilentlyContinue }
+                $acts += "killed win python PID(s): $($pids -join ',')"; $killedAny = $true
+              }
+              if ($WslKillPattern) {
+                # Refresh heartbeat around each short-timeout WSL step (4s+drains, 5s+drains) so aborting stays under StaleSec.
+                Write-LoopHeartbeat -HeartbeatPath $hb -KillLogPath $kill
+                # only if the distro is already up — a cold VM start would allocate RAM mid-emergency
+                $distroUp = $false
+                $distroSkip = $null
+                try {
+                  $distroUp = [bool](Test-WslDistroRunning -Distro $WslDistro -TimeoutSec 4 -StreamDrainMs 1000)
+                  if (-not $distroUp) { $distroSkip = 'wsl distro not running, skipped' }
+                } catch {
+                  $checkMsg = ($_.Exception.Message -split "`r?`n")[0].Trim()
+                  $distroSkip = "wsl distro check failed ($checkMsg), skipped"
+                }
+                Write-LoopHeartbeat -HeartbeatPath $hb -KillLogPath $kill
+                if ($distroUp) {
+                  try {
+                    $wslRes = Invoke-ProcessWithTimeout -FileName 'wsl.exe' -ArgumentList @('-d', $WslDistro, '--exec', 'pkill', '-9', '-f', '--', $WslKillPattern) -TimeoutSec 5 -StreamDrainMs 1000 -PassThru
+                    $wslExit = $wslRes.ExitCode
+                    $acts += "wsl pkill exit=$wslExit (0=killed,1=no match)"
+                    if ($wslExit -eq 0) { $killedAny = $true }
+                  } catch {
+                    if ($_.Exception.Message -like '*timed out*') {
+                      $acts += 'wsl pkill timed out'
+                    } else {
+                      $pkillMsg = ($_.Exception.Message -split "`r?`n")[0].Trim()
+                      $acts += "wsl pkill failed ($pkillMsg)"
+                    }
+                  }
+                  Write-LoopHeartbeat -HeartbeatPath $hb -KillLogPath $kill
+                } else {
+                  $acts += $distroSkip
+                }
+              }
+              if ($acts.Count -eq 0) { $acts += 'no targets found' }
             }
-            if ($WslKillPattern -and (Test-WslRunning $WslDistro)) {
-              # only if the distro is already up — a cold VM start would allocate RAM mid-emergency
-              $null = & wsl -d $WslDistro -- pkill -9 -f $WslKillPattern 2>&1
-              $wslExit = $LASTEXITCODE
-              $acts += "wsl[$WslDistro] pkill -9 -f '$WslKillPattern' exit=$wslExit (0=killed,1=no match)"
-              if ($wslExit -eq 0) { $killedAny = $true }
-            } elseif ($WslKillPattern) {
-              $acts += "wsl[$WslDistro] not running, skipped"
-            }
-            if ($acts.Count -eq 0) { $acts += 'no targets found' }
             if ($killedAny) {
               "$ts  ABORT — $($reasons -join '; ') — $($acts -join ' | ')" | Add-Content $kill
             } else {

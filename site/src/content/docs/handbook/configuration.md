@@ -28,7 +28,7 @@ Missing config is a hard refuse (`CONFIG_MISSING`). Relative `Root` or
 ## Defaults if omitted
 
 `IntervalSec = 2`, `BreachSamples = 3`, `StaleSec = 15`,
-`PollIntervalSec = 30`, `AllowKill = $false`, `WslKillPattern = ''`
+`PollIntervalSec = 60`, `AllowKill = $false`, `WslKillPattern = ''`
 (WSL abort disabled), `WslCacheRelease = $false`.
 
 `Register-WatchdogPoll` registers the poller every
@@ -80,11 +80,18 @@ after it, so the release can never delay the report of a dead loop.
 | `WslCacheMinCacheGB` | `6` | Do not drop a cache smaller than this. |
 | `WslCacheAlertPct` | `90` | Log an `ALERT` if Windows is still at or above this after a drop. |
 | `WslCacheCooldownSec` | `300` | Minimum time between drops. |
-| `WslCacheTimeoutSec` | `90` | Hard timeout for each `wsl.exe` call. |
+| `WslCacheTimeoutSec` | `90` | Hard timeout for each `wsl.exe` call. A release that runs into its timeout can make Task Scheduler skip the next poll tick (`-MultipleInstances IgnoreNew`); the liveness check and the poll stamp run before the release, so the cost is one delayed check. |
 | `WslCacheSettleSec` | `10` | Wait before re-reading memory after a drop. |
 
-Each value must be a positive number (`WslCacheSettleSec` may be 0), and
-the two percentages at most 100; anything else is `CONFIG_INVALID`.
+`AllowKill` and `WslCacheRelease` must be booleans (`$true` or `$false`, not quoted). Numeric fields reject `NaN`, `±Infinity`, booleans, arrays, hex strings (`0x...`), negatives, and out-of-range numbers (`> [int]::MaxValue` for integer keys). Core integer keys (`VramKillMiB`, `RamKillPct`, `TempKillC`, `IntervalSec`, `BreachSamples`, `StaleSec`, `PollIntervalSec`) plus `WslCacheCooldownSec` and `WslCacheTimeoutSec` must round to at least `1` (values `<= 0.5` are rejected); `WslCacheSettleSec` may be `0`; WSL threshold percentages are at most `100`. Anything else is `CONFIG_INVALID`.
+
+## Upgrade notes (v1.1.2)
+
+If you are updating a config created for `1.1.1` or earlier, check these newly refused values (the refusal names the key, never the value):
+
+- **Strict booleans:** `AllowKill` and `WslCacheRelease` refuse quoted `'false'` or `'true'`, integers `0` or `1`, `$null`, or other non-boolean types. Previously a quoted `'false'` in `AllowKill` evaluated truthy as a PowerShell boolean cast.
+- **Core and timer integer keys (`>= 1`):** `VramKillMiB`, `RamKillPct`, `TempKillC`, `IntervalSec`, `BreachSamples`, `StaleSec`, `PollIntervalSec`, `WslCacheCooldownSec`, and `WslCacheTimeoutSec` refuse `<= 0.5` (including `0` and sub-1 fractions rounding to `0`), negatives, `> [int]::MaxValue`, `NaN`, `±Infinity`, hex text, booleans, arrays, and `$null`. `WslCacheSettleSec` allows `0` while refusing negatives and non-numeric/out-of-range inputs.
+- **WSL cache size and percentage fields (`> 0`):** `WslCacheHighGB`, `WslCacheMinGB`, `WslCacheWinHighPct`, `WslCacheMinCacheGB`, and `WslCacheAlertPct` refuse `<= 0`, `NaN`, `±Infinity`, hex text, booleans, arrays, and `$null`, and percentages reject `> 100`.
 
 ## The 31200 bound
 
