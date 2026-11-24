@@ -39,7 +39,7 @@ PowerShell 7. Module version **1.1.1**. Manifest:
 
 `_watchdog_HEARTBEAT`, `_watchdog_log.csv`, `_watchdog_KILL.log`,
 `_watchdog_console.log`, `_watchdog_crash.log`, `_watchdog_poll_last.json`
-(time, state and exit code of the last poll), the sentinels
+(when the last poll began and wrote it, its state and exit code), the sentinels
 `_watchdog_DEAD`, `_watchdog_STOP`, `_watchdog_TRIPPED`,
 `_watchdog_NO_TARGET`, and with `WslCacheRelease` on,
 `_watchdog_wslcache.log` (rotated to `.1` at 1 MB), `_watchdog_wslcache.last`

@@ -40,7 +40,8 @@ It then runs the task once and fails unless that run's poll writes a
 fresh `_watchdog_poll_last.json` under `Root` (conhost exits 0 even when
 `pwsh` never starts, so the exit code proves nothing). Registering before
 the loop runs makes that first poll report the loop as not running, which
-writes `_watchdog_DEAD`; `Start-Watchdog` clears it. If
+writes `_watchdog_DEAD`; `Start-Watchdog` clears it. It creates `Root` if
+it does not exist yet. If
 Windows refuses to replace the task with "Access is denied", the task was
 first registered from an elevated shell: run `Unregister-WatchdogPoll`
 there once, then register again from a normal shell.

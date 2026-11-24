@@ -69,5 +69,5 @@ function Invoke-WatchdogPollTaskProbe {
       return [pscustomobject]@{ State = $stamp.State; Exit = $stamp.Exit; LastTaskResult = [int64]$info.LastTaskResult }
     }
   }
-  throw "$TaskName did not write a fresh poll stamp ($StampPath) within $TimeoutSec s, so the poll did not run. Check that pwsh starts from Task Scheduler."
+  throw "$TaskName did not write a fresh poll stamp ($StampPath) within $TimeoutSec s, so the poll did not run. Check that pwsh starts from Task Scheduler; or an older poll of this task was still running and Task Scheduler dropped this start: register again."
 }
