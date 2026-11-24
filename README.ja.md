@@ -101,9 +101,9 @@ Register-WatchdogPoll   # scheduled task: detect death, never restart
 pwsh -File .\verify.ps1
 ```
 
-182個のユニットテスト、GPUは使用しません。パーサーのテストデータには、2026年6月12日にループを停止させた、形式が正しくないnvidia-smiの出力が含まれます。ハードウェア異常テストはローカル環境でのみ実行され、CI環境ではグリーン化されません。
+182個のユニットテスト、GPUは使用しません。パーサーのテストデータには、2026年6月12日にループを停止させた、形式が正しくないnvidia-smiの出力が含まれます。ハードウェアアボートテストはローカル環境でのみ実行され、CI環境では実行されません。
 
-`pwsh -File .\verify.ps1 -Coverage`は、`src/Watchdog/Private`と`src/Watchdog/Public`の行カバレッジを追加します（`Watchdog.psm1`、`watchdog.ps1`、および`watchdog-loop.ps1`は測定されません）。CI独自の最低基準により、測定されたモジュール（`verify.ps1 -MinCoverage 90`）のビルドが90%を下回ると失敗し、レポートをCodecovにアップロードします。Codecovは、すべての変更に対して90%の基準を満たしているか確認し、Codecov全体のモジュールステータスでは、1ポイント低い場合でも許容されます。
+`pwsh -File .\verify.ps1 -Coverage`は、`src/Watchdog/Private`と`src/Watchdog/Public`のみの行カバレッジを追加します（`Watchdog.psm1`、`watchdog.ps1`、および`watchdog-loop.ps1`は測定されません）。CI独自の最低基準により、測定対象モジュールのカバレッジが90%を下回るとビルドを失敗させ（`verify.ps1 -MinCoverage 90`）、レポートをCodecovにアップロードします。Codecovは、すべての変更に対して90%の基準を満たしているか確認し、Codecovのモジュール全体のステータスでは、1ポイント低い場合でも許容されます。
 
 ## 起源
 

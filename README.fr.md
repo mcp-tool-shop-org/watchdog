@@ -103,7 +103,7 @@ pwsh -File .\verify.ps1
 
 182 tests unitaires, sans GPU. Les données de test du parseur incluent la sortie incorrecte de nvidia-smi qui a interrompu la boucle le 12-06-2026. Le test d’arrêt matériel reste local et n’est pas intégré dans le processus d’intégration continue.
 
-`pwsh -File .\verify.ps1 -Coverage` ajoute la couverture de ligne pour `src/Watchdog/Private` et `src/Watchdog/Public` uniquement (`Watchdog.psm1`, `watchdog.ps1` et `watchdog-loop.ps1` ne sont pas mesurés). Le seuil minimal de l’intégration continue fait échouer la compilation si le résultat est inférieur à 90 % pour le module mesuré (`verify.ps1 -MinCoverage 90`) et télécharge le rapport vers Codecov, qui vérifie chaque modification à 90 %, tandis que le statut global du module dans Codecov autorise une marge d’une unité.
+`pwsh -File .\verify.ps1 -Coverage` ajoute la couverture de ligne pour `src/Watchdog/Private` et `src/Watchdog/Public` uniquement (`Watchdog.psm1`, `watchdog.ps1` et `watchdog-loop.ps1` ne sont pas mesurés). Le seuil minimal de l’intégration continue fait échouer la compilation si le résultat est inférieur à 90 % pour le module mesuré (`verify.ps1 -MinCoverage 90`) et envoie le rapport à Codecov, qui vérifie chaque modification à 90 %, tandis que le statut global du module dans Codecov autorise une marge d’un point en dessous.
 
 ## Origine
 

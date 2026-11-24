@@ -103,7 +103,7 @@ pwsh -File .\verify.ps1
 
 182 个单元测试，未使用 GPU。解析器测试用例包括导致 2026-06-12 日循环失败的格式错误的 nvidia-smi 输出。硬件中止测试仍然在本地运行，并且未在持续集成 (CI) 中启用。
 
-`pwsh -File .\verify.ps1 -Coverage` 增加了对 `src/Watchdog/Private` 和 `src/Watchdog/Public` 的行覆盖率（未测量 `Watchdog.psm1`、`watchdog.ps1` 和 `watchdog-loop.ps1`）。CI 的最低覆盖率要求是，对于被测模块（`verify.ps1 -MinCoverage 90`），低于 90% 则构建失败，并将报告上传到 Codecov。Codecov 会检查每次更改是否达到 90% 的覆盖率，而 Codecov 的整体模块状态允许低于一个百分点。
+`pwsh -File .\verify.ps1 -Coverage` 仅增加了对 `src/Watchdog/Private` 和 `src/Watchdog/Public` 的行覆盖率统计（未测量 `Watchdog.psm1`、`watchdog.ps1` 和 `watchdog-loop.ps1`）。CI 自身的最低覆盖率要求会在被测模块低于 90% 时使构建失败（`verify.ps1 -MinCoverage 90`），并将报告上传到 Codecov。Codecov 会检查每次更改是否达到 90% 的覆盖率，而 Codecov 的整体模块状态允许低一个百分点。
 
 ## 来源
 

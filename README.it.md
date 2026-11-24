@@ -103,7 +103,7 @@ pwsh -File .\verify.ps1
 
 182 test unitari, senza GPU. I dati di test del parser includono l'output non valido di nvidia-smi che ha causato l'interruzione del ciclo il 12-06-2026. Il test di interruzione hardware rimane locale e non viene incluso nei test CI.
 
-`pwsh -File .\verify.ps1 -Coverage` aggiunge la copertura delle righe di `src/Watchdog/Private` e `src/Watchdog/Public` soltanto (non vengono misurate `Watchdog.psm1`, `watchdog.ps1` e `watchdog-loop.ps1`). Il limite minimo di CI fa fallire la build quando il valore scende sotto il 90% per il modulo misurato (`verify.ps1 -MinCoverage 90`) e carica il rapporto su Codecov, che verifica ogni modifica con una soglia del 90%, mentre lo stato complessivo del modulo in Codecov consente una tolleranza di un punto inferiore.
+`pwsh -File .\verify.ps1 -Coverage` aggiunge la copertura delle righe di `src/Watchdog/Private` e `src/Watchdog/Public` soltanto (non vengono misurati `Watchdog.psm1`, `watchdog.ps1` e `watchdog-loop.ps1`). Il limite minimo di CI fa fallire la build quando il valore scende sotto il 90% per il modulo misurato (`verify.ps1 -MinCoverage 90`) e carica il rapporto su Codecov, che verifica ogni modifica con una soglia del 90%, mentre lo stato complessivo del modulo in Codecov consente un margine di un punto in meno.
 
 ## Origine
 

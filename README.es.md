@@ -103,7 +103,7 @@ pwsh -File .\verify.ps1
 
 182 pruebas unitarias, sin GPU. Los datos de prueba del analizador incluyen la salida incorrecta de nvidia-smi que interrumpió el ciclo el 12 de junio de 2026. La prueba de interrupción de hardware permanece local y no se incluye en las pruebas de integración continua (CI).
 
-`pwsh -File .\verify.ps1 -Coverage` añade la cobertura de líneas de `src/Watchdog/Private` y `src/Watchdog/Public` únicamente (no se mide `Watchdog.psm1`, `watchdog.ps1` e `watchdog-loop.ps1`). El umbral mínimo de las pruebas de integración continua hace que la compilación falle si está por debajo del 90 % para el módulo medido (`verify.ps1 -MinCoverage 90`) y sube el informe a Codecov, que comprueba cada cambio al 90 %, mientras que el estado general del módulo en Codecov permite una desviación de un punto.
+`pwsh -File .\verify.ps1 -Coverage` añade la cobertura de líneas de `src/Watchdog/Private` y `src/Watchdog/Public` únicamente (no se miden `Watchdog.psm1`, `watchdog.ps1` y `watchdog-loop.ps1`). El umbral mínimo de las pruebas de integración continua hace que la compilación falle si está por debajo del 90 % para el módulo medido (`verify.ps1 -MinCoverage 90`) y sube el informe a Codecov, que comprueba cada cambio al 90 %, mientras que el estado general del módulo en Codecov permite un margen de un punto por debajo.
 
 ## Origen
 
