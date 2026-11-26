@@ -9,10 +9,10 @@ Describe 'watchdog CLI' {
     ($r -join "`n") | Should -Match 'watchdog status'
   }
 
-  It 'prints version 1.1.2' {
+  It 'prints version 1.1.3' {
     $r = & pwsh -NoProfile -File (Join-Path $script:WatchdogModule 'watchdog.ps1') version
     $LASTEXITCODE | Should -Be 0
-    ($r | Select-Object -Last 1) | Should -Be '1.1.2'
+    ($r | Select-Object -Last 1) | Should -Be '1.1.3'
   }
 
   It 'rejects an unknown command with a structured error' {
