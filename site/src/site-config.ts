@@ -2,31 +2,31 @@ import type { SiteConfig } from '@mcptoolshop/site-theme';
 
 export const config: SiteConfig = {
   title: 'watchdog',
-  description: 'Windows VRAM/RAM/temp watchdog for NVIDIA GPUs. Kills guarded interpreters on a sustained breach.',
+  description: 'A hard ceiling for long GPU jobs on Windows: VRAM, RAM and temperature limits that stop only the interpreters you allow.',
   logoBadge: 'WD',
   brandName: 'watchdog',
   repoUrl: 'https://github.com/mcp-tool-shop-org/watchdog',
   footerText: 'MIT Licensed — built by <a href="https://mcp-tool-shop.github.io/" style="color:var(--color-muted);text-decoration:underline">MCP Tool Shop</a>',
 
   hero: {
-    badge: 'PowerShell 7 · Windows',
-    headline: 'The GPU is unprotected',
-    headlineAccent: 'unless you ask.',
-    description: 'Sample VRAM, RAM, and temp every 2 seconds. After 3 consecutive breaches, kill only the interpreters you listed. A dead watchdog and a healthy one look identical unless you ask — this asks.',
+    badge: 'Windows · PowerShell 7 · NVIDIA',
+    headline: 'Walk away from a long GPU job.',
+    headlineAccent: 'watchdog stays awake.',
+    description: 'It checks VRAM, RAM and GPU temperature every 2 seconds. When a limit you set stays crossed for three checks, it stops only the interpreters you allowed, records what it saw, and tells you plainly when it could not protect you.',
     primaryCta: { href: '#quickstart', label: 'Get started' },
     secondaryCta: { href: 'handbook/', label: 'Read the Handbook' },
     previews: [
       {
-        label: 'Status',
-        code: 'pwsh -File .\\watchdog.ps1 status\n# 0 running · 1 no heartbeat · 2 stale (died hard)',
-      },
-      {
         label: 'Start',
-        code: 'pwsh -File .\\watchdog.ps1 start -AllowKill\n# sentinel-stop, wait, launch, verify heartbeat',
+        code: 'watchdog start -AllowKill',
       },
       {
-        label: 'Config',
-        code: '# No default Root. No default kill list.\n# Copy src/Watchdog/config/watchdog.example.psd1\n# to ~/.watchdog/config.psd1 and edit it.',
+        label: 'Status',
+        code: 'watchdog status   → 0 running · 1 not running · 2 died hard',
+      },
+      {
+        label: 'Limits',
+        code: 'VramKillMiB = 31200 · RamKillPct = 90 · TempKillC = 87',
       },
     ],
   },
@@ -35,24 +35,32 @@ export const config: SiteConfig = {
     {
       kind: 'features',
       id: 'why',
-      title: 'Why it exists',
-      subtitle: 'The tooling was already correct. Operators still hand-rolled a worse check.',
+      title: 'What you get',
+      subtitle: 'A small process with one job: keep a runaway GPU job from taking the machine down with it.',
       features: [
         {
-          title: 'Something polls',
-          desc: 'Liveness is not pull-once at session start. A scheduled poller writes _watchdog_DEAD from the outside when the heartbeat is stale. It detects. It never restarts.',
+          title: 'Limits you choose',
+          desc: 'VRAM in MiB, RAM in percent, GPU temperature in °C. No hidden defaults: watchdog will not start until you set them.',
         },
         {
-          title: 'The right check is named',
-          desc: 'watchdog status. Exit 0/1/2. Do not process-match on _watchdog. Do not invent a heartbeat-age check.',
+          title: 'Targeted stops',
+          desc: 'Only the interpreter paths you list, plus an optional WSL pattern, can be stopped. Every other Python process is left alone.',
         },
         {
-          title: 'The next hard death leaves a body',
-          desc: 'CSV is appended, not truncated. Timestamps are UTC. The child transcripts to _watchdog_console.log. Unhandled exceptions land in _watchdog_crash.log.',
+          title: 'Patterns, not spikes',
+          desc: 'A limit has to be crossed three checks in a row before anything happens, with warnings logged on the way.',
         },
         {
-          title: 'WSL cache gives memory back',
-          desc: 'Opt-in: the poller drops the WSL page cache when the VM crowds Windows memory. It reads from the Windows side, never starts a stopped VM or distro, and never kills a process.',
+          title: 'Honest when it cannot help',
+          desc: 'A breach that matched none of your processes is recorded as a protection gap, with the processes holding the VRAM named.',
+        },
+        {
+          title: 'A watchdog for the watchdog',
+          desc: 'An optional scheduled task checks the heartbeat once a minute and marks the watchdog dead from outside. It never restarts anything on its own.',
+        },
+        {
+          title: 'WSL memory, given back',
+          desc: 'Opt-in: when WSL file cache crowds Windows memory, the poller drops it. It never stops a process and never starts a stopped distro.',
         },
       ],
     },
@@ -62,31 +70,31 @@ export const config: SiteConfig = {
       title: 'Get started',
       cards: [
         {
-          title: 'Config (required)',
-          code: 'mkdir $HOME\\.watchdog\ncopy src\\Watchdog\\config\\watchdog.example.psd1 $HOME\\.watchdog\\config.psd1\n# Root, Targets, VramKillMiB, RamKillPct, TempKillC — all required\n# 31200 is the 32 GB card example. Do not raise it to silence ComfyUI.',
+          title: '1. Write a config',
+          code: 'mkdir $HOME\\.watchdog\ncopy src\\Watchdog\\config\\watchdog.example.psd1 $HOME\\.watchdog\\config.psd1\n# set Root, Targets, VramKillMiB, RamKillPct, TempKillC',
         },
         {
-          title: 'Start with consent',
-          code: 'pwsh -File .\\watchdog.ps1 start -AllowKill\npwsh -File .\\watchdog.ps1 status',
+          title: '2. Start with consent',
+          code: 'pwsh -File .\\watchdog.ps1 start -AllowKill\npwsh -File .\\watchdog.ps1 status   # exit 0 = protected',
         },
         {
-          title: 'Verify (no GPU)',
-          code: 'pwsh -File .\\verify.ps1 -Coverage\n# 182 unit tests, 90% coverage floor. The abort test stays local.',
+          title: '3. Add the outside check',
+          code: 'Import-Module .\\src\\Watchdog\\Watchdog.psd1\nRegister-WatchdogPoll\n# detects a dead watchdog; never restarts it',
         },
       ],
     },
     {
       kind: 'data-table',
       id: 'contract',
-      title: 'Liveness contract',
-      subtitle: 'Heartbeat age is the signal. A frozen CSV is not.',
-      columns: ['Sentinel', 'Meaning'],
+      title: 'What the files under Root tell you',
+      subtitle: 'Everything watchdog knows is in one folder you choose.',
+      columns: ['File', 'Meaning'],
       rows: [
-        ['_watchdog_HEARTBEAT', 'Rewritten every sample. Age > ~3x interval = dead or hard-killed.'],
-        ['_watchdog_DEAD', 'Loop exit other than STOP, or the poller when the heartbeat is stale.'],
-        ['_watchdog_NO_TARGET', 'ABORT killed nothing. Protection gap, not success.'],
-        ['_watchdog_TRIPPED', 'Last abort reasons and acts.'],
-        ['_watchdog_STOP', 'Clean stop request. Never process-match.'],
+        ['_watchdog_HEARTBEAT', 'Rewritten every check. Its age is how status and the poller judge liveness.'],
+        ['_watchdog_DEAD', 'The loop exited for a reason other than a clean stop, or the poller found the heartbeat stale.'],
+        ['_watchdog_NO_TARGET', 'A breach stopped nothing: a protection gap. Add the holder to Targets.'],
+        ['_watchdog_TRIPPED', 'Why the last stop fired, and what it did.'],
+        ['_watchdog_log.csv', 'Every sample: temperature, power, VRAM, RAM and state, appended across restarts.'],
       ],
     },
   ],

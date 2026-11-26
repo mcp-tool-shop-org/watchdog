@@ -15,102 +15,102 @@
 
 # watchdog
 
-Surveillance de la VRAM/RAM/température pour les GPU NVIDIA sous Windows. Il effectue un contrôle toutes les 2 secondes. Après 3 violations consécutives, il ne tue que les interpréteurs que vous avez spécifiés, et il l’indique lorsqu’une violation n’entraîne aucune conséquence.
+**Une limite stricte pour les tâches GPU de longue durée sous Windows.** Watchdog vérifie la VRAM et la température de votre carte NVIDIA, ainsi que la RAM de votre système, toutes les 2 secondes. Lorsqu’une limite est dépassée pendant trois vérifications consécutives, il arrête les interpréteurs Python que vous lui avez autorisés à arrêter, et rien d’autre.
 
-```powershell
-watchdog status    # exit 0 running · 1 no heartbeat · 2 stale (died hard)
-watchdog start -AllowKill
-watchdog stop
-```
+Vous lancez une tâche d’entraînement ou un rendu important, vous vous absentez, et une fuite de mémoire, un lot de données trop volumineux ou une carte surchauffée transforment votre ordinateur en une machine figée. Watchdog est le petit processus qui reste actif pour vous : il applique les limites que vous avez définies, enregistre ce qu’il a observé et vous indique clairement quand il n’a pas pu vous protéger.
 
-Ne créez pas manuellement une vérification de l’activité. N’effectuez pas de correspondance de processus sur `_watchdog`. Ces deux erreurs sont la cause d’un watchdog défaillant et d’un watchdog fonctionnel qui semblent identiques.
+## Ce que vous obtenez
 
-**v1 est uniquement compatible avec Windows** (PowerShell 7, nvidia-smi, compteurs de mémoire de processus WDDM, WSL `pkill` et libération de la mémoire cache des fichiers WSL en option). Linux est une version ultérieure.
+- **Des limites que vous choisissez.** VRAM en MiB, RAM en pourcentage, température du GPU en °C. Il n’y a pas de valeurs par défaut cachées.
+- **Arrêts ciblés.** Seuls les chemins d’accès aux interpréteurs que vous spécifiez (plus un modèle de processus WSL facultatif) peuvent être arrêtés. Tous les autres processus Python sur la machine sont laissés intacts.
+- **Pas de fausse sécurité.** Une violation qui ne correspond à aucun des processus que vous avez spécifiés est enregistrée comme une lacune de protection, et les processus qui utilisent la VRAM sont nommés.
+- **Un watchdog pour le watchdog.** Une tâche planifiée facultative vérifie le signal de présence une fois par minute et marque le watchdog comme étant hors service si celui-ci s’est arrêté. Il ne redémarre jamais quoi que ce soit de lui-même.
+- **Une réponse claire sur son état de fonctionnement.** `watchdog status` renvoie 0 (en fonctionnement), 1 (non en fonctionnement) ou 2 (arrêt brutal).
+- **Un enregistrement de chaque exécution.** Un fichier CSV contenant des échantillons, un journal des arrêts, une transcription de la console et un journal des plantages, le tout conservé dans un seul dossier que vous choisissez.
+- **Retour de mémoire WSL facultatif.** Si la mémoire cache de WSL surcharge la mémoire de Windows, le processus de vérification peut supprimer ce cache. Il n’arrête jamais un processus et ne démarre jamais une distribution arrêtée.
 
-## Installation
+## Démarrage rapide
 
-PowerShell 7.1+. Clonez, copiez le fichier de configuration d’exemple, modifiez-le, puis démarrez :
+Prérequis : Windows, PowerShell 7 ou version ultérieure, et un pilote NVIDIA avec `nvidia-smi` sur `PATH`.
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git
 cd watchdog
 mkdir $HOME\.watchdog
 copy src\Watchdog\config\watchdog.example.psd1 $HOME\.watchdog\config.psd1
-notepad $HOME\.watchdog\config.psd1
+notepad $HOME\.watchdog\config.psd1      # set Root, Targets and your three limits
+
 pwsh -File .\watchdog.ps1 start -AllowKill
-pwsh -File .\watchdog.ps1 status
+pwsh -File .\watchdog.ps1 status        # exit 0 = protected
 ```
 
-Ou importez le module :
+`-AllowKill` est votre consentement : watchdog ne démarrera pas sans cela, ni sans `AllowKill = $true` dans la configuration.
+Pour l’installer en tant que module et ajouter la vérification externe :
 
 ```powershell
 Import-Module .\src\Watchdog\Watchdog.psd1
-Start-Watchdog -AllowKill
-Get-WatchdogStatus
-Register-WatchdogPoll   # scheduled task: detect death, never restart
+Install-Watchdog          # copy the module to your CurrentUser module path
+Register-WatchdogPoll     # scheduled task: detects a dead watchdog, never restarts it
 ```
 
-`Install-Watchdog` copie le module dans le chemin du module CurrentUser.
+## Comment cela fonctionne
 
-## Configuration
-
-Il n’y a **pas de répertoire racine par défaut ni de liste de processus à arrêter par défaut**. Le module refuse de démarrer sans fichier de configuration. Ordre de recherche : `-ConfigPath`, `$env:WATCHDOG_CONFIG`, `./watchdog.config.psd1`, `~/.watchdog/config.psd1`.
-
-Champs obligatoires : `Root`, `Targets`, `VramKillMiB`, `RamKillPct`, `TempKillC`. Les chemins relatifs sont rejetés. Les écritures restent inférieures à `Root`.
-
-`VramKillMiB = 31200` est la limite documentée pour une carte de 32 Go (~1,4 Go en dessous du plafond WDDM de 32 607 MiB). Ne l’augmentez **pas** pour éviter les déclenchements de ComfyUI ; limitez plutôt ComfyUI (`--reserve-vram`).
-
-### Libération du cache de fichiers WSL (opt-in, sur activation explicite)
-
-Avec `WslCacheRelease = $true`, chaque contrôle vérifie la mémoire de la machine virtuelle WSL depuis Windows (il ne réveille jamais une machine virtuelle arrêtée). Lorsque `vmmemWSL` est volumineux, ou que la mémoire Windows est sous pression et que `vmmemWSL` est de taille moyenne, le contrôleur vide le cache de pages Linux dans `WslDistro` (`echo 1 > /proc/sys/vm/drop_caches` en tant que root, avec délai d’expiration et temps de repos). L’`autoMemoryReclaim` propre à WSL ne se déclenche que lorsque la machine virtuelle est inactive, et un moteur de conteneurs en cours d’exécution la maintient occupée, si bien que le téléchargement d’images volumineuses peut laisser des dizaines de Go de cache retenus au détriment de Windows.
-
-Il ne tue jamais un processus et ne démarre jamais une distribution arrêtée : lorsqu’une autre distribution maintient la machine virtuelle en marche alors que `WslDistro` est arrêtée, il ne libère pas le cache et consigne ce saut. Son journal, `Root\_watchdog_wslcache.log`, enregistre un signal d’activité toutes les heures ; chaque libération du cache, avec la mémoire avant et après ; une ligne par série de sauts ; et un `ALERT` indiquant les processus les plus gourmands en ressources si Windows est toujours au-dessus de `WslCacheAlertPct` après une libération. Les seuils sont définis dans le fichier de configuration d’exemple.
+1. **Échantillon.** Toutes les `IntervalSec` (2 s par défaut), il lit la température, la puissance et la VRAM du GPU à partir de `nvidia-smi`, et la RAM du système à partir de Windows.
+2. **Attendre un modèle, pas un pic.** Une limite doit être dépassée `BreachSamples` fois de suite (3 par défaut) avant que quoi que ce soit ne se produise. Des avertissements sont enregistrés en cours de route.
+3. **Arrêter uniquement ce que vous avez spécifié.** En cas de violation persistante, il arrête les `python` processus dont le chemin d’accès figure dans `Targets`, et exécute le modèle WSL `pkill` facultatif. Il enregistre ce qu’il a arrêté, ou qu’il n’a rien arrêté.
+4. **Prouver qu’il est en fonctionnement.** La boucle réécrit un fichier de signal de présence à chaque échantillon. `watchdog status` et le processus de vérification planifié évaluent l’état de fonctionnement à partir de ce signal de présence, de sorte qu’un watchdog hors service ne puisse jamais sembler en bon état.
 
 ## Commandes
 
 | Commande | Ce qu’elle fait |
 |---|---|
-| `watchdog status` | Vérification de l’activité. La seule vérification correcte. |
-| `watchdog start -AllowKill` | Arrêt du sentinelle, attente, effacement, lancement en arrière-plan, vérification du signal d’activité |
-| `watchdog stop` | ARRÊTEZ le sentinelle, attendez. N’effectuez jamais de correspondance de processus. |
-| `watchdog poll` | Exécution unique : si le signal d’activité est obsolète, écrivez `_watchdog_DEAD` depuis l’extérieur. |
-| `watchdog help` | Indicateurs et codes de sortie |
-| `watchdog version` | `1.1.2` |
+| `watchdog status` | Vérification de l’état de fonctionnement. Renvoie 0 (en fonctionnement), 1 (non en fonctionnement) ou 2 (arrêt brutal). |
+| `watchdog start -AllowKill` | Arrête proprement toute ancienne boucle, démarre une nouvelle boucle en arrière-plan et attend son signal de présence. |
+| `watchdog stop` | Demande à la boucle de s’arrêter via un fichier sentinelle et attend. |
+| `watchdog poll` | Une seule vérification externe, exécutée par la tâche planifiée. |
+| `watchdog install` / `uninstall` | Copie ou supprime le module. `install -Poll` enregistre également la vérification planifiée. |
+| `watchdog help` / `version` | Indicateurs, codes de sortie et version. |
 
-`status` / `poll` codes de sortie : **0** en cours d’exécution ; **1** aucun signal d’activité ; **2** obsolète. `start` utilise également **3** (la VRAM dépasse déjà le plafond), **4** (la boucle précédente ne s’est pas arrêtée), **5** (aucun signal d’activité après le lancement).
+`start` refuse avec le code de sortie 3 si la VRAM dépasse déjà votre limite (utilisez `-Force` uniquement si vous le souhaitez vraiment). `status -Hook` affiche un message Claude Code SessionStart et renvoie toujours 0, de sorte qu’un watchdog hors service est signalé sans interrompre la session. Référence complète : [handbook → Reference](https://mcp-tool-shop-org.github.io/watchdog/handbook/reference/).
 
-`-Hook` sur l’état émet le JSON Claude Code SessionStart et quitte toujours avec le code 0, de sorte qu’un watchdog défaillant ne peut pas interrompre le démarrage de la session.
+## Configuration
 
-## Ce qu’il tue
+Watchdog ne démarrera pas sans fichier de configuration. Il recherche dans `-ConfigPath`, puis `$env:WATCHDOG_CONFIG`, puis `./watchdog.config.psd1`, puis `~/.watchdog/config.psd1`.
 
-Uniquement les processus `python` dont le `Path` se trouve dans `Targets`, ainsi qu’un modèle WSL `pkill -f` facultatif (vide = désactivé). Les autres programmes Python sont épargnés. Une violation qui ne correspond à rien écrit `_watchdog_NO_TARGET` ; il s’agit d’une **faille de sécurité**, et non d’un succès.
+| Obligatoire | Signification |
+|---|---|
+| `Root` | Dossier absolu pour le fichier de signal de présence, les journaux et les fichiers sentinelles. Watchdog n’écrit nulle part ailleurs. |
+| `Targets` | Chemins d’accès absolus aux interpréteurs qu’il peut arrêter. |
+| `VramKillMiB` | Limite de VRAM en MiB. Pour une carte de 32 Go, `31200` laisse environ 1,4 Go de marge. |
+| `RamKillPct` | Limite de la RAM du système en pourcentage. |
+| `TempKillC` | Limite de la température du GPU en °C. |
 
-Consentement : `-AllowKill` (ou `AllowKill = $true` dans la configuration). Le contrôleur ne tue jamais et ne redémarre jamais automatiquement ; le redémarrage automatique peut interrompre un travail en cours.
+Si une tâche dépasse la limite de VRAM en utilisation normale, limitez la tâche (pour ComfyUI, `--reserve-vram`) plutôt que d’augmenter la limite. Tous les autres paramètres, y compris la libération du cache WSL, sont disponibles dans [handbook → Configuration](https://mcp-tool-shop-org.github.io/watchdog/handbook/configuration/).
 
-## Modèle de menace
+## Sécurité
 
-- **Touché :** fichiers sous `Root` (signal d’activité, CSV, journaux d’arrêt/console/plantage, sentinelles) ; liste des processus ; compteurs GPU ; pkill WSL local facultatif ; vidage facultatif du cache de pages WSL (opt-in sur activation explicite, ne tue jamais de processus).
-- **Non touché :** votre arborescence de code source, points de contrôle, informations d’identification, le réseau.
-- **Autorisations :** l’utilisateur qui le démarre peut tuer les interpréteurs configurés. Il n’y a pas de compte de service supplémentaire.
-- **Aucune télémétrie** ne quitte la machine. Pas de secrets dans les journaux.
-- **Action irréversible :** ABORT. Voir [docs/compensators.md](docs/compensators.md).
+- **Consentement d’abord.** Rien n’est jamais arrêté sans `-AllowKill` ou `AllowKill = $true`.
+- **Touché :** fichiers sous `Root`, liste des processus, compteurs GPU ; et, uniquement si vous les activez, un modèle WSL `pkill` et la suppression du cache de pages WSL.
+- **Non touché :** vos arbres de code source, points de contrôle, informations d’identification et le réseau. Aucune télémétrie ne quitte la machine.
+- **La seule action irréversible est l’arrêt lui-même.** Une tâche arrêtée perd tout ce qu’elle n’a pas enregistré. Ce qui est perdu et comment s’en remettre est décrit dans [docs/compensators.md](docs/compensators.md).
 
-## Tests
+Consultez [SECURITY.md](SECURITY.md) pour signaler une vulnérabilité.
+
+## Plateforme
+
+La version 1 est uniquement pour Windows : elle dépend de PowerShell 7, `nvidia-smi`, des compteurs de mémoire de processus GPU Windows et, éventuellement, de WSL. La prise en charge de Linux est prévue pour une version ultérieure.
+
+## Développement
 
 ```powershell
-pwsh -File .\verify.ps1
+pwsh -File .\verify.ps1             # unit tests, no GPU needed
+pwsh -File .\verify.ps1 -Coverage   # adds line coverage; CI fails below 90%
 ```
 
-182 tests unitaires, sans GPU. Les données de test du parseur incluent la sortie incorrecte de nvidia-smi qui a interrompu la boucle le 12-06-2026. Le test d’arrêt matériel reste local et n’est pas intégré dans le processus d’intégration continue.
-
-`pwsh -File .\verify.ps1 -Coverage` ajoute la couverture de ligne pour `src/Watchdog/Private` et `src/Watchdog/Public` uniquement (`Watchdog.psm1`, `watchdog.ps1` et `watchdog-loop.ps1` ne sont pas mesurés). Le seuil minimal de l’intégration continue fait échouer la compilation si le résultat est inférieur à 90 % pour le module mesuré (`verify.ps1 -MinCoverage 90`) et envoie le rapport à Codecov, qui vérifie chaque modification à 90 %, tandis que le statut global du module dans Codecov autorise une marge d’un point en dessous.
-
-## Origine
-
-Il s’agit d’une extraction d’un watchdog qui fonctionnait déjà sur une 5090. Les scripts de pré-extraction sont figés dans [`origin/`](origin/) avec SHA-256. Les incidents datés (plantage de l’analyse, trou de cinq semaines, ai-toolkit non protégé, 153 ABORT vides, arrêt en un seul échantillon) sont disponibles dans [docs/incidents.md](docs/incidents.md).
+Chaque arrêt, lancement et appel de tâche planifiée dans les tests sont simulés, de sorte que leur exécution ne touche jamais les processus réels. Les scripts de pré-extraction sont conservés, avec un hachage fixe, dans [`origin/`](origin/), et les incidents qui ont façonné la conception sont décrits dans [docs/incidents.md](docs/incidents.md).
 
 ## Licence
 
-MIT. Voir [LICENSE](LICENSE). Pris en charge : 1.x.
+MIT. Voir [LICENSE](LICENSE).
 
 Créé par [MCP Tool Shop](https://mcp-tool-shop.github.io/).

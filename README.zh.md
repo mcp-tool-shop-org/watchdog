@@ -13,104 +13,106 @@
   <a href="https://mcp-tool-shop-org.github.io/watchdog/"><img src="https://img.shields.io/badge/Landing_Page-live-blue" alt="Landing Page"></a>
 </p>
 
-# 看门狗
+# watchdog
 
-用于 NVIDIA GPU 的 Windows VRAM/RAM/临时文件看门狗。它每 2 秒采样一次。连续出现 3 次违规后，它只会终止你列出的解释器——并且在出现违规但没有进程被终止时，它会说明这一点。
+**Windows 系统中，对长时间运行的 GPU 任务设置硬性上限。** watchdog会每隔 2 秒检查您的 NVIDIA 显卡的 VRAM 和温度，以及系统 RAM。当某个限制连续三次检查都被超出时，它会停止您允许它停止的 Python 解释器，仅此而已。
 
-```powershell
-watchdog status    # exit 0 running · 1 no heartbeat · 2 stale (died hard)
-watchdog start -AllowKill
-watchdog stop
-```
+您启动一个训练任务或大型渲染，然后离开，这时，由于内存泄漏、过大的批处理或显卡过热，桌面可能会卡死。watchdog是一个始终保持运行的小进程：它会强制执行您设置的限制，记录它所看到的内容，并明确地告诉您，当它无法保护您的系统时。
 
-不要手动编写心跳检测。不要对 `_watchdog` 进行进程匹配。这两个错误会导致一个已停止运行的看门狗和一个正常运行的看门狗看起来完全相同。
+## 您将获得什么
 
-**v1 仅适用于 Windows**（PowerShell 7、nvidia-smi、WDDM 进程内存计数器、可选的 WSL `pkill` 和 WSL 文件缓存释放）。Linux 版本将在后续发布。
+- **您选择的限制。** VRAM（以 MiB 为单位），RAM（以百分比为单位），GPU 温度（以 °C 为单位）。没有隐藏的默认值。
+- **有针对性的停止。** 只有您列出的解释器路径（以及可选的 WSL 进程模式）才会被停止。
+机器上的所有其他 Python 进程都将保持不变。
+- **不会提供虚假的安慰。** 如果超出限制，但没有匹配到您列出的任何进程，则会将其记录为保护漏洞，并显示占用 VRAM 的进程的名称。
+- **一个用于监控watchdog的watchdog。** 一个可选的计划任务会每分钟检查一次心跳，如果watchdog停止运行，则从外部将其标记为已停止。它绝不会自行重新启动任何进程。
+- **清晰的运行状态指示。** `watchdog status` 退出代码：0（正在运行），1（未运行）或 2（严重故障）。
+- **每次运行的记录。** CSV 格式的样本数据、停止日志、控制台转录和崩溃日志，所有这些都保存在您选择的同一个文件夹中。
+- **可选的 WSL 内存释放。** 如果 WSL 的文件缓存占用 Windows 内存过多，则轮询器可以释放该缓存。
+它绝不会停止任何进程，也不会启动任何已停止的发行版。
 
-## 安装
+## 快速入门
 
-PowerShell 7.1+。克隆，复制示例配置文件，编辑它，然后启动：
+要求：Windows，PowerShell 7 或更高版本，以及带有 `nvidia-smi` 的 NVIDIA 驱动程序，该驱动程序可在 `PATH` 上使用。
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git
 cd watchdog
 mkdir $HOME\.watchdog
 copy src\Watchdog\config\watchdog.example.psd1 $HOME\.watchdog\config.psd1
-notepad $HOME\.watchdog\config.psd1
+notepad $HOME\.watchdog\config.psd1      # set Root, Targets and your three limits
+
 pwsh -File .\watchdog.ps1 start -AllowKill
-pwsh -File .\watchdog.ps1 status
+pwsh -File .\watchdog.ps1 status        # exit 0 = protected
 ```
 
-或者导入模块：
+`-AllowKill` 是您的同意：如果没有它，或者配置中没有 `AllowKill = $true`，watchdog将不会启动。
+要将其安装为模块并添加外部检查：
 
 ```powershell
 Import-Module .\src\Watchdog\Watchdog.psd1
-Start-Watchdog -AllowKill
-Get-WatchdogStatus
-Register-WatchdogPoll   # scheduled task: detect death, never restart
+Install-Watchdog          # copy the module to your CurrentUser module path
+Register-WatchdogPoll     # scheduled task: detects a dead watchdog, never restarts it
 ```
 
-`Install-Watchdog` 将模块复制到你的 CurrentUser 模块路径中。
+## 工作原理
 
-## 配置
-
-**没有默认的根目录，也没有默认的终止列表。** 如果没有配置文件，模块将拒绝启动。搜索顺序：`-ConfigPath`、`$env:WATCHDOG_CONFIG`、`./watchdog.config.psd1`、`~/.watchdog/config.psd1`。
-
-必需字段：`Root`、`Targets`、`VramKillMiB`、`RamKillPct`、`TempKillC`。拒绝使用相对路径。写入操作将限制在 `Root` 范围内。
-
-`VramKillMiB = 31200` 是 32GB 显卡的文档化限制（低于 32607 MiB WDDM 限制约 1.4GB）。不要提高此限制以阻止 ComfyUI 触发——而是限制 ComfyUI（`--reserve-vram`）。
-
-### WSL 文件缓存释放（默认关闭，需显式启用）
-
-启用 `WslCacheRelease = $true` 后，每次轮询都会从 Windows 侧检查 WSL 虚拟机的内存（绝不会唤醒已停止的虚拟机）。当 `vmmemWSL` 较大，或 Windows 内存承压且 `vmmemWSL` 为中等大小时，轮询器会在 `WslDistro` 中丢弃 Linux 页面缓存（以 root 身份运行 `echo 1 > /proc/sys/vm/drop_caches`，带超时和冷却时间）。WSL 自身的 `autoMemoryReclaim` 仅在虚拟机空闲时触发，而运行中的容器引擎会使其保持繁忙，因此拉取大型镜像可能会占用数十 GB 缓存而不归还给 Windows。
-
-它绝不会终止任何进程，也绝不会启动已停止的发行版：当另一个发行版保持虚拟机运行，而`WslDistro`停止时，它会跳过缓存释放并记录这次跳过。它的日志文件`Root\_watchdog_wslcache.log`会记录每小时的心跳信息；每次缓存释放及其前后的内存；每一段连续跳过记录一行；如果释放后 Windows 仍然高于`WslCacheAlertPct`，还会记录一个`ALERT`，其中包含占用资源最多的进程的名称。阈值设置请参考示例配置文件。
+1. **采样。** 每隔 `IntervalSec` 秒（默认情况下为 2 秒），它会从 `nvidia-smi` 读取 GPU 温度、功耗和 VRAM，并从 Windows 读取系统 RAM。
+2. **等待模式出现，而不是峰值。** 必须连续 `BreachSamples` 次（默认情况下为 3 次）超出限制，才会发生任何操作。在过程中会记录警告信息。
+3. **仅停止您列出的进程。** 在持续超出限制的情况下，它会停止路径位于 `Targets` 中的 `python` 个进程，并运行可选的 WSL `pkill` 模式。它会记录它停止的内容，或者它没有停止任何内容。
+4. **证明它正在运行。** 循环会在每次采样时重写一个心跳文件。`watchdog status` 和计划任务轮询器会根据该心跳来判断运行状态，因此，一个已停止的watchdog永远不会显示为健康的。
 
 ## 命令
 
-| 命令 | 作用 |
+| 命令 | 它执行的操作 |
 |---|---|
-| `watchdog status` | 活动性。这是唯一正确的检查。 |
-| `watchdog start -AllowKill` | 哨兵停止、等待、清除、分离启动、验证心跳 |
-| `watchdog stop` | 停止哨兵，等待。不要进行进程匹配。 |
-| `watchdog poll` | 单次执行：如果心跳已过期，则从外部写入 `_watchdog_DEAD` |
-| `watchdog help` | 标志和退出代码 |
-| `watchdog version` | `1.1.2` |
+| `watchdog status` | 运行状态检查。退出代码：0（正在运行），1（未运行），2（严重故障）。 |
+| `watchdog start -AllowKill` | 干净地停止任何旧的循环，在后台启动一个新的循环，并等待其心跳。 |
+| `watchdog stop` | 通过一个哨兵文件请求循环停止，并等待其停止。 |
+| `watchdog poll` | 由计划任务运行的外部检查。 |
+| `watchdog install` / `uninstall` | 复制或删除模块。`install -Poll` 还会注册计划检查。 |
+| `watchdog help` / `version` | 标志、退出代码和版本。 |
 
-`status` / `poll` 退出代码：**0** 正在运行 · **1** 没有心跳 · **2** 已过期。`start` 还会使用 **3**（VRAM 已经超过限制）、**4**（旧循环未停止）、**5**（启动后没有心跳）。
+`start` 如果 VRAM 已经超过您的上限，则会拒绝并返回退出代码 3（仅当您确实希望这样做时才使用 `-Force`）。`status -Hook` 会打印一条 Claude Code SessionStart 消息，并且始终返回退出代码 0，因此，即使watchdog停止运行，也不会中断会话。完整参考：[handbook → Reference](https://mcp-tool-shop-org.github.io/watchdog/handbook/reference/)。
 
-`-Hook` 在状态时会发出 Claude Code SessionStart JSON，并且始终退出代码为 0，因此一个已停止运行的看门狗不会破坏会话启动。
+## 配置
 
-## 它会终止哪些进程
+如果没有配置文件，watchdog将不会启动。它会依次查找 `-ConfigPath`、`$env:WATCHDOG_CONFIG`、`./watchdog.config.psd1` 和 `~/.watchdog/config.psd1`。
 
-仅终止 `python` 进程，这些进程的 `Path` 位于 `Targets` 中，以及可选的 WSL `pkill -f` 模式（为空 = 禁用）。其他 Python 进程将被保留。如果违规行为没有匹配到任何进程，则会写入 `_watchdog_NO_TARGET`——这是一种**保护漏洞**，而不是成功。
+| 必需 | 含义 |
+|---|---|
+| `Root` | 用于存储心跳文件、日志和哨兵文件的绝对文件夹。watchdog不会将任何内容写入其他位置。 |
+| `Targets` | 它可以停止的绝对解释器路径。 |
+| `VramKillMiB` | VRAM 上限（以 MiB 为单位）。对于 32GB 的显卡，`31200` 留出大约 1.4GB 的可用空间。 |
+| `RamKillPct` | 系统 RAM 上限（以百分比为单位）。 |
+| `TempKillC` | GPU 温度上限（以 °C 为单位）。 |
 
-同意：`-AllowKill`（或配置文件中的 `AllowKill = $true`）。轮询器永远不会终止进程，也不会自动重新启动；自动重新启动可能会中止正在运行的任务。
+如果某个作业在正常使用中触发了 VRAM 上限，请限制该作业（对于 ComfyUI，`--reserve-vram`），而不是提高上限。所有其他设置，包括 WSL 缓存释放，都可以在 [handbook → Configuration](https://mcp-tool-shop-org.github.io/watchdog/handbook/configuration/) 中找到。
 
-## 威胁模型
+## 安全
 
-- **已访问：** `Root` 下的文件（心跳、CSV、终止/控制台/崩溃日志、哨兵）；进程列表；GPU 计数器；可选的本地 WSL pkill；可选的 WSL 页面缓存丢弃（默认关闭，需显式启用；绝不会终止进程）。
-- **未访问：** 你的源代码树、检查点、凭据、网络。
-- **权限：** 启动它的人可以终止配置的解释器。没有额外的服务帐户。
-- **没有遥测数据** 会离开机器。日志中没有秘密信息。
-- **不可逆操作：** ABORT。请参阅 [docs/compensators.md](docs/compensators.md)。
+- **首先需要您的同意。** 没有 `-AllowKill` 或 `AllowKill = $true`，任何内容都不会被停止。
+- **会访问：** `Root` 下的文件、进程列表、GPU 计数器；并且，如果您启用了它们，还会影响 WSL `pkill` 模式和 WSL 页面缓存释放。
+- **不会访问：** 您的源代码树、检查点、凭据和网络。没有遥测数据会离开该机器。
+- **唯一不可逆的操作是停止。** 停止的作业会丢失所有未保存的内容。丢失的内容以及如何恢复，请参见 [docs/compensators.md](docs/compensators.md)。
 
-## 测试
+请参阅 [SECURITY.md](SECURITY.md) 以报告漏洞。
+
+## 平台
+
+版本 1 仅适用于 Windows：它依赖于 PowerShell 7、`nvidia-smi`、Windows GPU 进程内存计数器，以及可选的 WSL。Linux 支持计划在后续版本中提供。
+
+## 开发
 
 ```powershell
-pwsh -File .\verify.ps1
+pwsh -File .\verify.ps1             # unit tests, no GPU needed
+pwsh -File .\verify.ps1 -Coverage   # adds line coverage; CI fails below 90%
 ```
 
-182 个单元测试，未使用 GPU。解析器测试用例包括导致 2026-06-12 日循环失败的格式错误的 nvidia-smi 输出。硬件中止测试仍然在本地运行，并且未在持续集成 (CI) 中启用。
-
-`pwsh -File .\verify.ps1 -Coverage` 仅增加了对 `src/Watchdog/Private` 和 `src/Watchdog/Public` 的行覆盖率统计（未测量 `Watchdog.psm1`、`watchdog.ps1` 和 `watchdog-loop.ps1`）。CI 自身的最低覆盖率要求会在被测模块低于 90% 时使构建失败（`verify.ps1 -MinCoverage 90`），并将报告上传到 Codecov。Codecov 会检查每次更改是否达到 90% 的覆盖率，而 Codecov 的整体模块状态允许低一个百分点。
-
-## 来源
-
-这是一个已经在一个 5090 上运行的看门狗的提取版本。提取前的脚本已冻结在 [`origin/`](origin/) 中，并带有 SHA-256 固定版本。已记录的事件（解析崩溃、五周漏洞、未受保护的 ai-toolkit、153 个空 ABORT、单次样本死亡）位于 [docs/incidents.md](docs/incidents.md) 中。
+测试中的每个停止、启动和计划任务调用都进行了模拟，因此运行它们不会影响真实的进程。预提取脚本保存在 [`origin/`](origin/) 中，并且已进行哈希固定，而影响设计的事件则在 [docs/incidents.md](docs/incidents.md) 中。
 
 ## 许可证
 
-MIT。请参阅 [LICENSE](LICENSE)。支持：1.x。
+MIT。请参阅 [LICENSE](LICENSE)。
 
 由 [MCP Tool Shop](https://mcp-tool-shop.github.io/) 构建。

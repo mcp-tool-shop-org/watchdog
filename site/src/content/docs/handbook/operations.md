@@ -49,8 +49,8 @@ With `WslCacheRelease` on, `_watchdog_wslcache.log` under `Root` records:
   cache, and the watchdog will not free it. Find the process;
 - `ERROR`, when a `wsl.exe` call failed or timed out. The poll carries on.
 
-## Cutover from a live script
+## Replacing an existing watchdog script
 
 If a machine already runs a copy of the old `_watchdog.ps1`, stopping it
-and starting this module is a Director-level change, not a side effect
+and starting this module is a deliberate change, not a side effect
 of cloning the repo.

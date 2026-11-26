@@ -13,104 +13,103 @@
   <a href="https://mcp-tool-shop-org.github.io/watchdog/"><img src="https://img.shields.io/badge/Landing_Page-live-blue" alt="Landing Page"></a>
 </p>
 
-# 監視プログラム
+# watchdog
 
-NVIDIA GPU用のWindows VRAM / RAM / 一時ファイル監視プログラム。2秒ごとにサンプリングします。3回連続して違反が発生した場合、指定されたインタープリターのみを強制終了します。また、違反が発生しても何も強制終了されない場合は、その旨を通知します。
+**Windowsにおける、長時間のGPUジョブに対するハードリミット。** watchdogは、NVIDIAカードのVRAMと温度、およびシステムRAMを2秒ごとにチェックします。リミットが連続して3回を超えた場合、許可されたPythonインタープリターを停止し、それ以外は何も行いません。
 
-```powershell
-watchdog status    # exit 0 running · 1 no heartbeat · 2 stale (died hard)
-watchdog start -AllowKill
-watchdog stop
-```
+トレーニングの実行や大規模なレンダリングを開始し、放置すると、メモリリーク、過剰なバッチサイズ、またはGPUの過熱により、システムがフリーズすることがあります。watchdogは、常に監視し続ける小さなプロセスです。設定したリミットを強制し、監視した内容を記録し、保護できなかった場合に明確に通知します。
 
-手動でハートビートのチェックを行う処理を実装しないでください。`_watchdog`を使用してプロセスを照合しないでください。これらの2つの間違いが原因で、正常に動作している監視プログラムと、動作していない監視プログラムが区別できなくなります。
+## 得られるもの
 
-**v1はWindows専用です**（PowerShell 7、nvidia-smi、WDDMプロセスメモリカウンター、オプションのWSL `pkill`およびWSLファイルキャッシュの解放）。Linux版は後日リリースされます。
+- **ユーザーが選択するリミット。** VRAMはMiBで、RAMはパーセントで、GPU温度は℃で指定します。隠れたデフォルト値はありません。
+- **ターゲットを絞った停止。** リストに登録されたインタープリターのパス（オプションでWSLプロセスパターン）のみを停止できます。それ以外のPythonプロセスはそのままです。
+- **誤った安心感を与えない。** リストに登録されたプロセスに一致しない違反が発生した場合、保護のギャップとして記録され、VRAMを保持しているプロセスが名前で示されます。
+- **watchdogのためのwatchdog。** オプションのスケジュールされたタスクが、1分間に1回ハートビートをチェックし、watchdogが停止した場合、外部からwatchdogが停止したと判断します。watchdogは、それ自体で何も再起動しません。
+- **明確な稼働状況の確認。** `watchdog status`は、0（実行中）、1（実行されていない）、2（致命的なエラーで停止）を返します。
+- **すべての実行の記録。** サンプルのCSV、キルログ、コンソールトランスクリプト、クラッシュログを、ユーザーが選択した1つのフォルダーに保存します。
+- **オプションのWSLメモリ解放。** WSLのファイルキャッシュがWindowsのメモリを圧迫する場合、ポーラーがそのキャッシュを解放できます。プロセスは停止せず、停止したディストリビューションも起動しません。
 
-## インストール
+## クイックスタート
 
-PowerShell 7.1以上。クローンし、サンプル設定ファイルをコピーして編集し、起動します。
+要件：Windows、PowerShell 7以降、および`PATH`で`nvidia-smi`が有効になっているNVIDIAドライバー。
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git
 cd watchdog
 mkdir $HOME\.watchdog
 copy src\Watchdog\config\watchdog.example.psd1 $HOME\.watchdog\config.psd1
-notepad $HOME\.watchdog\config.psd1
+notepad $HOME\.watchdog\config.psd1      # set Root, Targets and your three limits
+
 pwsh -File .\watchdog.ps1 start -AllowKill
-pwsh -File .\watchdog.ps1 status
+pwsh -File .\watchdog.ps1 status        # exit 0 = protected
 ```
 
-または、モジュールをインポートします。
+`-AllowKill`はあなたの同意です。watchdogは、これがない場合、または構成に`AllowKill = $true`がない場合は起動しません。モジュールとしてインストールし、外部チェックを追加するには、
 
 ```powershell
 Import-Module .\src\Watchdog\Watchdog.psd1
-Start-Watchdog -AllowKill
-Get-WatchdogStatus
-Register-WatchdogPoll   # scheduled task: detect death, never restart
+Install-Watchdog          # copy the module to your CurrentUser module path
+Register-WatchdogPoll     # scheduled task: detects a dead watchdog, never restarts it
 ```
 
-`Install-Watchdog`は、モジュールをCurrentUserモジュールパスにコピーします。
+## 動作原理
 
-## 設定
-
-**デフォルトのルートとデフォルトの強制終了リストはありません。**設定ファイルなしでモジュールを起動することはできません。検索順序：`-ConfigPath`、`$env:WATCHDOG_CONFIG`、`./watchdog.config.psd1`、`~/.watchdog/config.psd1`。
-
-必須フィールド：`Root`、`Targets`、`VramKillMiB`、`RamKillPct`、`TempKillC`。相対パスは許可されません。書き込みは`Root`以下に制限されます。
-
-`VramKillMiB = 31200`は、32GBのカードに対するドキュメントに記載されている上限値です（32607 MiB WDDMの上限値より約1.4GB少ない）。ComfyUIのトリガーを停止するために、この値を上げないでください。代わりに、ComfyUI（`--reserve-vram`）を制限してください。
-
-### WSLファイルキャッシュの解放（オプトイン）
-
-`WslCacheRelease = $true`を使用すると、各ポーリング時にWSL VMのメモリをWindows側からチェックします（停止中のVMを決して起動しません）。`vmmemWSL`が大きい場合、またはWindowsのメモリが逼迫しており`vmmemWSL`が中程度のサイズの場合、ポーラーは`WslDistro`内のLinuxページキャッシュを破棄します（root権限で`echo 1 > /proc/sys/vm/drop_caches`を実行、タイムアウトとクールダウンあり）。WSL自身の`autoMemoryReclaim`はVMがアイドル状態の場合にのみ作動し、実行中のコンテナエンジンがVMを稼働状態に保つため、大きなイメージのプルによって数十GBのキャッシュがWindows側のメモリを圧迫したまま残ることがあります。
-
-このツールはプロセスを決して強制終了せず、停止したディストリビューションを決して起動しません。別のディストリビューションが、`WslDistro`が停止している間に仮想マシンを稼働させている場合、このツールはキャッシュの解放をスキップし、その旨をログに記録します。ログファイル`Root\_watchdog_wslcache.log`には、1時間ごとのハートビート、各キャッシュ解放の前後のメモリ使用量、一連のスキップにつき1行、そして解放の後もWindowsが依然として`WslCacheAlertPct`を超えている場合に上位のプロセス名を示す`ALERT`が記録されます。閾値は、サンプル設定ファイルに記載されています。
+1. **サンプル。** `IntervalSec`（デフォルトでは2秒ごと）に、GPUの温度、電力、およびVRAMを`nvidia-smi`から、システムRAMをWindowsから読み取ります。
+2. **特定のパターンを待つ。急激な変化ではない。** 何らかの処理が行われる前に、ある閾値が連続して`BreachSamples`回（デフォルトでは3回）超えなければなりません。その過程で警告が記録されます。
+3. **リストに記載されたものだけを停止する。** 継続的に閾値を超えた場合、パスが`Targets`にある`python`のプロセスを停止し、オプションのWSL `pkill`パターンを実行します。停止したプロセス、または何も停止しなかったことを記録します。
+4. **正常に動作していることを証明する。** ループは、各サンプルのたびにハートビートファイルを書き換えます。`watchdog status`とスケジュールされたポーラーが、そのハートビートから正常に動作しているかどうかを判断するため、動作が停止した監視プログラムは、正常に動作しているように見せることはできません。
 
 ## コマンド
 
 | コマンド | 実行内容 |
 |---|---|
-| `watchdog status` | 生存確認。唯一正しいチェックです。 |
-| `watchdog start -AllowKill` | センチネルを停止し、待機し、クリアし、デタッチドモードで起動し、ハートビートを検証します。 |
-| `watchdog stop` | センチネルを停止し、待機します。プロセスを照合することは行いません。 |
-| `watchdog poll` | ワンショット：ハートビートが古い場合、外部から`_watchdog_DEAD`を書き込みます。 |
-| `watchdog help` | フラグと終了コード |
-| `watchdog version` | `1.1.2` |
+| `watchdog status` | 稼働状況の確認。終了コードは、0（実行中）、1（実行されていない）、2（致命的なエラーで停止）です。 |
+| `watchdog start -AllowKill` | 古いループをクリーンに停止し、バックグラウンドで新しいループを開始し、ハートビートを待ちます。 |
+| `watchdog stop` | センチネルファイルを通じてループを停止するように要求し、完了するまで待ちます。 |
+| `watchdog poll` | スケジュールされたタスクによって実行される、外部チェックを1回実行します。 |
+| `watchdog install` / `uninstall` | モジュールをコピーまたは削除します。`install -Poll`は、スケジュールされたチェックも登録します。 |
+| `watchdog help` / `version` | フラグ、終了コード、およびバージョンを表示します。 |
 
-`status`/`poll`の終了コード：**0**（正常終了）、**1**（ハートビートが途絶）、**2**（タイムアウト）。`start`では、さらに**3**（VRAMの使用量が上限を超えた）、**4**（古いループが停止しなかった）、**5**（起動後にハートビートが途絶）も使用されます。
+`start`は、VRAMがすでに設定した上限を超えている場合、終了コード3で拒否します（`-Force`を使用する場合は、本当にそうしたいことを意味します）。`status -Hook`は、Claude Code SessionStartメッセージを出力し、常に終了コード0を返します。これにより、停止したwatchdogが、セッションを中断することなく報告されます。完全なリファレンス：[handbook → Reference](https://mcp-tool-shop-org.github.io/watchdog/handbook/reference/)。
 
-ステータスに関する`-Hook`は、Claude Code SessionStart JSONを出力し、常に0で終了するため、動作していない監視プログラムがセッションの開始を妨げることはありません。
+## 設定
 
-## 強制終了するプロセス
+watchdogは、設定ファイルがないと起動しません。最初に`-ConfigPath`、次に`$env:WATCHDOG_CONFIG`、次に`./watchdog.config.psd1`、最後に`~/.watchdog/config.psd1`を検索します。
 
-`Targets`に含まれる`Path`を持つ`python`プロセスのみを強制終了します。さらに、オプションでWSL `pkill -f`パターン（空の場合は無効）も使用します。他のPythonプロセスは強制終了されません。どのプロセスにも一致しない違反が発生した場合、`_watchdog_NO_TARGET`が書き込まれます。これは、保護の**ギャップ**であり、成功ではありません。
+| 必須 | 意味 |
+|---|---|
+| `Root` | ハートビート、ログ、センチネルファイルの絶対パス。watchdogは、他の場所に書き込みません。 |
+| `Targets` | 停止する可能性のある、絶対パスで指定されたインタープリターのパス。 |
+| `VramKillMiB` | VRAMの上限をMiBで指定します。32GBのカードの場合、`31200`は、約1.4GBのヘッドルームを残します。 |
+| `RamKillPct` | システムRAMの上限をパーセントで指定します。 |
+| `TempKillC` | GPU温度の上限を℃で指定します。 |
 
-同意：`-AllowKill`（または設定の`AllowKill = $true`）。ポーラーはプロセスを強制終了せず、自動的に再起動も行いません。自動再起動は、実行中のジョブを中断する可能性があります。
+通常の使用時にVRAMの上限に達した場合、上限を引き上げるのではなく、ジョブを制限します（ComfyUI、`--reserve-vram`）。その他の設定（WSLキャッシュの解放を含む）は、[handbook → Configuration](https://mcp-tool-shop-org.github.io/watchdog/handbook/configuration/)にあります。
 
-## 脅威モデル
+## 安全性
 
-- **アクセス対象：**`Root`配下のファイル（ハートビート、CSV、強制終了/コンソール/クラッシュログ、センチネル）、プロセスリスト、GPUカウンター、オプションのローカルWSL pkill、オプションのWSLページキャッシュ破棄（オプトイン、プロセスは決して強制終了しません）。
-- **アクセス対象外：**ソースツリー、チェックポイント、認証情報、ネットワーク。
-- **権限：**モジュールを起動するユーザーは、設定されたインタープリターを強制終了できます。追加のサービスアカウントはありません。
-- **テレメトリは送信されません。**ログに機密情報は含まれません。
-- **不可逆的な操作：**ABORT。詳細については、[docs/compensators.md](docs/compensators.md)を参照してください。
+- **最初に同意を得る。** `-AllowKill`または`AllowKill = $true`がない限り、何も停止されません。
+- **アクセスするもの：** `Root`内のファイル、プロセスリスト、GPUカウンター。また、有効にした場合は、WSL `pkill`パターンとWSLページキャッシュの解放。
+- **アクセスしないもの：** ソースツリー、チェックポイント、認証情報、ネットワーク。テレメトリーは、マシンから送信されません。
+- **唯一不可逆的な操作は、停止することです。** 停止されたジョブは、保存されていないものを失います。失われるものと、回復する方法については、[docs/compensators.md](docs/compensators.md)を参照してください。
 
-## テスト
+脆弱性を報告するには、[SECURITY.md](SECURITY.md)を参照してください。
+
+## プラットフォーム
+
+バージョン1はWindows専用です。PowerShell 7、`nvidia-smi`、Windows GPUプロセスメモリカウンター、およびオプションでWSLに依存します。Linuxのサポートは、今後のバージョンで計画されています。
+
+## 開発
 
 ```powershell
-pwsh -File .\verify.ps1
+pwsh -File .\verify.ps1             # unit tests, no GPU needed
+pwsh -File .\verify.ps1 -Coverage   # adds line coverage; CI fails below 90%
 ```
 
-182個のユニットテスト、GPUは使用しません。パーサーのテストデータには、2026年6月12日にループを停止させた、形式が正しくないnvidia-smiの出力が含まれます。ハードウェアアボートテストはローカル環境でのみ実行され、CI環境では実行されません。
-
-`pwsh -File .\verify.ps1 -Coverage`は、`src/Watchdog/Private`と`src/Watchdog/Public`のみの行カバレッジを追加します（`Watchdog.psm1`、`watchdog.ps1`、および`watchdog-loop.ps1`は測定されません）。CI独自の最低基準により、測定対象モジュールのカバレッジが90%を下回るとビルドを失敗させ（`verify.ps1 -MinCoverage 90`）、レポートをCodecovにアップロードします。Codecovは、すべての変更に対して90%の基準を満たしているか確認し、Codecovのモジュール全体のステータスでは、1ポイント低い場合でも許容されます。
-
-## 起源
-
-これは、すでに5090で実行されていた監視プログラムから抽出されたものです。抽出前のスクリプトは、[`origin/`](origin/)に固定され、SHA-256ピンが設定されています。日付付きのインシデント（解析クラッシュ、5週間の空白、保護されていないai-toolkit、153個の空のABORT、1サンプルの異常終了）は、[docs/incidents.md](docs/incidents.md)に記載されています。
+テスト内のすべての停止、起動、およびスケジュールされたタスクの呼び出しはモックされているため、テストを実行しても実際のプロセスには影響しません。事前抽出スクリプトは、[`origin/`](origin/)に保存され、ハッシュで固定されており、設計に影響を与えたインシデントは、[docs/incidents.md](docs/incidents.md)にあります。
 
 ## ライセンス
 
-MIT。詳細については、[LICENSE](LICENSE)を参照してください。サポート対象：1.x。
+MIT。 [LICENSE](LICENSE)を参照してください。
 
 [MCP Tool Shop](https://mcp-tool-shop.github.io/)によって作成されました。

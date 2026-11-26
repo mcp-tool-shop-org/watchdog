@@ -20,7 +20,7 @@ malformed multi-line output that caused it.
 `origin/_watchdog_status.ps1` header. The watchdog tripped (killed
 ComfyUI on a VRAM breach), kept running, then was hard-killed ~10h
 later. A hard kill cannot write `_watchdog_DEAD`, and nothing else
-surfaced the absence — the rig ran with no VRAM protection for 5+ weeks.
+surfaced the absence — the GPU host ran with no VRAM protection for 5+ weeks.
 A dead watchdog and a healthy one look identical unless you ask.
 
 The only reliable signal is heartbeat age. Do not process-match on
@@ -43,7 +43,7 @@ and never named the holder. A breach that kills nothing is a protection
 *gap*, not the mechanism working.
 
 Per-process VRAM: nvidia-smi's `used_gpu_memory` reads `[N/A]` under
-WDDM on this rig, so holders come from the `\GPU Process Memory`
+WDDM on the development machine, so holders come from the `\GPU Process Memory`
 counter set (~1.3s per call; breach path only, never the normal loop).
 Best-effort: any failure degrades to a note and must never kill the loop.
 
