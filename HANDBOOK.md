@@ -58,9 +58,3 @@ pwsh -File .\watchdog.ps1 stop
 ```
 
 STOP sentinel, then wait. Never kill by process name.
-
-## Live studio instance
-
-On the Robot rig the process that is protecting the GPU **right now** is
-still `E:\AI\training\_watchdog*.ps1`. This module does not replace it
-until the Director approves cutover.

@@ -2,7 +2,7 @@
 
 `origin/_watchdog_test.ps1` is the live abort test: it spawns a real venv
 python, runs a real always-trip watchdog, and kills real processes. It
-needs this rig.
+needs a machine with an NVIDIA GPU.
 
 CI has no GPU. The valuable tests (parse, hysteresis, heartbeat age,
 CSV append, config fail-closed, poller DEAD write, -AllowKill) run in
