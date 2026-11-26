@@ -31,7 +31,7 @@ Inicia una ejecución de entrenamiento o un renderizado grande, se aleja y una f
 
 ## Inicio rápido
 
-Requisitos: Windows, PowerShell 7.1 o posterior, y un controlador NVIDIA con `nvidia-smi` en `PATH`.
+Requisitos: Windows, PowerShell 7 o posterior, y un controlador NVIDIA con `nvidia-smi` en `PATH`.
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git

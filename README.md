@@ -40,7 +40,7 @@ what it saw, and tells you plainly when it could not protect you.
 
 ## Quick start
 
-Requirements: Windows, PowerShell 7.1 or newer, and an NVIDIA driver with `nvidia-smi` on `PATH`.
+Requirements: Windows, PowerShell 7 or newer, and an NVIDIA driver with `nvidia-smi` on `PATH`.
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git

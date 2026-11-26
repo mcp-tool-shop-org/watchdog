@@ -31,7 +31,7 @@
 
 ## クイックスタート
 
-要件：Windows、PowerShell 7.1以降、および`PATH`で`nvidia-smi`が有効になっているNVIDIAドライバー。
+要件：Windows、PowerShell 7以降、および`PATH`で`nvidia-smi`が有効になっているNVIDIAドライバー。
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git
@@ -89,8 +89,8 @@ watchdogは、設定ファイルがないと起動しません。最初に`-Conf
 ## 安全性
 
 - **最初に同意を得る。** `-AllowKill`または`AllowKill = $true`がない限り、何も停止されません。
-- **アクセスするファイル：** `Root`内のファイル、プロセスリスト、GPUカウンター。また、有効にした場合は、WSL `pkill`パターンとWSLページキャッシュの解放。
-- **アクセスしないファイル：** ソースツリー、チェックポイント、認証情報、ネットワーク。テレメトリーは、マシンから送信されません。
+- **アクセスするもの：** `Root`内のファイル、プロセスリスト、GPUカウンター。また、有効にした場合は、WSL `pkill`パターンとWSLページキャッシュの解放。
+- **アクセスしないもの：** ソースツリー、チェックポイント、認証情報、ネットワーク。テレメトリーは、マシンから送信されません。
 - **唯一不可逆的な操作は、停止することです。** 停止されたジョブは、保存されていないものを失います。失われるものと、回復する方法については、[docs/compensators.md](docs/compensators.md)を参照してください。
 
 脆弱性を報告するには、[SECURITY.md](SECURITY.md)を参照してください。

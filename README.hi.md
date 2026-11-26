@@ -31,7 +31,7 @@
 
 ## त्वरित शुरुआत
 
-आवश्यकताएं: विंडोज, PowerShell 7.1 या नया, और `PATH` पर `nvidia-smi` के साथ एक NVIDIA ड्राइवर।
+आवश्यकताएं: विंडोज, PowerShell 7 या नया, और `PATH` पर `nvidia-smi` के साथ एक NVIDIA ड्राइवर।
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git

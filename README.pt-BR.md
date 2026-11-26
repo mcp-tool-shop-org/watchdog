@@ -24,14 +24,14 @@ Você inicia uma execução de treinamento ou uma renderização grande, se afas
 - **Limites que você escolhe.** VRAM em MiB, RAM em porcentagem, temperatura da GPU em °C. Não há valores padrão ocultos.
 - **Interrupções direcionadas.** Apenas os caminhos dos interpretadores que você listar (mais um padrão de processo WSL opcional) podem ser interrompidos. Todos os outros processos Python na máquina são deixados intactos.
 - **Sem falsas garantias.** Uma violação que não corresponde a nenhum dos seus processos listados é registrada como uma lacuna de proteção, e os processos que detêm a VRAM são nomeados.
-- **Um watchdog para o watchdog.** Uma tarefa agendada opcional verifica o sinal de vida uma vez por minuto e marca o watchdog como inativo externamente, caso ele tenha parado. Ele nunca reinicia nada por conta própria.
+- **Um watchdog para o watchdog.** Uma tarefa agendada opcional verifica o sinal de vida uma vez por minuto e marca o watchdog como inativo externamente, caso ele tenha parado. Ela nunca reinicia nada por conta própria.
 - **Uma resposta clara sobre o status.** `watchdog status` retorna 0 (em execução), 1 (não em execução) ou 2 (falha grave).
 - **Um registro de cada execução.** Um arquivo CSV de amostras, um registro de interrupções, uma transcrição do console e um registro de falhas, todos armazenados em uma única pasta que você escolher.
 - **Retorno opcional de memória WSL.** Se o cache de arquivos do WSL sobrecarregar a memória do Windows, o verificador pode descartar esse cache. Ele nunca interrompe um processo e nunca inicia uma distribuição interrompida.
 
 ## Início rápido
 
-Requisitos: Windows, PowerShell 7.1 ou mais recente e um driver NVIDIA com `nvidia-smi` em `PATH`.
+Requisitos: Windows, PowerShell 7 ou mais recente e um driver NVIDIA com `nvidia-smi` em `PATH`.
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git
@@ -91,7 +91,7 @@ Se uma tarefa ultrapassar o limite máximo de VRAM durante o uso normal, limite 
 
 - **Consentimento primeiro.** Nada é interrompido sem `-AllowKill` ou `AllowKill = $true`.
 - **Acessado:** arquivos em `Root`, a lista de processos, contadores da GPU; e, apenas se você habilitá-los, um padrão WSL `pkill` e a liberação da página de cache do WSL.
-- **Não acessado:** suas árvores de código-fonte, pontos de verificação, credenciais e a rede. Nenhum telemetria sai da máquina.
+- **Não acessado:** suas árvores de código-fonte, pontos de verificação, credenciais e a rede. Nenhuma telemetria sai da máquina.
 - **A única ação irreversível é a própria interrupção.** Uma tarefa interrompida perde tudo o que não foi salvo. O que é perdido e como se recuperar está em [docs/compensators.md](docs/compensators.md).
 
 Consulte [SECURITY.md](SECURITY.md) para relatar uma vulnerabilidade.

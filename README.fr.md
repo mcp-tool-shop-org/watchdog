@@ -31,7 +31,7 @@ Vous lancez une tâche d’entraînement ou un rendu important, vous vous absent
 
 ## Démarrage rapide
 
-Prérequis : Windows, PowerShell 7.1 ou version ultérieure, et un pilote NVIDIA avec `nvidia-smi` sur `PATH`.
+Prérequis : Windows, PowerShell 7 ou version ultérieure, et un pilote NVIDIA avec `nvidia-smi` sur `PATH`.
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git

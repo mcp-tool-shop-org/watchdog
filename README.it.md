@@ -31,7 +31,7 @@ Avvii un processo di addestramento o un rendering di grandi dimensioni, ti allon
 
 ## Avvio rapido
 
-Requisiti: Windows, PowerShell 7.1 o versione successiva e un driver NVIDIA con `nvidia-smi` su `PATH`.
+Requisiti: Windows, PowerShell 7 o versione successiva e un driver NVIDIA con `nvidia-smi` su `PATH`.
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git

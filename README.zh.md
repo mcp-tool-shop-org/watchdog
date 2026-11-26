@@ -15,9 +15,9 @@
 
 # watchdog
 
-**Windows 系统中，对长时间运行的 GPU 任务设置硬性上限。** watchdog会每隔 2 秒检查您的 NVIDIA 显卡的 VRAM 和温度，以及系统 RAM。当某个限制持续超出设定值时，它会停止您允许它停止的 Python 解释器，仅此而已。
+**Windows 系统中，对长时间运行的 GPU 任务设置硬性上限。** watchdog会每隔 2 秒检查您的 NVIDIA 显卡的 VRAM 和温度，以及系统 RAM。当某个限制连续三次检查都被超出时，它会停止您允许它停止的 Python 解释器，仅此而已。
 
-您启动一个训练任务或大型渲染，然后离开，这时，由于内存泄漏、过大的批处理或显卡过热，系统可能会崩溃。watchdog是一个始终保持运行的小进程：它会强制执行您设置的限制，记录它所看到的内容，并明确地告诉您，当它无法保护您的系统时。
+您启动一个训练任务或大型渲染，然后离开，这时，由于内存泄漏、过大的批处理或显卡过热，桌面可能会卡死。watchdog是一个始终保持运行的小进程：它会强制执行您设置的限制，记录它所看到的内容，并明确地告诉您，当它无法保护您的系统时。
 
 ## 您将获得什么
 
@@ -33,7 +33,7 @@
 
 ## 快速入门
 
-要求：Windows，PowerShell 7.1 或更高版本，以及带有 `nvidia-smi` 的 NVIDIA 驱动程序，该驱动程序可在 `PATH` 上使用。
+要求：Windows，PowerShell 7 或更高版本，以及带有 `nvidia-smi` 的 NVIDIA 驱动程序，该驱动程序可在 `PATH` 上使用。
 
 ```powershell
 git clone https://github.com/mcp-tool-shop-org/watchdog.git
@@ -92,8 +92,8 @@ Register-WatchdogPoll     # scheduled task: detects a dead watchdog, never resta
 ## 安全
 
 - **首先需要您的同意。** 没有 `-AllowKill` 或 `AllowKill = $true`，任何内容都不会被停止。
-- **受影响的文件：** `Root` 下的文件、进程列表、GPU 计数器；并且，如果您启用了它们，还会影响 WSL `pkill` 模式和 WSL 页面缓存释放。
-- **不受影响的文件：** 您的源代码树、检查点、凭据和网络。没有遥测数据会离开该机器。
+- **会访问：** `Root` 下的文件、进程列表、GPU 计数器；并且，如果您启用了它们，还会影响 WSL `pkill` 模式和 WSL 页面缓存释放。
+- **不会访问：** 您的源代码树、检查点、凭据和网络。没有遥测数据会离开该机器。
 - **唯一不可逆的操作是停止。** 停止的作业会丢失所有未保存的内容。丢失的内容以及如何恢复，请参见 [docs/compensators.md](docs/compensators.md)。
 
 请参阅 [SECURITY.md](SECURITY.md) 以报告漏洞。
