@@ -13,11 +13,11 @@
   <a href="https://mcp-tool-shop-org.github.io/watchdog/"><img src="https://img.shields.io/badge/Landing_Page-live-blue" alt="Landing Page"></a>
 </p>
 
-# 看门狗
+# watchdog
 
-**Windows 系统中，对长时间运行的 GPU 任务设置硬性上限。** 看门狗会每隔 2 秒检查您的 NVIDIA 显卡的 VRAM 和温度，以及系统 RAM。当某个限制持续超出设定值时，它会停止您允许它停止的 Python 解释器，仅此而已。
+**Windows 系统中，对长时间运行的 GPU 任务设置硬性上限。** watchdog会每隔 2 秒检查您的 NVIDIA 显卡的 VRAM 和温度，以及系统 RAM。当某个限制持续超出设定值时，它会停止您允许它停止的 Python 解释器，仅此而已。
 
-您启动一个训练任务或大型渲染，然后离开，这时，由于内存泄漏、过大的批处理或显卡过热，系统可能会崩溃。看门狗是一个始终保持运行的小进程：它会强制执行您设置的限制，记录它所看到的内容，并明确地告诉您，当它无法保护您的系统时。
+您启动一个训练任务或大型渲染，然后离开，这时，由于内存泄漏、过大的批处理或显卡过热，系统可能会崩溃。watchdog是一个始终保持运行的小进程：它会强制执行您设置的限制，记录它所看到的内容，并明确地告诉您，当它无法保护您的系统时。
 
 ## 您将获得什么
 
@@ -25,7 +25,7 @@
 - **有针对性的停止。** 只有您列出的解释器路径（以及可选的 WSL 进程模式）才会被停止。
 机器上的所有其他 Python 进程都将保持不变。
 - **不会提供虚假的安慰。** 如果超出限制，但没有匹配到您列出的任何进程，则会将其记录为保护漏洞，并显示占用 VRAM 的进程的名称。
-- **一个用于监控看门狗的看门狗。** 一个可选的计划任务会每分钟检查一次心跳，如果看门狗停止运行，则从外部将其标记为已停止。它绝不会自行重新启动任何进程。
+- **一个用于监控watchdog的watchdog。** 一个可选的计划任务会每分钟检查一次心跳，如果watchdog停止运行，则从外部将其标记为已停止。它绝不会自行重新启动任何进程。
 - **清晰的运行状态指示。** `watchdog status` 退出代码：0（正在运行），1（未运行）或 2（严重故障）。
 - **每次运行的记录。** CSV 格式的样本数据、停止日志、控制台转录和崩溃日志，所有这些都保存在您选择的同一个文件夹中。
 - **可选的 WSL 内存释放。** 如果 WSL 的文件缓存占用 Windows 内存过多，则轮询器可以释放该缓存。
@@ -46,7 +46,7 @@ pwsh -File .\watchdog.ps1 start -AllowKill
 pwsh -File .\watchdog.ps1 status        # exit 0 = protected
 ```
 
-`-AllowKill` 是您的同意：如果没有它，或者配置中没有 `AllowKill = $true`，看门狗将不会启动。
+`-AllowKill` 是您的同意：如果没有它，或者配置中没有 `AllowKill = $true`，watchdog将不会启动。
 要将其安装为模块并添加外部检查：
 
 ```powershell
@@ -60,7 +60,7 @@ Register-WatchdogPoll     # scheduled task: detects a dead watchdog, never resta
 1. **采样。** 每隔 `IntervalSec` 秒（默认情况下为 2 秒），它会从 `nvidia-smi` 读取 GPU 温度、功耗和 VRAM，并从 Windows 读取系统 RAM。
 2. **等待模式出现，而不是峰值。** 必须连续 `BreachSamples` 次（默认情况下为 3 次）超出限制，才会发生任何操作。在过程中会记录警告信息。
 3. **仅停止您列出的进程。** 在持续超出限制的情况下，它会停止路径位于 `Targets` 中的 `python` 个进程，并运行可选的 WSL `pkill` 模式。它会记录它停止的内容，或者它没有停止任何内容。
-4. **证明它正在运行。** 循环会在每次采样时重写一个心跳文件。`watchdog status` 和计划任务轮询器会根据该心跳来判断运行状态，因此，一个已停止的看门狗永远不会显示为健康的。
+4. **证明它正在运行。** 循环会在每次采样时重写一个心跳文件。`watchdog status` 和计划任务轮询器会根据该心跳来判断运行状态，因此，一个已停止的watchdog永远不会显示为健康的。
 
 ## 命令
 
@@ -73,15 +73,15 @@ Register-WatchdogPoll     # scheduled task: detects a dead watchdog, never resta
 | `watchdog install` / `uninstall` | 复制或删除模块。`install -Poll` 还会注册计划检查。 |
 | `watchdog help` / `version` | 标志、退出代码和版本。 |
 
-`start` 如果 VRAM 已经超过您的上限，则会拒绝并返回退出代码 3（仅当您确实希望这样做时才使用 `-Force`）。`status -Hook` 会打印一条 Claude Code SessionStart 消息，并且始终返回退出代码 0，因此，即使看门狗停止运行，也不会中断会话。完整参考：[handbook → Reference](https://mcp-tool-shop-org.github.io/watchdog/handbook/reference/)。
+`start` 如果 VRAM 已经超过您的上限，则会拒绝并返回退出代码 3（仅当您确实希望这样做时才使用 `-Force`）。`status -Hook` 会打印一条 Claude Code SessionStart 消息，并且始终返回退出代码 0，因此，即使watchdog停止运行，也不会中断会话。完整参考：[handbook → Reference](https://mcp-tool-shop-org.github.io/watchdog/handbook/reference/)。
 
 ## 配置
 
-如果没有配置文件，看门狗将不会启动。它会依次查找 `-ConfigPath`、`$env:WATCHDOG_CONFIG`、`./watchdog.config.psd1` 和 `~/.watchdog/config.psd1`。
+如果没有配置文件，watchdog将不会启动。它会依次查找 `-ConfigPath`、`$env:WATCHDOG_CONFIG`、`./watchdog.config.psd1` 和 `~/.watchdog/config.psd1`。
 
 | 必需 | 含义 |
 |---|---|
-| `Root` | 用于存储心跳文件、日志和哨兵文件的绝对文件夹。看门狗不会将任何内容写入其他位置。 |
+| `Root` | 用于存储心跳文件、日志和哨兵文件的绝对文件夹。watchdog不会将任何内容写入其他位置。 |
 | `Targets` | 它可以停止的绝对解释器路径。 |
 | `VramKillMiB` | VRAM 上限（以 MiB 为单位）。对于 32GB 的显卡，`31200` 留出大约 1.4GB 的可用空间。 |
 | `RamKillPct` | 系统 RAM 上限（以百分比为单位）。 |

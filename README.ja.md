@@ -13,18 +13,18 @@
   <a href="https://mcp-tool-shop-org.github.io/watchdog/"><img src="https://img.shields.io/badge/Landing_Page-live-blue" alt="Landing Page"></a>
 </p>
 
-# ウォッチドッグ
+# watchdog
 
-**Windowsにおける、長時間のGPUジョブに対するハードリミット。** ウォッチドッグは、NVIDIAカードのVRAMと温度、およびシステムRAMを2秒ごとにチェックします。リミットが連続して3回を超えた場合、許可されたPythonインタープリターを停止し、それ以外は何も行いません。
+**Windowsにおける、長時間のGPUジョブに対するハードリミット。** watchdogは、NVIDIAカードのVRAMと温度、およびシステムRAMを2秒ごとにチェックします。リミットが連続して3回を超えた場合、許可されたPythonインタープリターを停止し、それ以外は何も行いません。
 
-トレーニングの実行や大規模なレンダリングを開始し、放置すると、メモリリーク、過剰なバッチサイズ、またはGPUの過熱により、システムがフリーズすることがあります。ウォッチドッグは、常に監視し続ける小さなプロセスです。設定したリミットを強制し、監視した内容を記録し、保護できなかった場合に明確に通知します。
+トレーニングの実行や大規模なレンダリングを開始し、放置すると、メモリリーク、過剰なバッチサイズ、またはGPUの過熱により、システムがフリーズすることがあります。watchdogは、常に監視し続ける小さなプロセスです。設定したリミットを強制し、監視した内容を記録し、保護できなかった場合に明確に通知します。
 
 ## 得られるもの
 
 - **ユーザーが選択するリミット。** VRAMはMiBで、RAMはパーセントで、GPU温度は℃で指定します。隠れたデフォルト値はありません。
 - **ターゲットを絞った停止。** リストに登録されたインタープリターのパス（オプションでWSLプロセスパターン）のみを停止できます。それ以外のPythonプロセスはそのままです。
 - **誤った安心感を与えない。** リストに登録されたプロセスに一致しない違反が発生した場合、保護のギャップとして記録され、VRAMを保持しているプロセスが名前で示されます。
-- **ウォッチドッグのためのウォッチドッグ。** オプションのスケジュールされたタスクが、1分間に1回ハートビートをチェックし、ウォッチドッグが停止した場合、外部からウォッチドッグが停止したと判断します。ウォッチドッグは、それ自体で何も再起動しません。
+- **watchdogのためのwatchdog。** オプションのスケジュールされたタスクが、1分間に1回ハートビートをチェックし、watchdogが停止した場合、外部からwatchdogが停止したと判断します。watchdogは、それ自体で何も再起動しません。
 - **明確な稼働状況の確認。** `watchdog status`は、0（実行中）、1（実行されていない）、2（致命的なエラーで停止）を返します。
 - **すべての実行の記録。** サンプルのCSV、キルログ、コンソールトランスクリプト、クラッシュログを、ユーザーが選択した1つのフォルダーに保存します。
 - **オプションのWSLメモリ解放。** WSLのファイルキャッシュがWindowsのメモリを圧迫する場合、ポーラーがそのキャッシュを解放できます。プロセスは停止せず、停止したディストリビューションも起動しません。
@@ -44,7 +44,7 @@ pwsh -File .\watchdog.ps1 start -AllowKill
 pwsh -File .\watchdog.ps1 status        # exit 0 = protected
 ```
 
-`-AllowKill`はあなたの同意です。ウォッチドッグは、これがない場合、または構成に`AllowKill = $true`がない場合は起動しません。モジュールとしてインストールし、外部チェックを追加するには、
+`-AllowKill`はあなたの同意です。watchdogは、これがない場合、または構成に`AllowKill = $true`がない場合は起動しません。モジュールとしてインストールし、外部チェックを追加するには、
 
 ```powershell
 Import-Module .\src\Watchdog\Watchdog.psd1
@@ -70,15 +70,15 @@ Register-WatchdogPoll     # scheduled task: detects a dead watchdog, never resta
 | `watchdog install` / `uninstall` | モジュールをコピーまたは削除します。`install -Poll`は、スケジュールされたチェックも登録します。 |
 | `watchdog help` / `version` | フラグ、終了コード、およびバージョンを表示します。 |
 
-`start`は、VRAMがすでに設定した上限を超えている場合、終了コード3で拒否します（`-Force`を使用する場合は、本当にそうしたいことを意味します）。`status -Hook`は、Claude Code SessionStartメッセージを出力し、常に終了コード0を返します。これにより、停止したウォッチドッグが、セッションを中断することなく報告されます。完全なリファレンス：[handbook → Reference](https://mcp-tool-shop-org.github.io/watchdog/handbook/reference/)。
+`start`は、VRAMがすでに設定した上限を超えている場合、終了コード3で拒否します（`-Force`を使用する場合は、本当にそうしたいことを意味します）。`status -Hook`は、Claude Code SessionStartメッセージを出力し、常に終了コード0を返します。これにより、停止したwatchdogが、セッションを中断することなく報告されます。完全なリファレンス：[handbook → Reference](https://mcp-tool-shop-org.github.io/watchdog/handbook/reference/)。
 
 ## 設定
 
-ウォッチドッグは、設定ファイルがないと起動しません。最初に`-ConfigPath`、次に`$env:WATCHDOG_CONFIG`、次に`./watchdog.config.psd1`、最後に`~/.watchdog/config.psd1`を検索します。
+watchdogは、設定ファイルがないと起動しません。最初に`-ConfigPath`、次に`$env:WATCHDOG_CONFIG`、次に`./watchdog.config.psd1`、最後に`~/.watchdog/config.psd1`を検索します。
 
 | 必須 | 意味 |
 |---|---|
-| `Root` | ハートビート、ログ、センチネルファイルの絶対パス。ウォッチドッグは、他の場所に書き込みません。 |
+| `Root` | ハートビート、ログ、センチネルファイルの絶対パス。watchdogは、他の場所に書き込みません。 |
 | `Targets` | 停止する可能性のある、絶対パスで指定されたインタープリターのパス。 |
 | `VramKillMiB` | VRAMの上限をMiBで指定します。32GBのカードの場合、`31200`は、約1.4GBのヘッドルームを残します。 |
 | `RamKillPct` | システムRAMの上限をパーセントで指定します。 |

@@ -13,18 +13,18 @@
   <a href="https://mcp-tool-shop-org.github.io/watchdog/"><img src="https://img.shields.io/badge/Landing_Page-live-blue" alt="Landing Page"></a>
 </p>
 
-# sentinela
+# watchdog
 
-**Um limite máximo para tarefas longas de GPU no Windows.** O sentinela verifica a VRAM e a temperatura da sua placa NVIDIA e a RAM do seu sistema a cada 2 segundos. Quando um limite é ultrapassado por três verificações consecutivas, ele interrompe os interpretadores Python que você permitiu que ele interrompesse e nada mais.
+**Um limite máximo para tarefas longas de GPU no Windows.** O watchdog verifica a VRAM e a temperatura da sua placa NVIDIA e a RAM do seu sistema a cada 2 segundos. Quando um limite é ultrapassado por três verificações consecutivas, ele interrompe os interpretadores Python que você permitiu que ele interrompesse e nada mais.
 
-Você inicia uma execução de treinamento ou uma renderização grande, se afasta e um vazamento de memória, um lote muito grande ou uma placa superaquecida transformam tudo em uma área de trabalho travada. O sentinela é o pequeno processo que permanece ativo para você: ele aplica os limites que você define, registra o que viu e informa claramente quando não conseguiu protegê-lo.
+Você inicia uma execução de treinamento ou uma renderização grande, se afasta e um vazamento de memória, um lote muito grande ou uma placa superaquecida transformam tudo em uma área de trabalho travada. O watchdog é o pequeno processo que permanece ativo para você: ele aplica os limites que você define, registra o que viu e informa claramente quando não conseguiu protegê-lo.
 
 ## O que você obtém
 
 - **Limites que você escolhe.** VRAM em MiB, RAM em porcentagem, temperatura da GPU em °C. Não há valores padrão ocultos.
 - **Interrupções direcionadas.** Apenas os caminhos dos interpretadores que você listar (mais um padrão de processo WSL opcional) podem ser interrompidos. Todos os outros processos Python na máquina são deixados intactos.
 - **Sem falsas garantias.** Uma violação que não corresponde a nenhum dos seus processos listados é registrada como uma lacuna de proteção, e os processos que detêm a VRAM são nomeados.
-- **Um sentinela para o sentinela.** Uma tarefa agendada opcional verifica o sinal de vida uma vez por minuto e marca o sentinela como inativo externamente, caso ele tenha parado. Ele nunca reinicia nada por conta própria.
+- **Um watchdog para o watchdog.** Uma tarefa agendada opcional verifica o sinal de vida uma vez por minuto e marca o watchdog como inativo externamente, caso ele tenha parado. Ele nunca reinicia nada por conta própria.
 - **Uma resposta clara sobre o status.** `watchdog status` retorna 0 (em execução), 1 (não em execução) ou 2 (falha grave).
 - **Um registro de cada execução.** Um arquivo CSV de amostras, um registro de interrupções, uma transcrição do console e um registro de falhas, todos armazenados em uma única pasta que você escolher.
 - **Retorno opcional de memória WSL.** Se o cache de arquivos do WSL sobrecarregar a memória do Windows, o verificador pode descartar esse cache. Ele nunca interrompe um processo e nunca inicia uma distribuição interrompida.
@@ -44,7 +44,7 @@ pwsh -File .\watchdog.ps1 start -AllowKill
 pwsh -File .\watchdog.ps1 status        # exit 0 = protected
 ```
 
-`-AllowKill` é o seu consentimento: o sentinela não será iniciado sem ele, ou sem `AllowKill = $true` na configuração.
+`-AllowKill` é o seu consentimento: o watchdog não será iniciado sem ele, ou sem `AllowKill = $true` na configuração.
 Para instalá-lo como um módulo e adicionar a verificação externa:
 
 ```powershell
@@ -58,7 +58,7 @@ Register-WatchdogPoll     # scheduled task: detects a dead watchdog, never resta
 1. **Amostra.** A cada `IntervalSec` (2 s por padrão), ele lê a temperatura, a potência e a VRAM da GPU de `nvidia-smi` e a RAM do sistema do Windows.
 2. **Aguarde por um padrão, não por um pico.** Um limite deve ser ultrapassado `BreachSamples` vezes consecutivas (3 por padrão) antes que qualquer coisa aconteça. Os avisos são registrados ao longo do caminho.
 3. **Interrompa apenas o que você listou.** Em caso de violação contínua, ele interrompe os `python` processos cujo caminho está em `Targets` e executa o padrão WSL `pkill` opcional. Ele registra o que interrompeu ou que não interrompeu nada.
-4. **Prove que está ativo.** O loop reescreve um arquivo de sinal de vida a cada amostra. `watchdog status` e o verificador agendado avaliam o status a partir desse sinal de vida, para que um sentinela inativo nunca pareça estar funcionando.
+4. **Prove que está ativo.** O loop reescreve um arquivo de sinal de vida a cada amostra. `watchdog status` e o verificador agendado avaliam o status a partir desse sinal de vida, para que um watchdog inativo nunca pareça estar funcionando.
 
 ## Comandos
 
@@ -71,15 +71,15 @@ Register-WatchdogPoll     # scheduled task: detects a dead watchdog, never resta
 | `watchdog install` / `uninstall` | Copia ou remove o módulo. `install -Poll` também registra a verificação agendada. |
 | `watchdog help` / `version` | Flags, códigos de saída e a versão. |
 
-`start` recusa com o código de saída 3 se a VRAM já estiver acima do seu limite (use `-Force` apenas se você realmente quiser isso). `status -Hook` imprime uma mensagem do Claude Code SessionStart e sempre retorna 0, para que um sentinela inativo seja relatado sem interromper a sessão. Referência completa: [handbook → Reference](https://mcp-tool-shop-org.github.io/watchdog/handbook/reference/).
+`start` recusa com o código de saída 3 se a VRAM já estiver acima do seu limite (use `-Force` apenas se você realmente quiser isso). `status -Hook` imprime uma mensagem do Claude Code SessionStart e sempre retorna 0, para que um watchdog inativo seja relatado sem interromper a sessão. Referência completa: [handbook → Reference](https://mcp-tool-shop-org.github.io/watchdog/handbook/reference/).
 
 ## Configuração
 
-O sentinela não será iniciado sem uma configuração. Ele procura em `-ConfigPath`, depois em `$env:WATCHDOG_CONFIG`, depois em `./watchdog.config.psd1` e, finalmente, em `~/.watchdog/config.psd1`.
+O watchdog não será iniciado sem uma configuração. Ele procura em `-ConfigPath`, depois em `$env:WATCHDOG_CONFIG`, depois em `./watchdog.config.psd1` e, finalmente, em `~/.watchdog/config.psd1`.
 
 | Obrigatório | Significado |
 |---|---|
-| `Root` | Pasta absoluta para o arquivo de sinal de vida, logs e arquivos sentinela. O sentinela não grava em nenhum outro lugar. |
+| `Root` | Pasta absoluta para o arquivo de sinal de vida, logs e arquivos sentinela. O watchdog não grava em nenhum outro lugar. |
 | `Targets` | Caminhos absolutos dos interpretadores que ele pode interromper. |
 | `VramKillMiB` | Limite máximo de VRAM em MiB. Para uma placa de 32 GB, `31200` deixa cerca de 1,4 GB de margem. |
 | `RamKillPct` | Limite máximo de RAM do sistema em porcentagem. |
