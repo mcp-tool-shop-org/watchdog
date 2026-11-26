@@ -11,20 +11,32 @@ function Read-WatchdogHeartbeatText {
   } finally { $fs.Dispose() }
 }
 
-function Test-WatchdogIoException($Exception) {
+function Get-WatchdogInnerException($Exception, [type]$Type) {
   $e = $Exception
   while ($e) {
-    if ($e -is [System.IO.IOException]) { return $true }
+    if ($e -is $Type) { return $e }
     $e = $e.InnerException
   }
-  return $false
+  return $null
+}
+
+# A heartbeat is ISO-8601 with an explicit offset (Z or +hh:mm). Anything else, including a timestamp cut off
+# before its Z, would parse as LOCAL time and could read as hours fresh on a dead loop.
+$script:WatchdogHeartbeatPattern = '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,7})?(Z|[+-]\d{2}:\d{2})$'
+
+function Get-WatchdogHeartbeatAgeState([double]$Age, [int]$StaleSec) {
+  # A heartbeat more than 5 s in the future (clock stepped back, or a bad parse) is not proof of life.
+  if ($Age -lt -5 -or $Age -gt $StaleSec) { return 'STALE' }
+  return 'RUNNING'
 }
 
 function Get-WatchdogHeartbeatState {
   # 2026-11-26 12:26: one locked/empty read made the poller declare the watchdog DEAD while the loop was alive
-  # (Set-Content truncates before it writes, and outside readers can hold the file). An empty or locked read is
-  # retried; if it stays that way, the age comes from the file's LastWriteTime (Source = 'mtime'), which the
-  # loop's own write moves. Content that reads but does not parse is still STALE: that is a broken writer.
+  # (Set-Content truncates before it writes, and outside readers can hold the file). Each attempt reads the file;
+  # an empty or IO-locked read is transient, a partial or malformed one is junk, and both are retried. If the
+  # last attempt was transient, the age comes from LastWriteTime (Source = 'mtime'), which only the loop's
+  # write moves. If it was junk, the result is STALE (Source = 'unparseable'): no mtime fallback for content
+  # that reads but does not parse. A file deleted mid-call (a clean stop) is NOT_RUNNING.
   param(
     [string]$Path,
     [int]$StaleSec,
@@ -32,40 +44,56 @@ function Get-WatchdogHeartbeatState {
     [int]$Attempts = 5,
     [int]$RetryDelayMs = 50
   )
-  if (-not (Test-Path -LiteralPath $Path)) {
-    return [pscustomobject]@{ State = 'NOT_RUNNING'; AgeSec = $null; Last = $null; Source = $null }
-  }
+  $notRunning = [pscustomobject]@{ State = 'NOT_RUNNING'; AgeSec = $null; Last = $null; Source = $null }
+  if (-not (Test-Path -LiteralPath $Path)) { return $notRunning }
+  # [IO.File]::Open resolves relative paths against the process directory, not $PWD.
+  $full = [System.IO.Path]::GetFullPath($Path, (Get-Location).ProviderPath)
   $Attempts = [math]::Max(1, $Attempts)
-  $transient = $false
+  $lastKind = ''
   foreach ($i in 1..$Attempts) {
     try {
-      $raw = Read-WatchdogHeartbeatText -Path $Path
-      if ([string]::IsNullOrWhiteSpace($raw)) {
-        $transient = $true
+      $raw = Read-WatchdogHeartbeatText -Path $full
+      $text = if ($null -eq $raw) { '' } else { $raw.Trim() }
+      if ($text -eq '') {
+        $lastKind = 'transient'
+      } elseif ($text -notmatch $script:WatchdogHeartbeatPattern) {
+        $lastKind = 'junk'
       } else {
-        $last = [datetimeoffset]::Parse($raw.Trim())
+        $last = [datetimeoffset]::Parse($text, [System.Globalization.CultureInfo]::InvariantCulture)
         $age = ($Now - $last).TotalSeconds
-        $state = if ($age -le $StaleSec) { 'RUNNING' } else { 'STALE' }
-        return [pscustomobject]@{ State = $state; AgeSec = $age; Last = $last; Source = 'content' }
+        return [pscustomobject]@{
+          State = (Get-WatchdogHeartbeatAgeState $age $StaleSec); AgeSec = $age; Last = $last; Source = 'content'
+        }
       }
     } catch {
-      if (Test-WatchdogIoException $_.Exception) {
-        $transient = $true
+      if ((Get-WatchdogInnerException $_.Exception ([System.IO.FileNotFoundException])) -or
+          (Get-WatchdogInnerException $_.Exception ([System.IO.DirectoryNotFoundException]))) {
+        return $notRunning
+      } elseif (Get-WatchdogInnerException $_.Exception ([System.IO.IOException])) {
+        $lastKind = 'transient'
       } else {
-        return [pscustomobject]@{ State = 'STALE'; AgeSec = [double]::NaN; Last = $null; Source = 'unparseable' }
+        $lastKind = 'junk'
       }
     }
     if ($i -lt $Attempts) { Start-Sleep -Milliseconds $RetryDelayMs }
   }
-  if ($transient) {
+  if ($lastKind -eq 'transient') {
     try {
-      $last = [datetimeoffset][datetime]::SpecifyKind((Get-Item -LiteralPath $Path).LastWriteTimeUtc, 'Utc')
+      $item = Get-Item -LiteralPath $full -ErrorAction Stop
+      $last = [datetimeoffset][datetime]::SpecifyKind($item.LastWriteTimeUtc, 'Utc')
       $age = ($Now - $last).TotalSeconds
-      $state = if ($age -le $StaleSec) { 'RUNNING' } else { 'STALE' }
-      return [pscustomobject]@{ State = $state; AgeSec = $age; Last = $last; Source = 'mtime' }
-    } catch { }
+      return [pscustomobject]@{
+        State = (Get-WatchdogHeartbeatAgeState $age $StaleSec); AgeSec = $age; Last = $last; Source = 'mtime'
+      }
+    } catch {
+      if ($_.Exception -is [System.Management.Automation.ItemNotFoundException] -or
+          (Get-WatchdogInnerException $_.Exception ([System.IO.FileNotFoundException]))) {
+        return $notRunning
+      }
+      return [pscustomobject]@{ State = 'STALE'; AgeSec = [double]::NaN; Last = $null; Source = 'unreadable' }
+    }
   }
-  return [pscustomobject]@{ State = 'STALE'; AgeSec = [double]::NaN; Last = $null; Source = 'unreadable' }
+  return [pscustomobject]@{ State = 'STALE'; AgeSec = [double]::NaN; Last = $null; Source = 'unparseable' }
 }
 
 function Format-WatchdogAge([double]$s) {
