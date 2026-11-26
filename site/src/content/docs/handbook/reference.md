@@ -32,7 +32,7 @@ watchdog version
 `Invoke-WatchdogPoll`, `Register-WatchdogPoll`, `Unregister-WatchdogPoll`,
 `Get-WatchdogConfig`, `Install-Watchdog`, `Uninstall-Watchdog`
 
-PowerShell 7. Module version **1.1.2**. Manifest:
+PowerShell 7. Module version **1.1.3**. Manifest:
 `src/Watchdog/Watchdog.psd1`.
 
 ## Files under Root

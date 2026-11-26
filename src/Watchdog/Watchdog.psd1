@@ -1,6 +1,6 @@
 @{
   RootModule           = 'Watchdog.psm1'
-  ModuleVersion        = '1.1.2'
+  ModuleVersion        = '1.1.3'
   GUID                 = '2c4f3e40-c63e-4083-b5b2-ae9e9247cca4'
   Author               = 'MCP Tool Shop'
   CompanyName          = 'MCP Tool Shop'

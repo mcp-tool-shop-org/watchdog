@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-11-26
+
+A live watchdog is no longer reported dead after one bad heartbeat read, and the README, landing page and handbook are rewritten as a proper front door.
+
+### Fixed
+
+- `Get-WatchdogHeartbeatState` (used by `status`, `poll`, `start` and `stop`) no longer declares the watchdog stale on a single failed read. It reads with full sharing; an empty read (`Set-Content` truncates before it writes) or an IO-locked read is retried (5 x 50 ms by default), and if it stays that way the age comes from the heartbeat's `LastWriteTime` (`Source = 'mtime'`). A partial or malformed read is retried too, and content that still does not parse is STALE (`Source = 'unparseable'`), never aged by `LastWriteTime`. A file deleted mid-read by a clean stop is `NOT_RUNNING`.
+- A heartbeat timestamp must carry an explicit offset (`Z` or `+hh:mm`); one cut off before its offset used to parse as local time and could read as hours fresh on a dead loop. An age more than 5 s in the future (a clock stepped back) is STALE, and only an age inside the window counts as RUNNING (a `NaN` age is STALE).
+- The heartbeat path is resolved through the PowerShell provider, so a caller sitting on a non-FileSystem drive (`Env:`, `HKLM:`) no longer errors.
+
+### Changed
+
+- README, landing page and handbook welcome page rewritten around what watchdog does for the user, with a quick start, how it works, commands, the required config and safety; the stated requirement is PowerShell 7, matching the manifest (`7.0`). The README is translated into 7 languages, with the product name protected from translation.
+- Public docs no longer carry internal deployment notes (a live-instance section, a local path, internal role labels and machine nicknames).
+- The logo has a transparent background.
+
 ## [1.1.2] - 2026-11-24
 
 ### Fixed
