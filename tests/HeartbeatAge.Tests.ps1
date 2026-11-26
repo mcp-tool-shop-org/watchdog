@@ -38,6 +38,43 @@ Describe 'Get-WatchdogHeartbeatState' {
     $s = Get-WatchdogHeartbeatState -Path $path -StaleSec 15
     $s.State | Should -Be 'STALE'
     [double]::IsNaN($s.AgeSec) | Should -BeTrue
+    $s.Source | Should -Be 'unparseable'
+  }
+
+  It 'is RUNNING from LastWriteTime when the heartbeat reads empty (mid-write truncate, 2026-11-26)' {
+    $path = Join-Path $TestDrive 'hb-empty'
+    Set-Content -LiteralPath $path -Value '' -NoNewline
+    $s = Get-WatchdogHeartbeatState -Path $path -StaleSec 15 -Attempts 2 -RetryDelayMs 1
+    $s.State | Should -Be 'RUNNING'
+    $s.Source | Should -Be 'mtime'
+  }
+
+  It 'is STALE from LastWriteTime when an empty heartbeat is also old' {
+    $path = Join-Path $TestDrive 'hb-empty-old'
+    Set-Content -LiteralPath $path -Value '' -NoNewline
+    (Get-Item -LiteralPath $path).LastWriteTimeUtc = [datetime]::UtcNow.AddMinutes(-10)
+    $s = Get-WatchdogHeartbeatState -Path $path -StaleSec 15 -Attempts 2 -RetryDelayMs 1
+    $s.State | Should -Be 'STALE'
+    $s.Source | Should -Be 'mtime'
+    $s.AgeSec | Should -BeGreaterThan 500
+  }
+
+  It 'is RUNNING from LastWriteTime while another process holds the file exclusively' {
+    $path = Join-Path $TestDrive 'hb-locked'
+    Get-WatchdogTimestamp | Set-Content $path
+    $lock = [System.IO.File]::Open($path, 'Open', 'ReadWrite', 'None')
+    try {
+      $s = Get-WatchdogHeartbeatState -Path $path -StaleSec 15 -Attempts 2 -RetryDelayMs 1
+    } finally { $lock.Dispose() }
+    $s.State | Should -Be 'RUNNING'
+    $s.Source | Should -Be 'mtime'
+  }
+
+  It 'reads the content when nothing holds the file' {
+    $path = Join-Path $TestDrive 'hb-content'
+    Get-WatchdogTimestamp | Set-Content $path
+    $s = Get-WatchdogHeartbeatState -Path $path -StaleSec 15
+    $s.Source | Should -Be 'content'
   }
 }
 
