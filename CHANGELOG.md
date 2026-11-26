@@ -13,8 +13,8 @@ A live watchdog is no longer reported dead after one bad heartbeat read, and the
 
 ### Fixed
 
-- `Get-WatchdogHeartbeatState` (used by `status`, `poll`, `start` and `stop`) no longer declares the watchdog stale on a single failed read. It reads with full sharing; an empty read (`Set-Content` truncates before it writes) or an IO-locked read is retried (5 x 50 ms by default), and if it stays that way the age comes from the heartbeat's `LastWriteTime` (`Source = 'mtime'`). A partial or malformed read is retried too, and content that still does not parse is STALE (`Source = 'unparseable'`), never aged by `LastWriteTime`. A file deleted mid-read by a clean stop is `NOT_RUNNING`.
-- A heartbeat timestamp must carry an explicit offset (`Z` or `+hh:mm`); one cut off before its offset used to parse as local time and could read as hours fresh on a dead loop. An age more than 5 s in the future (a clock stepped back) is STALE, and only an age inside the window counts as RUNNING (a `NaN` age is STALE).
+- `Get-WatchdogHeartbeatState` (used by `status`, `poll`, `start` and `stop`) no longer declares the watchdog stale on a single failed read. It reads with full sharing; an empty read (`Set-Content` truncates before it writes) or an IO-locked read is retried (up to 5 attempts, 50 ms apart, by default), and if it stays that way the age comes from the heartbeat's `LastWriteTime` (`Source = 'mtime'`). A partial or malformed read is retried too, and content that still does not parse is STALE (`Source = 'unparseable'`), never aged by `LastWriteTime`. A file deleted mid-read by a clean stop is `NOT_RUNNING`.
+- A heartbeat timestamp must carry an explicit offset (`Z` or `±hh:mm`); one cut off before its offset used to parse as local time and could read as hours fresh on a dead loop. An age more than 5 s in the future (a clock stepped back) is STALE, and only an age inside the window counts as RUNNING (a `NaN` age is STALE).
 - The heartbeat path is resolved through the PowerShell provider, so a caller sitting on a non-FileSystem drive (`Env:`, `HKLM:`) no longer errors.
 
 ### Changed
