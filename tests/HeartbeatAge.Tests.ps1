@@ -154,6 +154,24 @@ Describe 'Get-WatchdogHeartbeatState' {
     $s.State | Should -Be 'STALE'
     $s.Source | Should -Be 'unreadable'
   }
+
+  It 'reads an absolute path while the caller sits on a non-FileSystem drive' {
+    $path = Join-Path $TestDrive 'hb-envdrive'
+    Get-WatchdogTimestamp | Set-Content $path
+    Push-Location Env:
+    try {
+      $s = Get-WatchdogHeartbeatState -Path $path -StaleSec 15
+    } finally { Pop-Location }
+    $s.State | Should -Be 'RUNNING'
+    $s.Source | Should -Be 'content'
+  }
+
+  It 'treats a NaN age as STALE (fails closed)' {
+    Get-WatchdogHeartbeatAgeState ([double]::NaN) 15 | Should -Be 'STALE'
+    Get-WatchdogHeartbeatAgeState 3 15 | Should -Be 'RUNNING'
+    Get-WatchdogHeartbeatAgeState -4 15 | Should -Be 'RUNNING'
+    Get-WatchdogHeartbeatAgeState -6 15 | Should -Be 'STALE'
+  }
 }
 
 Describe 'Get-WatchdogTimestamp' {

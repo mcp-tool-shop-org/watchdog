@@ -26,8 +26,9 @@ $script:WatchdogHeartbeatPattern = '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,
 
 function Get-WatchdogHeartbeatAgeState([double]$Age, [int]$StaleSec) {
   # A heartbeat more than 5 s in the future (clock stepped back, or a bad parse) is not proof of life.
-  if ($Age -lt -5 -or $Age -gt $StaleSec) { return 'STALE' }
-  return 'RUNNING'
+  # Fail closed: only an age inside the window is RUNNING (NaN compares false and lands on STALE).
+  if ($Age -ge -5 -and $Age -le $StaleSec) { return 'RUNNING' }
+  return 'STALE'
 }
 
 function Get-WatchdogHeartbeatState {
@@ -46,8 +47,9 @@ function Get-WatchdogHeartbeatState {
   )
   $notRunning = [pscustomobject]@{ State = 'NOT_RUNNING'; AgeSec = $null; Last = $null; Source = $null }
   if (-not (Test-Path -LiteralPath $Path)) { return $notRunning }
-  # [IO.File]::Open resolves relative paths against the process directory, not $PWD.
-  $full = [System.IO.Path]::GetFullPath($Path, (Get-Location).ProviderPath)
+  # [IO.File]::Open resolves relative paths against the process directory, not $PWD; resolve through the
+  # provider so a caller sitting on a non-FileSystem drive (Env:, HKLM:) still gets the file path.
+  $full = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
   $Attempts = [math]::Max(1, $Attempts)
   $lastKind = ''
   foreach ($i in 1..$Attempts) {
